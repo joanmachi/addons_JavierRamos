@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+    <record id="action_server_print_valued_albaran" model="ir.actions.server">
+        <field name="name">Imprimir Albarán Valorado</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_print_valued_albaran()</field>
+    </record>
+
     <template
         id="valued_report_picking"
         inherit_id="stock.report_delivery_document"
@@ -7,9 +16,10 @@
     >
         <xpath expr="//div[hasclass('page')]" position="before">
             <t t-set="is_outgoing" t-value="o.picking_type_code == 'outgoing'" />
+            <t t-set="show_valued" t-value="o.valued or o.env.context.get('force_valued', False)" />
         </xpath>
         <xpath expr="//table[@name='stock_move_line_table']/thead/tr" position="inside">
-            <t t-if="o.valued and o.sale_id and o.move_line_ids and is_outgoing">
+            <t t-if="show_valued and o.sale_id and o.move_line_ids and is_outgoing">
                 <th class="text-end">
                     <strong>Unit Price</strong>
                 </th>
@@ -27,7 +37,7 @@
         <xpath expr="//th[@name='th_sml_qty_ordered']" position="attributes">
             <attribute
                 name="t-if"
-                add="(not is_outgoing or not (o.valued and o.sale_id and o.move_line_ids))"
+                add="(not is_outgoing or not (show_valued and o.sale_id and o.move_line_ids))"
                 separator="and"
             />
         </xpath>
@@ -40,7 +50,7 @@
         >
             <attribute
                 name="t-if"
-                add="(o.valued and o.sale_id and o.move_line_ids and is_outgoing)"
+                add="(show_valued and o.sale_id and o.move_line_ids and is_outgoing)"
                 separator="or"
             />
         </xpath>
@@ -50,7 +60,7 @@
         >
             <attribute
                 name="t-if"
-                add="(o.valued and o.sale_id and o.move_line_ids and is_outgoing)"
+                add="(show_valued and o.sale_id and o.move_line_ids and is_outgoing)"
                 separator="or"
             />
         </xpath>
@@ -60,12 +70,12 @@
         >
             <attribute
                 name="t-if"
-                add="(o.valued and o.sale_id and o.move_line_ids and is_outgoing)"
+                add="(show_valued and o.sale_id and o.move_line_ids and is_outgoing)"
                 separator="or"
             />
         </xpath>
         <xpath expr="//table[@name='stock_move_line_table']" position="after">
-            <t t-if="o.valued and o.sale_id and o.move_line_ids and is_outgoing">
+            <t t-if="show_valued and o.sale_id and o.move_line_ids and is_outgoing">
                 <table class="table table-borderless mt32">
                     <thead>
                         <tr>
@@ -138,7 +148,7 @@
         priority="17"
     >
         <xpath expr="." position="inside">
-            <t t-if="o.valued and o.sale_id and o.move_line_ids and is_outgoing">
+            <t t-if="show_valued and o.sale_id and o.move_line_ids and is_outgoing">
                 <td class="text-end">
                     <span t-field="move_line.sale_price_unit" />
                 </td>

@@ -66,6 +66,11 @@ class StockPicking(models.Model):
         self.ensure_one()
         return self.amount_total
 
+    def action_print_valued_albaran(self):
+        return self.env.ref('stock.action_report_delivery').with_context(
+            force_valued=True
+        ).report_action(self)
+
     def _show_report_valued_total_block(self):
         """
         Return True if the Total Picking block should be displayed in the report.

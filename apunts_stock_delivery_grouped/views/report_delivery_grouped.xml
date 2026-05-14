@@ -10,7 +10,7 @@
 
         <!-- Reemplaza la tabla state!=done -->
         <xpath expr="//table[@name='stock_move_table']" position="replace">
-            <table class="table table-borderless" name="stock_move_table">
+            <table t-if="o.state != 'done'" class="table table-borderless" name="stock_move_table">
                 <thead>
                     <tr>
                         <th name="th_sm_product"><strong>Producto</strong></th>
@@ -38,7 +38,7 @@
 
         <!-- Reemplaza la tabla state==done -->
         <xpath expr="//table[@name='stock_move_line_table']" position="replace">
-            <table class="table table-borderless mt48" name="stock_move_line_table">
+            <table t-if="o.state == 'done'" class="table table-borderless mt48" name="stock_move_line_table">
                 <thead>
                     <tr>
                         <th name="th_sml_product"><strong>Producto</strong></th>
