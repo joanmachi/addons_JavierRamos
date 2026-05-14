@@ -81,3 +81,29 @@ El albarán imprimía la tabla de productos dos veces. El módulo `apunts_stock_
 - `stock_move_line_table` → `t-if="o.state == 'done'"`
 
 ---
+
+## [005] Supervisor Planta — clic en fila abre la orden de fabricación
+
+**Fecha:** 2026-05-14  
+**Módulo:** `lira_mfg_supervisor`  
+**Ficheros modificados:**
+- `lira_mfg_supervisor/models/lira_supervisor_workorder.py` — método `action_open_production()`
+- `lira_mfg_supervisor/static/src/js/supervisor_list.js` — nuevo componente OWL `lira_supervisor_list`
+- `lira_mfg_supervisor/views/lira_supervisor_views.xml` — `js_class="lira_supervisor_list"` en ambas vistas lista
+- `lira_mfg_supervisor/__manifest__.py` — registro del JS en `web.assets_backend`
+
+**Por qué:**  
+El panel del supervisor muestra filas de `mrp.workorder`. Al hacer clic, Odoo abría (o intentaba abrir) el formulario del workorder, que no es útil en el contexto de supervisión. El usuario necesitaba que el clic navegara directamente a la orden de fabricación (`mrp.production`) relacionada.
+
+**Solución adoptada:**
+
+1. Se añade el método Python `action_open_production()` que devuelve una `ir.actions.act_window` apuntando al formulario de `mrp.production` con el `res_id` de `self.production_id`.
+
+2. Se crea `supervisor_list.js` con un componente OWL `SupervisorListController` que extiende `ListController` y sobreescribe `openRecord(record)` para llamar al método Python en lugar de abrir el workorder. Se registra como vista personalizada `lira_supervisor_list`.
+
+3. Se añade `js_class="lira_supervisor_list"` a las dos vistas lista del módulo (Panel en tiempo real e Historial del día) para que ambas usen el controlador personalizado.
+
+**Error encontrado durante el desarrollo:**  
+`TypeError: Cannot read properties of undefined (reading 'call')` — `this.orm` era `undefined` al sobreescribir `openRecord` sin definir `setup()`. En OWL 2, los hooks de `useService` deben llamarse explícitamente en el `setup()` del componente que los usa. La solución fue definir `setup()` en el subcomponente, llamar a `super.setup()` y registrar los servicios propios (`this._orm`, `this._action`) con `useService`, en lugar de depender de los heredados del padre.
+
+---

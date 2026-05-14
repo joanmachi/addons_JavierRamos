@@ -90,6 +90,17 @@ class LiraSupervisorWorkorder(models.Model):
                     wo.lira_date_ready = False
         return result
 
+    def action_open_production(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'mrp.production',
+            'res_id': self.production_id.id,
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'current',
+        }
+
     def action_open_validate_wizard(self):
         return {
             'name': 'Validar cantidad',

@@ -7,6 +7,7 @@
     <field name="model">mrp.workorder</field>
     <field name="arch" type="xml">
       <list string="Panel Supervisor"
+            js_class="lira_supervisor_list"
             create="0" delete="0" edit="0"
             decoration-danger="lira_validation_state == 'pending'"
             decoration-info="lira_validation_state == 'working'"
@@ -61,6 +62,7 @@
     <field name="model">mrp.workorder</field>
     <field name="arch" type="xml">
       <list string="Historial del día"
+            js_class="lira_supervisor_list"
             create="0" delete="0" edit="0"
             decoration-success="lira_validated_date != False"
             decoration-danger="lira_rejection_date != False and lira_validated_date == False">

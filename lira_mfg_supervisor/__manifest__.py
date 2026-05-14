@@ -16,6 +16,7 @@
     'assets': {
         'web.assets_backend': [
             'lira_mfg_supervisor/static/src/css/supervisor.css',
+            'lira_mfg_supervisor/static/src/js/supervisor_list.js',
         ],
     },
     'installable': True,
