@@ -8,5 +8,5 @@ class AccountMove(models.Model):
     invoice_due_date_display = fields.Date(
         string='Fecha Vencimiento',
         related='invoice_date_due',
-        store=False,
+        store=True,
     )

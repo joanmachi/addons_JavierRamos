@@ -11,7 +11,7 @@
         <field name="inherit_id" ref="account.view_invoice_tree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_date_due']" position="after">
-                <field name="invoice_due_date_display" widget="date" optional="show"/>
+                <field name="invoice_due_date_display" widget="date" optional="show" string="Fecha Venc."/>
             </xpath>
         </field>
     </record>
