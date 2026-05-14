@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Fabricación en Curso (WIP) ══════════════════════════════ -->
+  <record id="view_lira_mrp_wip_form" model="ir.ui.view">
+    <field name="name">lira.mrp.wip.form</field>
+    <field name="model">lira.mrp.wip</field>
+    <field name="arch" type="xml">
+      <form string="Fabricación en Curso (WIP)" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Fabricación en Curso (WIP) <widget name="lira_print_button" title="Fabricación en Curso (WIP)" line_model="lira.mrp.wip.line"/></div>
+              <div class="ld_main_subtitle">Valoración del trabajo en curso: órdenes de fabricación confirmadas, en producción y listas para cerrar. Acumula el coste real de materias primas consumidas y horas de mano de obra.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Valoración total WIP <i class="fa fa-info-circle text-muted ms-1" title="Suma del coste (MP + M.O.) de todas las órdenes en producción o listas para cerrar."/></div>
+                <div class="ld_hkpi_value"><field name="total_valoracion" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Coste MP <i class="fa fa-info-circle text-muted ms-1" title="Suma del coste de materias primas realmente consumidas."/></div>
+                <div class="ld_hkpi_value"><field name="coste_mp_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Coste M.O. <i class="fa fa-info-circle text-muted ms-1" title="Suma del coste de mano de obra en centros de trabajo."/></div>
+                <div class="ld_hkpi_value"><field name="coste_horas_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Confirmadas <i class="fa fa-info-circle text-muted ms-1" title="Órdenes confirmadas cuya producción aún no ha comenzado."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_confirmadas" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">En producción <i class="fa fa-info-circle text-muted ms-1" title="Órdenes con fabricación iniciada."/></div>
+                <div class="ld_hkpi_value" style="color:#2563eb"><field name="total_en_progreso" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Listas para cerrar <i class="fa fa-info-circle text-muted ms-1" title="Órdenes finalizadas pendientes de cierre contable."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_para_cerrar" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-industry"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver órdenes de fabricación en curso</strong>
+              <span>Abre la tabla con buscador nativo: filtra por producto, código de barras, referencia de orden o estado; agrupa por categoría o estado.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.mrp.wip.line ════════════════════════════════════════════ -->
+  <record id="view_lira_mrp_wip_line_list" model="ir.ui.view">
+    <field name="name">lira.mrp.wip.line.list</field>
+    <field name="model">lira.mrp.wip.line</field>
+    <field name="arch" type="xml">
+      <list string="WIP — Fabricación en curso" create="0" delete="0" edit="0"
+            decoration-muted="estado == 'confirmed'"
+            decoration-info="estado == 'progress'"
+            decoration-success="estado == 'to_close'">
+        <field name="referencia" string="Referencia"
+               help="Número de orden de fabricación."/>
+        <field name="product_id" string="Producto"
+               help="Producto final a fabricar."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="estado" string="Estado" widget="badge"
+               decoration-muted="estado == 'confirmed'"
+               decoration-info="estado == 'progress'"
+               decoration-success="estado == 'to_close'"
+               help="Estado de la OF: Confirmada (planificada sin iniciar), En curso, Pdte. cerrar."/>
+        <field name="qty_prevista" string="Cant. prevista" sum="Total uds"
+               help="Cantidad a producir según la orden."/>
+        <field name="coste_mp" string="Coste MP (€)" sum="Total MP"
+               help="Coste materias primas consumidas (OF en curso o terminadas)."/>
+        <field name="coste_horas" string="Coste M.O. (€)" sum="Total M.O."
+               help="Coste mano de obra acumulada en centros de trabajo."/>
+        <field name="valoracion" string="Valoración WIP (€)" sum="Total valoración"
+               help="Valor acumulado de la OF = Coste MP + Coste M.O. Las confirmadas sin iniciar tienen 0."/>
+        <field name="fecha_prevista" string="Entrega prevista"
+               help="Fecha límite de entrega de la orden."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver OF en Fabricación"
+                title="Abrir la Orden de Fabricación en el módulo de Fabricación"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.mrp.wip.line ════════════════════════════════════════ -->
+  <record id="view_lira_mrp_wip_line_search" model="ir.ui.view">
+    <field name="name">lira.mrp.wip.line.search</field>
+    <field name="model">lira.mrp.wip.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en WIP">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="referencia" string="Referencia orden"/>
+        <separator/>
+        <filter name="confirmed" string="Confirmadas"      domain="[('estado','=','confirmed')]"/>
+        <filter name="progress"  string="En producción"    domain="[('estado','=','progress')]"/>
+        <filter name="to_close"  string="Listas para cerrar" domain="[('estado','=','to_close')]"/>
+        <separator/>
+        <filter name="con_coste" string="Con valoración &gt; 0" domain="[('valoracion','>',0)]"/>
+        <filter name="val_1k"    string="Valoración &gt; 1.000 €" domain="[('valoracion','>',1000)]"/>
+        <filter name="val_10k"   string="Valoración &gt; 10.000 €" domain="[('valoracion','>',10000)]"/>
+        <filter name="solo_mo"   string="Con coste M.O. &gt; 0" domain="[('coste_horas','>',0)]"/>
+        <filter name="solo_mp"   string="Con coste MP &gt; 0"   domain="[('coste_mp','>',0)]"/>
+        <separator/>
+        <filter name="entrega_mes" string="Entrega este mes"
+                date="fecha_prevista"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_estado"   string="Estado"        context="{'group_by': 'estado'}"/>
+          <filter name="group_categ"    string="Categoría"     context="{'group_by': 'categ_id'}"/>
+          <filter name="group_product"  string="Producto"      context="{'group_by': 'product_id'}"/>
+          <filter name="group_fecha"    string="Entrega prevista" context="{'group_by': 'fecha_prevista'}"/>
+          <filter name="group_ref"      string="Referencia OF" context="{'group_by': 'referencia'}"/>
+          <filter name="group_qty"      string="Cant. prevista" context="{'group_by': 'qty_prevista'}"/>
+          <filter name="group_mp"       string="Coste MP"      context="{'group_by': 'coste_mp'}"/>
+          <filter name="group_horas"    string="Coste M.O."    context="{'group_by': 'coste_horas'}"/>
+          <filter name="group_val"      string="Valoración"    context="{'group_by': 'valoracion'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_mrp_wip" model="ir.actions.server">
+    <field name="name">Fabricación en Curso (WIP) Lira</field>
+    <field name="model_id" ref="model_lira_mrp_wip"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

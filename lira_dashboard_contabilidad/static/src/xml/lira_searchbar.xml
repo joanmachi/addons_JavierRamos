@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+  <t t-name="lira_dashboard_contabilidad.LiraSalesSearchBar">
+    <div class="lira_sbwrap d-flex align-items-center gap-2 w-100">
+
+      <!-- ── Barra nativa ─────────────────────────────────────────────────── -->
+      <div class="o_searchview flex-grow-1 position-relative"
+           t-on-click="focusInput">
+
+        <i class="o_searchview_icon fa fa-search" role="img" aria-label="Buscar"/>
+
+        <div class="o_searchview_input_container">
+
+          <!-- Facets: filtros activos -->
+          <t t-foreach="facets" t-as="facet" t-key="facet.key">
+            <div class="o_searchview_facet">
+              <span class="o_searchview_facet_label" t-esc="facet.label"/>
+              <i class="o_searchview_facet_delete fa fa-times"
+                 t-on-click.stop="() => removeFacet(facet)"/>
+            </div>
+          </t>
+
+          <!-- Input de texto -->
+          <input t-ref="searchInput"
+                 class="o_searchview_input o_input"
+                 type="text"
+                 placeholder="Buscar..."
+                 autocomplete="off"
+                 t-att-value="state.inputText"
+                 t-on-input="onInput"
+                 t-on-keydown="onKeydown"/>
+        </div>
+
+        <!-- Botón caret ── abre/cierra el dropdown -->
+        <div class="o_searchview_dropdown_toggler o_dropdown_toggler_btn"
+             t-on-click.stop="toggleDropdown">
+          <i class="fa fa-caret-down"/>
+        </div>
+
+        <!-- ── Dropdown de filtros ─────────────────────────────────────────── -->
+        <div t-if="state.dropdownOpen"
+             class="o_search_dropdown lira_search_dropdown"
+             t-on-click="(ev) => ev.stopPropagation()">
+
+          <!-- Filtros ABC -->
+          <ul class="o_dropdown_category">
+            <li class="o_dropdown_title">Filtros</li>
+            <li class="o_menu_item"
+                t-att-class="{'o_item_active': filterAbc === 'A'}"
+                t-on-click="() => applyAbc('A')">
+              <i class="fa fa-check me-1"
+                 t-att-style="filterAbc === 'A' ? '' : 'visibility:hidden'"/>
+              <span class="badge text-bg-success me-1">A</span>
+              Categoría A — top 80%
+            </li>
+            <li class="o_menu_item"
+                t-att-class="{'o_item_active': filterAbc === 'B'}"
+                t-on-click="() => applyAbc('B')">
+              <i class="fa fa-check me-1"
+                 t-att-style="filterAbc === 'B' ? '' : 'visibility:hidden'"/>
+              <span class="badge text-bg-warning me-1">B</span>
+              Categoría B — 80-95%
+            </li>
+            <li class="o_menu_item"
+                t-att-class="{'o_item_active': filterAbc === 'C'}"
+                t-on-click="() => applyAbc('C')">
+              <i class="fa fa-check me-1"
+                 t-att-style="filterAbc === 'C' ? '' : 'visibility:hidden'"/>
+              <span class="badge text-bg-secondary me-1">C</span>
+              Categoría C — último 5%
+            </li>
+          </ul>
+
+          <!-- Importe mínimo -->
+          <ul class="o_dropdown_category">
+            <li class="o_dropdown_title">Importe mínimo (€)</li>
+            <li class="o_menu_item d-flex align-items-center gap-1 py-1">
+              <input type="number" min="0" step="100"
+                     class="o_input"
+                     style="width:90px;padding:2px 8px;font-size:0.85rem"
+                     t-att-value="state.minInput"
+                     t-on-input="onMinInput"
+                     t-on-click="(ev) => ev.stopPropagation()"
+                     t-on-keydown="onMinKeydown"/>
+              <button class="btn btn-sm btn-primary"
+                      t-on-click="applyMin">Aplicar</button>
+            </li>
+          </ul>
+
+          <!-- Limpiar todo -->
+          <t t-if="facets.length">
+            <ul class="o_dropdown_category" style="border-top:1px solid #e9ecef;margin-top:4px;padding-top:4px">
+              <li class="o_menu_item" style="color:#dc3545"
+                  t-on-click="clearAll">
+                <i class="fa fa-times me-1"/>Limpiar todos los filtros
+              </li>
+            </ul>
+          </t>
+
+        </div>
+      </div>
+
+      <!-- ── Contador de resultados ──────────────────────────────────────── -->
+      <div class="lira_sb_result_badge text-nowrap">
+        <strong t-esc="numResultados"/>
+        <span class="text-muted ms-1">resultados</span>
+      </div>
+
+    </div>
+  </t>
+
+</templates>

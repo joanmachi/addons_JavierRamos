@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_mrporder_custom" inherit_id="mrp.report_mrporder" priority="2">
+        <xpath expr="//tr[@t-foreach='o.workorder_ids']" position="attributes">
+            <attribute name="style">height: 100px; vertical-align: middle;</attribute>
+        </xpath>
+            
+  
+    </template>
+   
+</odoo>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_workorder_form_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.inherit</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_tree_editable_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="qty_ready_to_validate" optional="show"/>
+                <field name="qty_validated" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <button name="action_open_qty_wizard" 
+                        string="Validar" 
+                        type="object" 
+                        icon="fa-pencil" 
+                        class="btn-primary"
+                        invisible="state in ['done', 'cancel']"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_workorder_fichajes_form_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.fichaje.inherit</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='time_ids']//field[@name='date_end']" position="after">
+                <field name="cantidad_introducida" optional="show"/>
+                <field name="cantidad_total_actual" optional="show"/>
+            </xpath>
+           
+        </field>
+    </record>
+
+        <record id="view_mrp_production_form_view_filter_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.select.inherit</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter string="Soldadura 1" name="filter_by_workcenter_7" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [7])]"/>
+
+                    <filter string="Soldadura 2" name="filter_by_workcenter_8" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [8])]"/>
+
+
+                    <filter string="Soldadura 3" name="filter_by_workcenter_9" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [9])]"/>
+
+
+                    <filter string="Hartford" name="filter_by_workcenter_10" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [10])]"/>
+
+
+                    <filter string="Akira seiki 1" name="filter_by_workcenter_11" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [11])]"/>
+
+
+                    <filter string="Okuma 1" name="filter_by_workcenter_12" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [12])]"/>
+
+
+                    <filter string="Okuma 2" name="filter_by_workcenter_13" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [13])]"/>
+
+
+                    <filter string="JHON FORD SL70" name="filter_by_workcenter_14" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [14])]"/>
+
+
+                    <filter string="JHON FORD ST50" name="filter_by_workcenter_15" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [15])]"/>
+
+
+                    <filter string="JHON FORD TC35" name="filter_by_workcenter_16" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [16])]"/>
+
+
+                    <filter string="JHON FORD TC35 A" name="filter_by_workcenter_17" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [17])]"/>
+
+
+                    <filter string="PINACHO" name="filter_by_workcenter_18" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [18])]"/>
+
+
+                    <filter string="CAD" name="filter_by_workcenter_19" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [19])]"/>
+
+
+                    <filter string="DYE" name="filter_by_workcenter_20" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [20])]"/>
+
+
+                    <filter string="LOGISTICA Y CORTE" name="filter_by_workcenter_21" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [21])]"/>
+
+
+                    <filter string="MONTAJE" name="filter_by_workcenter_22" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [22])]"/>
+
+
+                    <filter string="TRABAJOS MANUALES" name="filter_by_workcenter_32" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [32])]"/>
+
+
+                    <filter string="SERVICIOS EXTERNOS" name="filter_by_workcenter_36" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [36])]"/>
+
+
+                    <filter string="PROGRAMACION" name="filter_by_workcenter_38" invisible="1"
+                            domain="[('workorder_ids.workcenter_id', 'in', [38])]"/>
+
+
+                </xpath>
+            </field>
+        </record>
+
+<record id="mrp_workorder_fichajes_kanban_view_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.type.kanban.inherit</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock_barcode.stock_picking_type_kanban"/>
+        <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('rounded-pill')]" position="replace">
+                           <div class="badge rounded-pill bg-secondary float-end align-self-center p-1 px-2 fs-6" t-if="record.count_picking_ready.value > 0"
+                                 t-attf-class="{{ record.count_picking_ready.value == 0 ? 'text-muted' : 'fw-bold' }}"
+                                 name="get_action_picking_tree_ready_kanban" type="object">
+                                <span name="pickings_count"><field name="count_picking_ready"/></span> 
+                            </div>
+                </xpath>
+           
+        </field>
+    </record>
+
+</odoo>

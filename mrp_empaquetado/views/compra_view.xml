@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="purchase_order_form_view_custom" model="ir.ui.view">
+        <field name="name">purchase.order.form.view.custom</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+         
+
+            <xpath expr="//sheet/notebook/page[1]/field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="cantidad_en_caja"  />
+                <field name="cantidad_caja" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

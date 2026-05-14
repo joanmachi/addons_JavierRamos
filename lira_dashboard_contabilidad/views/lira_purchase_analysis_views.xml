@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Análisis de Compras ════════════════════════════════════ -->
+  <record id="view_lira_purchase_analysis_form" model="ir.ui.view">
+    <field name="name">lira.purchase.analysis.form</field>
+    <field name="model">lira.purchase.analysis</field>
+    <field name="arch" type="xml">
+      <form string="Análisis de compras" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Análisis de Compras <widget name="lira_print_button" title="Análisis de Compras" line_model="lira.purchase.line"/></div>
+              <div class="ld_main_subtitle">Ranking de compras por proveedor, producto o categoría. Datos extraídos de los pedidos de compra confirmados en el periodo seleccionado.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-2">Agrupar por</span>
+                <field name="agrupar_por" nolabel="1" class="ld_date_input"/>
+                <button name="action_ver_tabla" string="Ver ranking" type="object"
+                        class="ld_btn_primary" icon="fa-list-ol"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total compras <i class="fa fa-info-circle text-muted ms-1" title="Suma de todos los pedidos de compra confirmados en el período (sin IVA)."/></div>
+                <div class="ld_hkpi_value"><field name="total_compras" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Proveedores activos <i class="fa fa-info-circle text-muted ms-1" title="Número de proveedores distintos con al menos un pedido confirmado."/></div>
+                <div class="ld_hkpi_value"><field name="num_proveedores" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Productos comprados <i class="fa fa-info-circle text-muted ms-1" title="Número de productos distintos en los pedidos del período."/></div>
+                <div class="ld_hkpi_value"><field name="num_productos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top proveedor</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="top_proveedor" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top producto</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="top_producto" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-sort-amount-desc"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver el ranking de compras</strong>
+              <span>Abre la tabla con buscador nativo: filtra por proveedor, NIF, producto, código de barras o categoría; agrupa como necesites.</span>
+            </div>
+            <button name="action_ver_tabla" string="Abrir ranking" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.purchase.line ══════════════════════════════════════════ -->
+  <record id="view_lira_purchase_line_list" model="ir.ui.view">
+    <field name="name">lira.purchase.line.list</field>
+    <field name="model">lira.purchase.line</field>
+    <field name="arch" type="xml">
+      <list string="Análisis de compras" create="0" delete="0" edit="0">
+        <field name="rank" string="#" width="44"
+               help="Posición de mayor a menor importe de compras."/>
+        <field name="label" string="Nombre"
+               help="Nombre del grupo según agrupación (proveedor, producto, categoría o mes)."/>
+        <field name="qty" string="Uds." sum="Total uds"
+               help="Total unidades compradas."/>
+        <field name="importe" string="Compras (€)" sum="Total compras"
+               help="Importe de compras sin IVA."/>
+        <field name="num_pedidos" string="Pedidos" sum="Total pedidos"
+               help="Número de pedidos de compra distintos."/>
+        <field name="ticket_medio" string="Ticket medio (€)" avg="Ticket medio"
+               help="Importe medio por pedido = Compras / Nº pedidos."/>
+        <field name="pct_compras" string="% s/total" avg="% medio"
+               help="Porcentaje sobre el total de compras del periodo."/>
+        <field name="ultima_fecha" string="Último pedido"
+               help="Fecha del pedido más reciente. Fuente: max(purchase.order.date_order)."/>
+        <field name="agrupar_por" optional="show"
+               help="Dimensión de agrupación usada al generar la tabla: supplier, product, category o month."/>
+        <field name="partner_id" column_invisible="1"/>
+        <field name="product_id" column_invisible="1"/>
+        <field name="categ_id" column_invisible="1"/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedidos en Compras"
+                title="Abrir los pedidos de compra filtrados según la agrupación"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.purchase.line ══════════════════════════════════════ -->
+  <record id="view_lira_purchase_line_search" model="ir.ui.view">
+    <field name="name">lira.purchase.line.search</field>
+    <field name="model">lira.purchase.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en análisis de compras">
+        <field name="label" string="Nombre"/>
+        <field name="partner_id" string="Proveedor / NIF / Ciudad"
+               filter_domain="['|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self)]"/>
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="by_supplier"  string="Por proveedor"  domain="[('agrupar_por','=','supplier')]"/>
+        <filter name="by_product"   string="Por producto"   domain="[('agrupar_por','=','product')]"/>
+        <filter name="by_category"  string="Por categoría"  domain="[('agrupar_por','=','category')]"/>
+        <filter name="by_month"     string="Por mes"        domain="[('agrupar_por','=','month')]"/>
+        <separator/>
+        <filter name="imp_500"  string="Compras &gt; 500 €"    domain="[('importe','>',500)]"/>
+        <filter name="imp_5k"   string="Compras &gt; 5.000 €"  domain="[('importe','>',5000)]"/>
+        <filter name="imp_50k"  string="Compras &gt; 50.000 €" domain="[('importe','>',50000)]"/>
+        <filter name="mas_3_ped" string="≥ 3 pedidos" domain="[('num_pedidos','>=',3)]"/>
+        <filter name="mas_10_ped" string="≥ 10 pedidos" domain="[('num_pedidos','>=',10)]"/>
+        <separator/>
+        <filter name="ultimo_mes" string="Último pedido este mes"
+                date="ultima_fecha"/>
+        <separator/>
+        <filter name="top10" string="Top 10" domain="[('rank','&lt;=',10)]"/>
+        <filter name="top20" string="Top 20" domain="[('rank','&lt;=',20)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_agrupar"  string="Dimensión"     context="{'group_by': 'agrupar_por'}"/>
+          <filter name="group_categ"    string="Categoría"     context="{'group_by': 'categ_id'}"/>
+          <filter name="group_partner"  string="Proveedor"     context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"  string="Producto"      context="{'group_by': 'product_id'}"/>
+          <filter name="group_fecha"    string="Último pedido" context="{'group_by': 'ultima_fecha'}"/>
+          <filter name="group_label"    string="Nombre"        context="{'group_by': 'label'}"/>
+          <filter name="group_rank"     string="Ranking"       context="{'group_by': 'rank'}"/>
+          <filter name="group_qty"      string="Uds."          context="{'group_by': 'qty'}"/>
+          <filter name="group_importe"  string="Compras €"     context="{'group_by': 'importe'}"/>
+          <filter name="group_num_ped"  string="Nº pedidos"    context="{'group_by': 'num_pedidos'}"/>
+          <filter name="group_ticket"   string="Ticket medio"  context="{'group_by': 'ticket_medio'}"/>
+          <filter name="group_pct"      string="% s/total"     context="{'group_by': 'pct_compras'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_purchase_analysis" model="ir.actions.server">
+    <field name="name">Análisis de compras Lira</field>
+    <field name="model_id" ref="model_lira_purchase_analysis"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

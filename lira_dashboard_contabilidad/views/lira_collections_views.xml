@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Cobros y Pagos ══════════════════════════════════════════ -->
+  <record id="view_lira_collections_form" model="ir.ui.view">
+    <field name="name">lira.collections.form</field>
+    <field name="model">lira.collections</field>
+    <field name="arch" type="xml">
+      <form string="Cobros y pagos pendientes" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Cobros y Pagos Pendientes <widget name="lira_print_button" title="Cobros y Pagos Pendientes" line_model="lira.collections.line"/></div>
+              <div class="ld_main_subtitle">Todas las facturas sin cobrar (clientes) y sin pagar (proveedores) con su antigüedad. Las filas en rojo llevan más de 90 días vencidas.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-exchange ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">A cobrar <i class="fa fa-info-circle text-muted ms-1" title="Total pendiente de cobro de clientes."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_cobrar" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">A pagar <i class="fa fa-info-circle text-muted ms-1" title="Total pendiente de pago a proveedores."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_pagar" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Saldo neto <i class="fa fa-info-circle text-muted ms-1" title="A cobrar menos A pagar. Positivo = nos deben más de lo que debemos."/></div>
+                <div class="ld_hkpi_value"><field name="saldo_neto" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Vencido a cobrar <i class="fa fa-info-circle text-muted ms-1" title="Importe de facturas de cliente cuya fecha de vencimiento ya ha pasado."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="vencido_cobrar" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">+90 días crítico <i class="fa fa-info-circle text-muted ms-1" title="Importe de facturas que llevan más de 90 días vencidas sin cobrar."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="critico_cobrar" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle de facturas pendientes</strong>
+              <span>Abre la tabla con buscador nativo: filtra por cliente/proveedor, NIF, estado, tipo (cobro/pago), agrupa por empresa.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.collections.line ══════════════════════════════════════ -->
+  <record id="view_lira_collections_line_list" model="ir.ui.view">
+    <field name="name">lira.collections.line.list</field>
+    <field name="model">lira.collections.line</field>
+    <field name="arch" type="xml">
+      <list string="Cobros y pagos pendientes" create="0" delete="0" edit="0"
+            decoration-danger="estado == 'critico'"
+            decoration-warning="estado in ('grave', 'medio')"
+            decoration-info="tipo == 'pago' and estado == 'ok'"
+            decoration-success="tipo == 'cobro' and estado == 'ok'">
+        <field name="tipo" string="Tipo" widget="badge"
+               decoration-success="tipo == 'cobro'"
+               decoration-danger="tipo == 'pago'"
+               help="Cobro = factura de cliente. Pago = factura de proveedor."/>
+        <field name="partner_id" string="Empresa"
+               help="Cliente o proveedor al que corresponde la factura."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="Número de identificación fiscal."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País."/>
+        <field name="partner_ref" string="Ref. empresa" optional="hide"
+               help="Referencia interna."/>
+        <field name="partner_email" string="Email" optional="hide"
+               help="Email de contacto."/>
+        <field name="referencia" string="Factura"
+               help="Número de factura en Odoo."/>
+        <field name="fecha_factura" string="Fecha"
+               help="Fecha de emisión o recepción de la factura."/>
+        <field name="fecha_vencimiento" string="Vencimiento"
+               help="Fecha límite de cobro/pago según condiciones."/>
+        <field name="importe_original" string="Total (€)" sum="Total facturas"
+               help="Importe total de la factura con IVA."/>
+        <field name="importe_pendiente" string="Pendiente (€)" sum="Total pendiente"
+               help="Lo que queda por cobrar/pagar tras pagos parciales."/>
+        <field name="dias_vencido" string="Días vencido" avg="Media días"
+               help="Días transcurridos desde el vencimiento hasta hoy. Negativo = aún no vencido."/>
+        <field name="estado" string="Estado" widget="badge"
+               decoration-success="estado == 'ok'"
+               decoration-warning="estado in ('leve', 'medio')"
+               decoration-danger="estado in ('grave', 'critico')"
+               help="Clasificación por antigüedad: OK (no vencido) · leve 1-30 · medio 31-60 · grave 61-90 · crítico +90."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver factura en Odoo"
+                title="Abrir la factura original en Odoo"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.collections.line ════════════════════════════════════ -->
+  <record id="view_lira_collections_line_search" model="ir.ui.view">
+    <field name="name">lira.collections.line.search</field>
+    <field name="model">lira.collections.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar cobros y pagos">
+        <field name="partner_id" string="Empresa / NIF / Ciudad / País"
+               filter_domain="['|','|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self),
+                               ('partner_id.country_id.name','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="partner_email" string="Email"/>
+        <field name="referencia" string="Nº factura"/>
+        <separator/>
+        <filter name="cobros" string="Solo cobros" domain="[('tipo','=','cobro')]"/>
+        <filter name="pagos"  string="Solo pagos"  domain="[('tipo','=','pago')]"/>
+        <separator/>
+        <filter name="vencidos"  string="Vencidos"       domain="[('dias_vencido','>',0)]"/>
+        <filter name="no_vencidos" string="No vencidos (OK)"  domain="[('estado','=','ok')]"/>
+        <filter name="leves"       string="Leve 1–30 d"       domain="[('estado','=','leve')]"/>
+        <filter name="medios"      string="Medio 31–60 d"     domain="[('estado','=','medio')]"/>
+        <filter name="graves"      string="Grave 61–90 d"     domain="[('estado','=','grave')]"/>
+        <filter name="criticos"    string="Crítico +90 d"     domain="[('estado','=','critico')]"/>
+        <separator/>
+        <filter name="pdte_1k"   string="Pendiente &gt; 1.000 €"  domain="[('importe_pendiente','>',1000)]"/>
+        <filter name="pdte_5k"   string="Pendiente &gt; 5.000 €"  domain="[('importe_pendiente','>',5000)]"/>
+        <filter name="pdte_10k"  string="Pendiente &gt; 10.000 €" domain="[('importe_pendiente','>',10000)]"/>
+        <separator/>
+        <filter name="vence_mes" string="Vence este mes"
+                date="fecha_vencimiento"/>
+        <filter name="emitida_mes" string="Emitidas este mes"
+                date="fecha_factura"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_tipo"          string="Tipo"             context="{'group_by': 'tipo'}"/>
+          <filter name="group_estado"        string="Estado"           context="{'group_by': 'estado'}"/>
+          <filter name="group_partner"       string="Empresa"          context="{'group_by': 'partner_id'}"/>
+          <filter name="group_fecha"         string="Fecha factura"    context="{'group_by': 'fecha_factura'}"/>
+          <filter name="group_vencimiento"   string="Vencimiento"      context="{'group_by': 'fecha_vencimiento'}"/>
+          <filter name="group_referencia"    string="Factura"          context="{'group_by': 'referencia'}"/>
+          <filter name="group_total"         string="Total factura"    context="{'group_by': 'importe_original'}"/>
+          <filter name="group_pdte"          string="Importe pendiente" context="{'group_by': 'importe_pendiente'}"/>
+          <filter name="group_dias"          string="Días vencido"     context="{'group_by': 'dias_vencido'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_collections" model="ir.actions.server">
+    <field name="name">Cobros y pagos Lira</field>
+    <field name="model_id" ref="model_lira_collections"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

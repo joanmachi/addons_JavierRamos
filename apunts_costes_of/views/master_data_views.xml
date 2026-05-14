@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Hito 7: vista form del Hub Master Data Costes                -->
+    <!-- ============================================================ -->
+    <record id="view_apunts_master_data_form" model="ir.ui.view">
+        <field name="name">apunts.costes.of.master.data.form</field>
+        <field name="model">apunts.costes.of.master.data</field>
+        <field name="arch" type="xml">
+            <form string="Master Data Costes OF" create="false" delete="false" edit="false"
+                  class="apunts_md_form">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <i class="fa fa-database me-2" title="Master data — datos maestros que determinan los costes calculados"/>
+                            <span>Master Data Costes OF</span>
+                        </h1>
+                        <h3 class="text-muted">
+                            Edita aqui los costes maestros que alimentan el modulo Apunts Costes OF.
+                            Tres modelos distintos en una sola pantalla, filtrados a registros que aparecen en OFs done.
+                        </h3>
+                    </div>
+
+                    <!-- ============================================ -->
+                    <!-- Indicadores generales                       -->
+                    <!-- ============================================ -->
+                    <group string="Resumen" col="2" class="apunts_md_summary">
+                        <group>
+                            <field name="n_done_ofs" string="OFs done totales" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ============================================ -->
+                    <!-- 3 cards de master data: empleados / centros / productos -->
+                    <!-- ============================================ -->
+                    <div class="apunts_md_cards">
+
+                        <!-- Card 1: empleados -->
+                        <div class="apunts_md_card apunts_md_employee">
+                            <div class="apunts_md_card_header">
+                                <i class="fa fa-user fa-2x" title="Empleados"/>
+                                <div>
+                                    <div class="apunts_md_card_title">Coste/hora empleado</div>
+                                    <div class="apunts_md_card_sub">hr.employee.hourly_cost</div>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_body">
+                                <div class="apunts_md_metric">
+                                    <span class="apunts_md_metric_value"><field name="n_employees" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">empleados con horas en OFs done</span>
+                                </div>
+                                <div class="apunts_md_metric apunts_md_alert" invisible="not n_employees_zero">
+                                    <i class="fa fa-exclamation-triangle text-warning" title="Aviso"/>
+                                    <span class="apunts_md_metric_value text-warning"><field name="n_employees_zero" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">SIN coste/hora (hourly_cost=0)</span>
+                                </div>
+                                <div class="apunts_md_metric text-success" invisible="n_employees_zero">
+                                    <i class="fa fa-check" title="OK"/>
+                                    <span class="apunts_md_metric_label">Todos los empleados tienen coste/h.</span>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_footer">
+                                <button name="action_open_employees" type="object"
+                                        string="Ver costes empleado"
+                                        class="btn-primary"
+                                        help="Abre lista de hr.employee (solo consulta) filtrada a los que han imputado horas en OFs done."/>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: centros de trabajo -->
+                        <div class="apunts_md_card apunts_md_workcenter">
+                            <div class="apunts_md_card_header">
+                                <i class="fa fa-cogs fa-2x" title="Centros de trabajo"/>
+                                <div>
+                                    <div class="apunts_md_card_title">Coste/hora centro de trabajo</div>
+                                    <div class="apunts_md_card_sub">mrp.workcenter.costs_hour</div>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_body">
+                                <div class="apunts_md_metric">
+                                    <span class="apunts_md_metric_value"><field name="n_workcenters" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">centros usados en OFs done</span>
+                                </div>
+                                <div class="apunts_md_metric apunts_md_alert" invisible="not n_workcenters_zero">
+                                    <i class="fa fa-exclamation-triangle text-warning" title="Aviso"/>
+                                    <span class="apunts_md_metric_value text-warning"><field name="n_workcenters_zero" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">SIN coste/hora (costs_hour=0)</span>
+                                </div>
+                                <div class="apunts_md_metric text-success" invisible="n_workcenters_zero">
+                                    <i class="fa fa-check" title="OK"/>
+                                    <span class="apunts_md_metric_label">Todos los centros tienen coste/h.</span>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_footer">
+                                <button name="action_open_workcenters" type="object"
+                                        string="Ver costes centros"
+                                        class="btn-primary"
+                                        help="Abre lista de mrp.workcenter (solo consulta) filtrada a centros usados en OFs done."/>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: productos -->
+                        <div class="apunts_md_card apunts_md_product">
+                            <div class="apunts_md_card_header">
+                                <i class="fa fa-cube fa-2x" title="Productos"/>
+                                <div>
+                                    <div class="apunts_md_card_title">Coste estandar producto</div>
+                                    <div class="apunts_md_card_sub">product.product.standard_price</div>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_body">
+                                <div class="apunts_md_metric">
+                                    <span class="apunts_md_metric_value"><field name="n_products" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">productos consumidos en OFs done</span>
+                                </div>
+                                <div class="apunts_md_metric apunts_md_alert" invisible="not n_products_zero">
+                                    <i class="fa fa-exclamation-triangle text-warning" title="Aviso"/>
+                                    <span class="apunts_md_metric_value text-warning"><field name="n_products_zero" readonly="1"/></span>
+                                    <span class="apunts_md_metric_label">SIN coste estandar (standard_price=0)</span>
+                                </div>
+                                <div class="apunts_md_metric text-success" invisible="n_products_zero">
+                                    <i class="fa fa-check" title="OK"/>
+                                    <span class="apunts_md_metric_label">Todos los productos tienen coste estandar.</span>
+                                </div>
+                            </div>
+                            <div class="apunts_md_card_footer">
+                                <button name="action_open_products" type="object"
+                                        string="Ver costes producto"
+                                        class="btn-primary"
+                                        help="Abre lista de product.product (solo consulta) filtrada a MPs consumidos en OFs done."/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- v18.0.9.0.0: modulo SOLO CONSULTA - boton recalc masivo oculto (visible solo en debug) -->
+                    <div class="apunts_md_recalc" groups="base.group_no_one">
+                        <p class="text-muted">
+                            <i class="fa fa-info-circle me-1"
+                               title="Recalculo masivo solo visible en modo debug. Las KPIs y lineas auxiliares se recalculan al abrir el smart button automaticamente."/>
+                            <em>Recalculo masivo (solo modo debug). El modulo es solo consulta - no edita master data.</em>
+                        </p>
+                        <button name="action_recalc_all_done" type="object"
+                                string="Recalcular costes OFs done"
+                                class="btn-warning btn-lg"
+                                help="Itera sobre todas las OFs en estado done, invalida cache de KPIs y regenera lineas auxiliares. Operacion idempotente. Solo modo debug en v18.0.9."/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- List editables: empleados / centros / productos              -->
+    <!-- ============================================================ -->
+
+    <!-- v18.0.9.0.0: modulo SOLO CONSULTA - lista no editable -->
+    <record id="view_apunts_md_employee_list" model="ir.ui.view">
+        <field name="name">apunts.md.hr.employee.list</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <list string="Empleados — coste/hora (consulta)"
+                  create="false" delete="false" edit="false"
+                  decoration-warning="hourly_cost &lt;= 0">
+                <field name="name" string="Empleado" readonly="1"/>
+                <field name="department_id" string="Departamento" optional="show" readonly="1"/>
+                <field name="job_title" string="Puesto" optional="hide" readonly="1"/>
+                <field name="hourly_cost" string="Coste/hora (€)" widget="monetary" readonly="1"/>
+                <field name="company_id" column_invisible="1"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search empleados con filtro 'sin coste' -->
+    <record id="view_apunts_md_employee_search" model="ir.ui.view">
+        <field name="name">apunts.md.hr.employee.search</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="department_id"/>
+                <filter name="apunts_md_zero_cost" string="Sin coste/hora (=0)"
+                        domain="[('hourly_cost', '&lt;=', 0)]"/>
+                <filter name="apunts_md_with_cost" string="Con coste/hora (>0)"
+                        domain="[('hourly_cost', '&gt;', 0)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_dept" string="Departamento" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- v18.0.9.0.0: modulo SOLO CONSULTA - lista no editable -->
+    <record id="view_apunts_md_workcenter_list" model="ir.ui.view">
+        <field name="name">apunts.md.mrp.workcenter.list</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="arch" type="xml">
+            <list string="Centros de trabajo — coste/hora (consulta)"
+                  create="false" delete="false" edit="false"
+                  decoration-warning="costs_hour &lt;= 0">
+                <field name="name" string="Centro" readonly="1"/>
+                <field name="code" string="Codigo" optional="show" readonly="1"/>
+                <field name="costs_hour" string="Coste/hora maquina (€)" widget="monetary" readonly="1"/>
+                <field name="employee_costs_hour" string="Coste/hora empleado teorico (€)"
+                       widget="monetary" optional="show" readonly="1"/>
+                <field name="time_efficiency" string="% eficiencia" optional="hide" readonly="1"/>
+                <field name="company_id" column_invisible="1"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- v18.0.9.0.0: modulo SOLO CONSULTA - lista no editable -->
+    <record id="view_apunts_md_product_list" model="ir.ui.view">
+        <field name="name">apunts.md.product.product.list</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Productos — coste estandar (consulta)"
+                  create="false" delete="false" edit="false"
+                  decoration-warning="standard_price &lt;= 0">
+                <field name="default_code" string="Ref." optional="show" readonly="1"/>
+                <field name="display_name" string="Producto" readonly="1"/>
+                <field name="categ_id" string="Categoria" optional="show" readonly="1"/>
+                <field name="standard_price" string="Coste estandar (€/u)" widget="monetary" readonly="1"/>
+                <field name="list_price" string="Precio venta (€/u)" widget="monetary" optional="show" readonly="1"/>
+                <field name="uom_id" string="UoM" optional="hide" readonly="1"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Action que abre el hub                                       -->
+    <!-- ============================================================ -->
+    <record id="action_apunts_master_data_hub" model="ir.actions.server">
+        <field name="name">Master Data Costes (Apunts)</field>
+        <field name="model_id" ref="model_apunts_costes_of_master_data"/>
+        <field name="state">code</field>
+        <field name="code">action = env['apunts.costes.of.master.data'].action_open_hub()</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu: bajo Manufacturing                                     -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_apunts_costes_root"
+              name="Apunts Costes OF"
+              parent="mrp.menu_mrp_root"
+              sequence="100"/>
+    <menuitem id="menu_apunts_master_data"
+              name="Master Data Costes"
+              parent="menu_apunts_costes_root"
+              action="action_apunts_master_data_hub"
+              groups="mrp.group_mrp_manager"
+              sequence="10"/>
+
+</odoo>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Valoración de Producto en Curso ════════════════════════ -->
+  <record id="view_lira_wip_valuation_form" model="ir.ui.view">
+    <field name="name">lira.wip.valuation.form</field>
+    <field name="model">lira.wip.valuation</field>
+    <field name="arch" type="xml">
+      <form string="Valoración de Producto en Curso" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Valoración de Producto en Curso <widget name="lira_print_button" title="Valoración de Producto en Curso" line_model="lira.wip.valuation.line"/></div>
+              <div class="ld_main_subtitle">
+                Cada línea de pedido de venta activa con su estado de fabricación, MP, entrega y factura.
+                La valoración aplica el criterio contable: sin MP o MP pedida=0 · MP reservada=coste MP · en curso=MP consumida+M.O. · fabricado/entregado/facturado=precio venta.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-cube ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Valoración total WIP
+                  <i class="fa fa-info-circle text-muted ms-1" title="Suma de la valoración de todas las líneas según criterio contable. Sin MP disponible o pedida sin recibir = 0. MP reservada sin fabricar = coste MP prevista (Σ move.product_qty × standard_price). OF en curso = MP consumida (Σ move.quantity × standard_price) + coste M.O. (Σ workorder.duration/60 × workcenter.costs_hour). OF terminada/entregada/facturada = precio venta (sale.order.line.price_subtotal)."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="valor_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Coste MP acumulado
+                  <i class="fa fa-info-circle text-muted ms-1" title="Total coste de materias primas de líneas con OF confirmada+MP reservada o en curso. Fuente: Σ (mrp.production.move_raw_ids.product_qty × product.standard_price) si OF confirmada con MP reservada; Σ (move.quantity × standard_price) si OF en curso."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="coste_total_mp" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Coste M.O. acumulado
+                  <i class="fa fa-info-circle text-muted ms-1" title="Total coste mano de obra de líneas con OF en curso. Fuente: Σ (mrp.workorder.duration / 60 × mrp.workorder.workcenter_id.costs_hour)."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="coste_total_fab" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Precio venta (terminados)
+                  <i class="fa fa-info-circle text-muted ms-1" title="Valor de venta de líneas ya fabricadas, entregadas o facturadas. Fuente: Σ sale.order.line.price_subtotal."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="precio_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Líneas totales / Con OF / Sin valor
+                  <i class="fa fa-info-circle text-muted ms-1" title="Líneas totales = todas las líneas de pedido activas analizadas. Con OF = las que tienen una orden de fabricación asociada (link por mrp.production.sale_line_id o por origin/producto). Sin valor = las que valoran 0 € según criterio contable (sin MP ni PO, o MP pedida sin recibir)."/>
+                </div>
+                <div class="ld_hkpi_value">
+                  <field name="num_lineas" readonly="1"/>
+                  <span class="ld_hkpi_unit"> / </span>
+                  <field name="num_con_of" readonly="1"/>
+                  <span class="ld_hkpi_unit"> / </span>
+                  <field name="num_sin_valor" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-cubes"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle línea a línea</strong>
+              <span>Abre la tabla con buscador nativo: filtra por estado OF, estado MP, estado entrega, factura; cliente, producto; agrupa por cualquier campo.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.wip.valuation.line — con origen de cada campo ═══════════ -->
+  <record id="view_lira_wip_valuation_line_list" model="ir.ui.view">
+    <field name="name">lira.wip.valuation.line.list</field>
+    <field name="model">lira.wip.valuation.line</field>
+    <field name="arch" type="xml">
+      <list string="Valoración de producto en curso" create="0" delete="0" edit="0"
+            decoration-muted="valor == 0"
+            decoration-info="production_state == 'progress'"
+            decoration-warning="production_state == 'to_close'"
+            decoration-success="production_state == 'done' or delivery_state == 'entregado' or invoice_state == 'facturado'">
+        <field name="sale_order_id" string="Pedido"
+               help="Pedido de venta de origen."/>
+        <field name="fecha_pedido" string="Fecha pedido"
+               help="Fecha de confirmación del pedido."/>
+        <field name="partner_id" string="Cliente"
+               help="Cliente del pedido."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="NIF del cliente."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del cliente."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del cliente."/>
+        <field name="product_id" string="Producto"
+               help="Producto vendido."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="production_id" string="OF" optional="show"
+               help="Orden de Fabricación asociada al pedido (si existe)."/>
+        <field name="production_state" string="Estado OF" widget="badge"
+               decoration-muted="production_state == 'no_of'"
+               decoration-info="production_state in ('confirmed','draft')"
+               decoration-warning="production_state in ('progress','to_close')"
+               decoration-success="production_state == 'done'"
+               decoration-danger="production_state == 'cancel'"
+               help="Estado de la OF. Fuente: mrp.production.state. Valores: Sin OF · Borrador (draft) · Confirmada (planificada, sin iniciar) · En curso (progress) · Pdte. cerrar (to_close) · Terminada (done) · Cancelada."/>
+        <field name="mp_state" string="Estado MP" widget="badge"
+               decoration-muted="mp_state == 'no_aplica'"
+               decoration-danger="mp_state == 'sin_mp'"
+               decoration-warning="mp_state in ('mp_pedida','mp_parcial')"
+               decoration-info="mp_state == 'mp_reservada'"
+               decoration-success="mp_state == 'mp_consumida'"
+               help="Disponibilidad de componentes. 'Sin MP': OF confirmada sin componentes reservados ni pedidos. 'MP pedida': hay purchase.order.line confirmada con algún componente no recibido. 'MP parcial': mrp.production.reservation_state = partially_available. 'MP reservada': reservation_state = assigned. 'MP consumida': OF en curso/terminada (los componentes ya se están consumiendo)."/>
+        <field name="delivery_state" string="Estado entrega" widget="badge"
+               decoration-muted="delivery_state == 'no_entregado'"
+               decoration-warning="delivery_state == 'parcial'"
+               decoration-success="delivery_state == 'entregado'"
+               help="Calculado a partir de sale.order.line.qty_delivered vs product_uom_qty. 'Sin entregar' = 0 uds entregadas. 'Parcial' = parte entregada. 'Entregado completo' = qty_delivered ≥ product_uom_qty."/>
+        <field name="invoice_state" string="Estado factura" widget="badge"
+               decoration-muted="invoice_state == 'no_facturado'"
+               decoration-warning="invoice_state == 'parcial'"
+               decoration-success="invoice_state == 'facturado'"
+               help="Calculado a partir de sale.order.line.qty_invoiced vs product_uom_qty. 'Sin facturar' = 0 facturado. 'Parcial' = parte facturada. 'Facturado completo' = qty_invoiced ≥ product_uom_qty."/>
+        <field name="qty_pedida" string="Cant. pedida" sum="Total pedida"
+               help="Unidades pedidas."/>
+        <field name="qty_entregada" string="Cant. entregada" optional="show" sum="Total entregada"
+               help="Unidades ya entregadas vía albarán validado."/>
+        <field name="qty_facturada" string="Cant. facturada" optional="show" sum="Total facturada"
+               help="Unidades ya facturadas."/>
+        <field name="coste_mp" string="Coste MP (€)" sum="Total MP"
+               help="Coste de materias primas reservadas o consumidas."/>
+        <field name="coste_fab" string="Coste M.O. (€)" sum="Total M.O."
+               help="Coste mano de obra (solo OF en curso)."/>
+        <field name="precio_venta" string="Precio venta (€)" sum="Total venta"
+               help="Precio pactado en la línea sin IVA."/>
+        <field name="valor" string="Valoración (€)" sum="Valoración total"
+               help="Valor WIP según criterio contable y estado de la línea."/>
+        <field name="fecha_entrega" string="Entrega prevista" optional="show"
+               help="Fecha comprometida de entrega del pedido. Fuente: sale.order.commitment_date."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver OF/Pedido en Odoo"
+                title="Abrir la OF asociada (o el pedido de venta si no hay OF)"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.wip.valuation.line ══════════════════════════════════ -->
+  <record id="view_lira_wip_valuation_line_search" model="ir.ui.view">
+    <field name="name">lira.wip.valuation.line.search</field>
+    <field name="model">lira.wip.valuation.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar valoración producto en curso">
+        <field name="sale_order_id" string="Nº pedido"/>
+        <field name="partner_id" string="Cliente / NIF / Ciudad / País"
+               filter_domain="['|','|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self),
+                               ('partner_id.country_id.name','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="production_id" string="OF"/>
+
+        <!-- Filtros de estado OF -->
+        <separator/>
+        <filter name="of_no"       string="Sin OF"            domain="[('production_state','=','no_of')]"/>
+        <filter name="of_draft"    string="OF Borrador"       domain="[('production_state','=','draft')]"/>
+        <filter name="of_confirm"  string="OF Confirmada"     domain="[('production_state','=','confirmed')]"/>
+        <filter name="of_progress" string="OF En curso"       domain="[('production_state','=','progress')]"/>
+        <filter name="of_to_close" string="OF Pdte. cerrar"   domain="[('production_state','=','to_close')]"/>
+        <filter name="of_done"     string="OF Terminada"      domain="[('production_state','=','done')]"/>
+
+        <!-- Filtros de estado MP -->
+        <separator/>
+        <filter name="mp_sin"       string="Sin MP"           domain="[('mp_state','=','sin_mp')]"/>
+        <filter name="mp_pedida"    string="MP pedida"        domain="[('mp_state','=','mp_pedida')]"/>
+        <filter name="mp_parcial"   string="MP parcial"       domain="[('mp_state','=','mp_parcial')]"/>
+        <filter name="mp_reservada" string="MP reservada"     domain="[('mp_state','=','mp_reservada')]"/>
+        <filter name="mp_consumida" string="MP consumida"     domain="[('mp_state','=','mp_consumida')]"/>
+
+        <!-- Filtros de entrega -->
+        <separator/>
+        <filter name="del_no"       string="Sin entregar"     domain="[('delivery_state','=','no_entregado')]"/>
+        <filter name="del_parcial"  string="Entrega parcial"  domain="[('delivery_state','=','parcial')]"/>
+        <filter name="del_ok"       string="Entregado"        domain="[('delivery_state','=','entregado')]"/>
+
+        <!-- Filtros de factura -->
+        <separator/>
+        <filter name="inv_no"       string="Sin facturar"     domain="[('invoice_state','=','no_facturado')]"/>
+        <filter name="inv_parcial"  string="Factura parcial"  domain="[('invoice_state','=','parcial')]"/>
+        <filter name="inv_ok"       string="Facturado"        domain="[('invoice_state','=','facturado')]"/>
+
+        <!-- Filtros de valor -->
+        <separator/>
+        <filter name="valor_cero"   string="Valor = 0"        domain="[('valor','=',0)]"/>
+        <filter name="valor_pos"    string="Valor &gt; 0"     domain="[('valor','>',0)]"/>
+        <filter name="valor_1k"    string="Valor &gt; 1.000 €"  domain="[('valor','>',1000)]"/>
+        <filter name="valor_10k"   string="Valor &gt; 10.000 €" domain="[('valor','>',10000)]"/>
+        <filter name="valor_50k"   string="Valor &gt; 50.000 €" domain="[('valor','>',50000)]"/>
+
+        <!-- Fechas -->
+        <separator/>
+        <filter name="pedido_mes"  string="Pedido este mes"  date="fecha_pedido"/>
+        <filter name="entrega_mes" string="Entrega este mes" date="fecha_entrega"/>
+
+        <group expand="1" string="Agrupar por">
+          <filter name="group_of"         string="Estado OF"       context="{'group_by': 'production_state'}"/>
+          <filter name="group_mp"         string="Estado MP"       context="{'group_by': 'mp_state'}"/>
+          <filter name="group_delivery"   string="Estado entrega"  context="{'group_by': 'delivery_state'}"/>
+          <filter name="group_invoice"    string="Estado factura"  context="{'group_by': 'invoice_state'}"/>
+          <filter name="group_partner"    string="Cliente"         context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"    string="Producto"        context="{'group_by': 'product_id'}"/>
+          <filter name="group_categ"      string="Categoría"       context="{'group_by': 'categ_id'}"/>
+          <filter name="group_order"      string="Pedido"          context="{'group_by': 'sale_order_id'}"/>
+          <filter name="group_production" string="OF"              context="{'group_by': 'production_id'}"/>
+          <filter name="group_fecha"      string="Fecha pedido"    context="{'group_by': 'fecha_pedido'}"/>
+          <filter name="group_entrega"    string="Entrega prevista" context="{'group_by': 'fecha_entrega'}"/>
+          <filter name="group_qty_p"      string="Cant. pedida"    context="{'group_by': 'qty_pedida'}"/>
+          <filter name="group_qty_e"      string="Cant. entregada" context="{'group_by': 'qty_entregada'}"/>
+          <filter name="group_qty_f"      string="Cant. facturada" context="{'group_by': 'qty_facturada'}"/>
+          <filter name="group_coste_mp"   string="Coste MP"        context="{'group_by': 'coste_mp'}"/>
+          <filter name="group_coste_fab"  string="Coste M.O."      context="{'group_by': 'coste_fab'}"/>
+          <filter name="group_precio"     string="Precio venta"    context="{'group_by': 'precio_venta'}"/>
+          <filter name="group_valor"      string="Valoración"      context="{'group_by': 'valor'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_wip_valuation" model="ir.actions.server">
+    <field name="name">Valoración de Producto en Curso Lira</field>
+    <field name="model_id" ref="model_lira_wip_valuation"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

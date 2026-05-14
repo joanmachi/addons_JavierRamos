@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="apunts_barcode_workorder.elegir_cantidad">
+        <div class="o_tablet_popups">
+        <Dialog size="'md'" title="props.title" modalRef="modalRef">
+            <t t-set-slot="header">
+                <div class="d-flex align-items-center gap-2 w-100">
+                    <i class="fa fa-list-ol fa-lg text-primary"/>
+                    <span class="fw-bold fs-5">Registrar cantidad</span>
+                </div>
+            </t>
+
+            <div class="apunts-dialog-body">
+                <div class="apunts-dialog-hint">
+                    Máximo: <strong><t t-esc="props.maxQty"/></strong>
+                </div>
+                <input type="number"
+                       class="apunts-dialog-input"
+                       t-att-class="{'is-invalid': state.error}"
+                       t-model="state.qty"
+                       inputmode="decimal"
+                       autofocus="1"
+                       t-on-input="() => state.error = false"/>
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-primary px-4" t-on-click="confirm">
+                    <i class="fa fa-check me-2"/>Registrar
+                </button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancelar</button>
+            </t>
+        </Dialog>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ventas   -->
+    <template id="new_sale_report_inherit" inherit_id="sale.report_saleorder_document">
+
+
+   
+        <xpath expr="//div[@t-if='doc.client_order_ref']" position="inside">
+            <div t-if="doc.origin" class="col-auto col-3 mw-100 mb-2">
+                <strong>S/Pedido:</strong>
+                <p class="m-0" t-field="doc.origin"/>
+            </div>
+        </xpath>
+
+
+
+
+        <!-- Columna cliente referencia -->
+        <!--Header-->
+        <xpath expr="//th[@name='th_description']" position="replace">
+            <th name="th_description" class="text-left"><span>N/Referencia</span></th>
+        </xpath>
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_cliente_pedido" class="text-left"><span>S/Pedido</span></th>
+        </xpath>
+        <xpath expr="//td[@name='td_name']" position="after">
+            <td name="td_cliente_pedido">
+                <span t-field="line.cliente_pedido"/>
+            </td>
+        </xpath>
+
+ 
+
+    </template>
+
+
+</odoo>

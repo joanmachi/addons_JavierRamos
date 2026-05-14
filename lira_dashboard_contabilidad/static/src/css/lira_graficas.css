@@ -1,0 +1,87 @@
+/* ── LIRA GRAFICAS — Cuadrícula y estilos de gráficas ───────────────────── */
+
+.lira-graficas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 4px 0 20px;
+}
+
+.lira-grafica-card {
+  background: #ffffff;
+  border: 1px solid var(--ld-border, #e5e7eb);
+  border-radius: 10px;
+  padding: 20px 20px 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s;
+}
+
+.lira-grafica-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.lira-grafica-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Componente canvas ──────────────────────────────────────────────────── */
+
+.lira-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 280px;
+}
+
+.lira-chart-canvas-container {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+}
+
+.lira-chart-canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Pie del gráfico ────────────────────────────────────────────────────── */
+
+.lira-chart-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 12px;
+}
+
+.lira-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid #7c3aed;
+  color: #7c3aed;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.4;
+}
+
+.lira-print-btn:hover {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .lira-graficas-grid {
+    grid-template-columns: 1fr;
+  }
+  .lira-grafica-full {
+    grid-column: 1;
+  }
+}

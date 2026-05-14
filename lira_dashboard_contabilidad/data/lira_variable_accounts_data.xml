@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+  <record id="var_acc_60010005" model="lira.variable.account">
+    <field name="code">60010005</field>
+    <field name="descripcion">Compras de mercaderías. Coste variable: solo se adquiere mercancía cuando hay demanda de producción o venta.</field>
+  </record>
+
+  <record id="var_acc_601007" model="lira.variable.account">
+    <field name="code">601007</field>
+    <field name="descripcion">Compras de materias primas. Coste variable directo: escala con las unidades fabricadas.</field>
+  </record>
+
+  <record id="var_acc_6070002" model="lira.variable.account">
+    <field name="code">6070002</field>
+    <field name="descripcion">Trabajos realizados por otras empresas (subcontrata). Coste variable: solo se subcontrata cuando hay trabajo.</field>
+  </record>
+
+  <record id="var_acc_6070003" model="lira.variable.account">
+    <field name="code">6070003</field>
+    <field name="descripcion">Trabajos realizados por otras empresas (subcontrata). Coste variable.</field>
+  </record>
+
+  <record id="var_acc_600017" model="lira.variable.account">
+    <field name="code">600017</field>
+    <field name="descripcion">Compras de mercaderías. Coste variable ligado a actividad.</field>
+  </record>
+
+  <record id="var_acc_6000018" model="lira.variable.account">
+    <field name="code">6000018</field>
+    <field name="descripcion">Compras de mercaderías. Coste variable ligado a actividad.</field>
+  </record>
+
+  <record id="var_acc_62800001" model="lira.variable.account">
+    <field name="code">62800001</field>
+    <field name="descripcion">Suministros (luz, agua, gas) imputados a producción. Decisión del contable tratarlo como variable por su proporcionalidad con la actividad fabril.</field>
+  </record>
+
+</odoo>

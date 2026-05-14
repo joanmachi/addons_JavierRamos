@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--albaranes-->
+    <template id="new_stock_report_inherit" inherit_id="stock.report_delivery_document">
+
+        <xpath expr="//table[@name='stock_move_line_table']//thead//tr[1]//th[@name='th_sml_product']" position="after">
+            <th name="lineaPedido">
+                <strong>S/Pedido</strong>
+            </th>
+            <th name="th_sm_referencia_cliente"><strong>S/Referencia</strong></th>
+        </xpath>
+ 
+    </template>
+
+    <!--Muestra los datos de las cantidades correspondientes a los productos por cajas y unidades en cada caja-->
+    <template id="new_stock_delivery_report_inherit" inherit_id="stock.stock_report_delivery_has_serial_move_line">
+
+  
+        
+        <xpath expr="//td[1]" position="before">
+            <td class="text-right">
+                <center><span t-esc="move_line.cliente_pedido" /></center>
+            </td>
+        </xpath>
+        <xpath expr="//td[1]" position="before">
+            <td class="text-right">
+                <center><span t-field="move_line.cliente_referencia" /></center>
+            </td>
+        </xpath>
+
+    </template>
+    <template id="stock_report_delivery_aggregated_move_lines_inherit" inherit_id="stock.stock_report_delivery_aggregated_move_lines">
+
+        <xpath expr="//td[1]" position="after">
+            <td class="text-right">
+                <center><span t-esc="aggregated_lines[line]['cliente_referencia']" /></center>
+            </td>
+        </xpath>
+        
+        <xpath expr="//td[1]" position="after">
+            <td class="text-right">
+                <center><span t-esc="aggregated_lines[line]['cliente_pedido']" /></center>
+            </td>
+        </xpath>
+ 
+
+    </template>
+
+    <!--FACTURAS-->
+    <template id="pl_report_account_invoice_custom" inherit_id="account.report_invoice_document">
+    
+
+        <!--Pone el nombre N/referencia al principio de la tabla de las facturas-->
+        <xpath expr="//table[@name='invoice_line_table']//thead//tr[1]//th[1]" position="replace">
+            <th name="th_description" class="text-left">
+                <span>N/Referencia</span>
+            </th>
+        </xpath>
+        <xpath expr="//td[span[@t-field='line.name']]" position="replace">
+            <td name="account_invoice_line_name">
+                <t t-set = 'textoColumna' t-value="fsdfsdf"/>
+                <t t-if='line.cliente_referencia'>
+                    <t t-set = 'textoColumna' t-value="'[' +line.cliente_referencia + ']' "/>
+                </t>
+                <t t-if='textoColumna'>
+                    <t t-if="textoColumna in line.name">
+                        <t t-if="line.product_id.product_tmpl_id.default_code">
+                            [
+                            <span t-field="line.product_id.product_tmpl_id.default_code" t-options="{'widget': 'text'}"/>
+                            ]
+                        </t>
+                        <span t-field="line.product_id.product_tmpl_id.name" t-options="{'widget': 'text'}"/>
+                    </t>
+                    <t t-else="">
+                        <span t-field="line.name" t-options="{'widget': 'text'}"/>
+                    </t>
+                </t>
+                <t t-else="">
+                    <span t-field="line.name" t-options="{'widget': 'text'}"/>
+                </t>
+            </td>
+        </xpath>
+
+        <xpath expr="//table[@name='invoice_line_table']//thead//tr[1]//th[2]" position="before">
+            <th class="text-right">S/Referencia</th>
+        </xpath>
+        <xpath expr="//td[t[@t-if='line.cliente_referencia']]" position="after">
+            <td class="text-right">
+                <span t-field="line.cliente_referencia" />
+            </td>
+        </xpath>
+        <xpath expr="//table[@name='invoice_line_table']//thead//tr[1]//th[2]" position="before">
+            <th class="text-right">S/Pedido</th>
+        </xpath>
+        <xpath expr="//td[t[@t-if='line.cliente_referencia']]" position="after">
+            <td class="text-right">
+                <span t-field="line.cliente_pedido" />
+            </td>
+        </xpath>
+    
+        <!--Añade el pedido original del cliente a la factura como referencia-->
+        <xpath expr="//div[@t-if='o.ref']" position="replace">
+            <div class="col-auto mw-100 mb-2" t-if="o.ref" name="reference">
+                <strong>Su pedido:</strong>
+                <div class="row text-center">
+                    <span class="m-0" t-field="o.ref"/> &#160;
+                </div> 
+                     
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

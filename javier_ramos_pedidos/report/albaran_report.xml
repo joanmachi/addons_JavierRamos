@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_stock_delivery_document_custom" inherit_id="stock.report_delivery_document" priority="1">
+        <xpath expr="//table[@name='stock_move_table']" position="before">
+                <t t-set="ocultar_posiciones" t-value="1"/>
+                <t t-foreach="o.move_ids" t-as="linea">
+                    <t t-if="linea.pos_palet">
+                        <t t-set="ocultar_posiciones" t-value="0"/>
+                    </t>
+                </t>
+            </xpath>
+        <xpath expr="//table[@name='stock_move_line_table']//thead//tr[1]//th[@name='th_sml_product']" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <th class="text-right">POS.</th>
+
+            </t>
+        </xpath>
+
+           <xpath expr="//th[@name='th_sm_product']" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <th class="text-right">POS.</th>
+
+            </t>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <td>
+                    <span t-field="move.pos_palet" />
+
+                </td>
+
+            </t>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="replace">
+            <td>
+                <span t-field="move.product_id">Customizable Desk</span>
+                <p t-if="move.description_picking and move.description_picking != move.product_id.name and move.description_picking != move.product_id.display_name">
+                    <span t-field="move.description_picking">Description on transfer</span>
+                </p>
+                <p t-if="move.product_id.description_sale">
+                    <span t-field="move.product_id.description_sale"></span>
+                    
+                </p>
+            </td>
+        </xpath>
+
+        <xpath expr="//t[@t-set='backorders']" position="after">
+            <t t-set="backorders" t-value="0"/>
+        </xpath>
+        <xpath expr="//span[@t-field='move.product_uom_qty']" position="replace">
+            <span t-field="move.product_uom_qty" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
+        </xpath>
+        <xpath expr="//span[@t-field='move.quantity']" position="replace">
+            <span t-field="move.quantity" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
+        </xpath>
+        
+        
+
+     
+    </template>
+    <template id="stock_report_delivery_has_serial_move_line" inherit_id="stock.stock_report_delivery_has_serial_move_line" priority="1">
+       
+   
+        <xpath expr="//td[1]" position="replace">
+            <td>
+                <span t-field="move_line.product_id"/>
+                <!-- this is an annoying workaround for the multiple types of descriptions (often auto-filled) that we do not want to print -->
+                <!-- this makes it so we can pre-filter the descriptions in inherited templates since we cannot extend the standard "if" condition -->
+                <!-- let's agree that pre-filtered descriptions will be set to "" -->
+                <t t-if="not description and description != ''">
+                    <t t-set="description" t-value="move_line.move_id.description_picking"/>
+                </t>
+                <p t-if="description != '' and                      description != move_line.product_id.display_name and                      description != move_line.product_id.name">
+                    <span t-esc="description"/>
+                </p>
+                <p t-if="move_line.product_id.description_sale">
+                    <span t-field="move_line.product_id.description_sale"></span>
+                    
+                </p>
+            </td>
+        </xpath>
+        <xpath expr="//td[1]" position="before">
+            <t t-if="ocultar_posiciones == 0">
+
+                <td >
+                    <span t-field="move_line.move_id.pos_palet" />
+                </td>
+            </t>
+        </xpath>
+        <xpath expr="//span[@t-field='move_line.quantity']" position="replace">
+            <span t-field="move_line.quantity" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
+        </xpath>
+  
+     
+   
+    </template>
+    <template id="stock_report_delivery_aggregated_move_lines" inherit_id="stock.stock_report_delivery_aggregated_move_lines" priority="1">
+       
+ 
+        <xpath expr="//td[1]" position="replace">
+            <td>
+                <span t-esc="aggregated_lines[line]['name']"/>
+                <p t-if="aggregated_lines[line]['description']">
+                    <span t-esc="aggregated_lines[line]['description']" t-options="{'widget': 'text'}"/>
+                </p>
+                <p t-if="aggregated_lines[line]['product'].description_sale">
+                    <span t-esc="aggregated_lines[line]['product'].description_sale" t-options="{'widget': 'text'}"/>
+                </p>
+            </td>
+
+        </xpath>
+        <xpath expr="//td[1]" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <td>
+                    <span t-esc="aggregated_lines[line]['pos_palet']"/>
+                </td>
+            </t>
+
+        </xpath>
+        <xpath expr="//td[@name='move_line_aggregated_qty_ordered']" position="replace">
+            <td class="text-center" name="move_line_aggregated_qty_ordered">
+                <span t-esc="aggregated_lines[line]['qty_ordered']" t-options="{'widget': 'integer'}"/>
+                <span t-esc="aggregated_lines[line]['product_uom'].name"/>
+                <span t-if="aggregated_lines[line]['packaging'].name">
+                    (<span t-out="aggregated_lines[line]['packaging_qty']" t-options="{&quot;widget&quot;: &quot;integer&quot;}"/> <span t-out="aggregated_lines[line]['packaging'].name"/>)
+                </span>
+            </td>
+
+        </xpath>
+        <xpath expr="//td[@name='move_line_aggregated_quantity']" position="replace">
+            <td class="text-center" name="move_line_aggregated_quantity">
+                <t t-if="aggregated_lines[line]['quantity']">
+                    <span t-esc="aggregated_lines[line]['quantity']" t-options="{'widget': 'integer'}"/>
+                    <span t-esc="aggregated_lines[line]['product_uom'].name"/>
+                    <span t-if="aggregated_lines[line]['packaging'].name">
+                        (<span t-out="aggregated_lines[line]['packaging_quantity']" t-options="{&quot;widget&quot;: &quot;integer&quot;}"/> <span t-out="aggregated_lines[line]['packaging'].name"/>)
+                    </span>
+                </t>
+            </td>
+
+        </xpath>
+  
+      
+        
+    </template>
+</odoo>

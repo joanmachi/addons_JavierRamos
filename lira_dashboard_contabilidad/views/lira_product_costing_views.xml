@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Escandallo de Costes ═══════════════════════════════════ -->
+  <record id="view_lira_product_costing_form" model="ir.ui.view">
+    <field name="name">lira.product.costing.form</field>
+    <field name="model">lira.product.costing</field>
+    <field name="arch" type="xml">
+      <form string="Escandallo de costes y márgenes" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Escandallo de Costes <widget name="lira_print_button" title="Escandallo de Costes" line_model="lira.product.costing.line"/></div>
+              <div class="ld_main_subtitle">Rentabilidad producto a producto: PVP medio, coste unitario y margen real. Identifica qué productos son rentables y cuáles necesitan revisión de precio o coste.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-2">Umbral bajo <i class="fa fa-info-circle text-muted ms-1" title="Margen por debajo del cual el producto se considera con margen bajo (naranja). Por defecto 20%."/></span>
+                <field name="umbral_bajo" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">% — crítico</span>
+                <field name="umbral_critico" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">%</span>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total ventas <i class="fa fa-info-circle text-muted ms-1" title="Suma total de ventas de todos los productos en el período (sin IVA)."/></div>
+                <div class="ld_hkpi_value"><field name="total_ventas" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Coste total <i class="fa fa-info-circle text-muted ms-1" title="Suma del coste de todos los productos vendidos: unidades vendidas × precio de coste."/></div>
+                <div class="ld_hkpi_value"><field name="total_coste" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Margen global <i class="fa fa-info-circle text-muted ms-1" title="(Ventas totales − Coste total) / Ventas totales × 100."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="margen_global" readonly="1"/><span class="ld_hkpi_unit">%</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">OK / Bajo / Crítico</div>
+                <div class="ld_hkpi_value">
+                  <field name="productos_ok" readonly="1"/>
+                  <span class="ld_hkpi_unit"> / </span>
+                  <field name="productos_bajo" readonly="1"/>
+                  <span class="ld_hkpi_unit"> / </span>
+                  <field name="productos_critico" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-flask"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver escandallo producto a producto</strong>
+              <span>Abre la tabla con buscador nativo: filtra por producto, código de barras, referencia interna, categoría o estado de alerta.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.product.costing.line ═══════════════════════════════════ -->
+  <record id="view_lira_product_costing_line_list" model="ir.ui.view">
+    <field name="name">lira.product.costing.line.list</field>
+    <field name="model">lira.product.costing.line</field>
+    <field name="arch" type="xml">
+      <list string="Escandallo de costes" create="0" delete="0" edit="0"
+            decoration-danger="alerta == 'critico'"
+            decoration-warning="alerta == 'medio'"
+            decoration-success="alerta == 'ok'">
+        <field name="rank" string="#" width="44"
+               help="Posición ordenada de menor a mayor margen (los más problemáticos primero)."/>
+        <field name="product_id" string="Producto"
+               help="Producto vendido en el período."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="product_uom_name" string="U. medida" optional="hide"
+               help="Unidad de medida."/>
+        <field name="uds_vendidas" string="Uds." sum="Total uds"
+               help="Unidades vendidas netas (ventas − abonos)."/>
+        <field name="pvp_medio" string="PVP medio (€)" avg="PVP medio"
+               help="Precio medio de venta unitario = Total ventas / Total unidades."/>
+        <field name="coste_unitario" string="Coste unit. (€)" avg="Coste medio"
+               help="Precio de coste unitario configurado en la ficha del producto."/>
+        <field name="margen_unitario" string="Margen unit. (€)" avg="Margen medio"
+               help="PVP medio − Coste unitario. Beneficio bruto por unidad."/>
+        <field name="margen_pct" string="Margen (%)" avg="Margen medio %"
+               help="Margen en % sobre ventas = (Margen total / Ventas) × 100."/>
+        <field name="total_ventas" string="Ventas (€)" sum="Total ventas"
+               help="Ingresos del producto en el período."/>
+        <field name="total_margen" string="Margen total (€)" sum="Total margen"
+               help="Total ventas − (Coste unitario × Uds. vendidas)."/>
+        <field name="alerta" string="Estado" widget="badge"
+               decoration-success="alerta == 'ok'"
+               decoration-warning="alerta == 'medio'"
+               decoration-danger="alerta == 'critico'"
+               help="Clasificación por margen %: OK (≥ umbral bajo) · Bajo (entre crítico y bajo) · Crítico (&lt; umbral crítico)."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver ficha del producto"
+                title="Abrir la ficha del producto en Inventario"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.product.costing.line ════════════════════════════════ -->
+  <record id="view_lira_product_costing_line_search" model="ir.ui.view">
+    <field name="name">lira.product.costing.line.search</field>
+    <field name="model">lira.product.costing.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en escandallo de costes">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="criticos" string="Margen crítico" domain="[('alerta','=','critico')]"/>
+        <filter name="bajos"    string="Margen bajo"    domain="[('alerta','=','medio')]"/>
+        <filter name="ok"       string="Margen OK"      domain="[('alerta','=','ok')]"/>
+        <filter name="perdidas" string="Con pérdidas (margen &lt;0%)" domain="[('margen_pct','&lt;',0)]"/>
+        <separator/>
+        <filter name="sin_coste"     string="Sin precio de coste"  domain="[('coste_unitario','=',0)]"/>
+        <filter name="ventas_500"    string="Ventas &gt; 500 €"    domain="[('total_ventas','>',500)]"/>
+        <filter name="ventas_5k"     string="Ventas &gt; 5.000 €"  domain="[('total_ventas','>',5000)]"/>
+        <filter name="ventas_50k"    string="Ventas &gt; 50.000 €" domain="[('total_ventas','>',50000)]"/>
+        <filter name="mas_10_uds"    string="≥ 10 uds. vendidas"   domain="[('uds_vendidas','>=',10)]"/>
+        <filter name="mas_100_uds"   string="≥ 100 uds. vendidas"  domain="[('uds_vendidas','>=',100)]"/>
+        <separator/>
+        <filter name="top10" string="Top 10" domain="[('rank','&lt;=',10)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"        string="Categoría"   context="{'group_by': 'categ_id'}"/>
+          <filter name="group_alerta"       string="Estado"      context="{'group_by': 'alerta'}"/>
+          <filter name="group_product"      string="Producto"    context="{'group_by': 'product_id'}"/>
+          <filter name="group_rank"         string="Ranking"     context="{'group_by': 'rank'}"/>
+          <filter name="group_uds"          string="Uds. vendidas" context="{'group_by': 'uds_vendidas'}"/>
+          <filter name="group_pvp"          string="PVP medio"   context="{'group_by': 'pvp_medio'}"/>
+          <filter name="group_coste_u"      string="Coste unit." context="{'group_by': 'coste_unitario'}"/>
+          <filter name="group_margen_u"     string="Margen unit." context="{'group_by': 'margen_unitario'}"/>
+          <filter name="group_margen_pct"   string="Margen %"    context="{'group_by': 'margen_pct'}"/>
+          <filter name="group_ventas"       string="Total ventas" context="{'group_by': 'total_ventas'}"/>
+          <filter name="group_margen_total" string="Margen total" context="{'group_by': 'total_margen'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_product_costing" model="ir.actions.server">
+    <field name="name">Escandallo de costes Lira</field>
+    <field name="model_id" ref="model_lira_product_costing"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

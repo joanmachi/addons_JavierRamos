@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Pedidos Pendientes de Entrega ═══════════════════════════ -->
+  <record id="view_lira_pending_delivery_form" model="ir.ui.view">
+    <field name="name">lira.pending.delivery.form</field>
+    <field name="model">lira.pending.delivery</field>
+    <field name="arch" type="xml">
+      <form string="Pedidos pendientes de entrega" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">
+                Pedidos Pendientes de Entrega
+                <widget name="lira_print_button" title="Pedidos Pendientes de Entrega" line_model="lira.pending.delivery.line"/>
+              </div>
+              <div class="ld_main_subtitle">Líneas de pedido de venta confirmadas con unidades aún no entregadas. Muestra el valor comprometido con clientes que aún no ha salido del almacén.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-truck ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Valor pendiente <i class="fa fa-info-circle text-muted ms-1" title="Suma de (precio × unidades no entregadas) de todas las líneas con entrega parcial o sin entregar."/></div>
+                <div class="ld_hkpi_value"><field name="total_valor" readonly="1" widget="monetary"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Pedidos con pendiente <i class="fa fa-info-circle text-muted ms-1" title="Número de pedidos de venta distintos con al menos una línea sin entregar completamente."/></div>
+                <div class="ld_hkpi_value"><field name="num_pedidos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Clientes esperando <i class="fa fa-info-circle text-muted ms-1" title="Número de clientes distintos con al menos un pedido confirmado y entrega pendiente."/></div>
+                <div class="ld_hkpi_value"><field name="num_clientes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top cliente</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="top_cliente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top producto</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="top_producto" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-truck"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle de líneas pendientes de entrega</strong>
+              <span>Abre la tabla con buscador nativo: filtra por cliente, NIF, ciudad, producto, código de barras o referencia interna del producto.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.pending.delivery.line ══════════════════════════════════ -->
+  <record id="view_lira_pending_delivery_line_list" model="ir.ui.view">
+    <field name="name">lira.pending.delivery.line.list</field>
+    <field name="model">lira.pending.delivery.line</field>
+    <field name="arch" type="xml">
+      <list string="Pedidos pendientes de entrega" create="0" delete="0" edit="0"
+            decoration-danger="dias_espera &gt; 30"
+            decoration-warning="dias_espera &gt; 14 and dias_espera &lt;= 30">
+        <field name="pedido" string="Pedido"
+               help="Número del pedido de venta."/>
+        <field name="fecha_pedido" string="Fecha pedido"
+               help="Fecha de confirmación del pedido."/>
+        <field name="partner_id" string="Cliente"
+               help="Cliente del pedido."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="NIF del cliente."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del cliente."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del cliente."/>
+        <field name="product_id" string="Producto"
+               help="Producto pendiente de entregar."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="qty_pedida" string="Uds. pedidas" sum="Total pedidas"
+               help="Unidades solicitadas en el pedido."/>
+        <field name="qty_entregada" string="Uds. entregadas" sum="Total entregadas"
+               help="Unidades ya entregadas vía albarán validado."/>
+        <field name="qty_pendiente" string="Uds. pendientes" sum="Total pendientes"
+               help="Uds. pedidas − Uds. entregadas."/>
+        <field name="pct_entregado" string="% entregado" avg="% medio"
+               decoration-success="pct_entregado &gt;= 50"
+               decoration-warning="pct_entregado &gt; 0 and pct_entregado &lt; 50"
+               decoration-muted="pct_entregado == 0"
+               help="Porcentaje ya entregado sobre el pedido."/>
+        <field name="stock_disponible" string="Stock disp." sum="Total stock"
+               decoration-danger="stock_disponible &lt; qty_pendiente"
+               help="Stock virtual disponible (incluye entradas/salidas futuras previstas)."/>
+        <field name="precio_unit" string="Precio unit. (€)" avg="Precio medio"
+               help="Precio unitario acordado en la línea."/>
+        <field name="valor_pendiente" string="Valor pdte. (€)" sum="Total valor pdte"
+               help="Valor comprometido sin entregar = Uds. pendientes × Precio unitario."/>
+        <field name="dias_espera" string="Días espera" avg="Media días"
+               help="Días desde la confirmación del pedido hasta hoy."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedido en Odoo"
+                title="Abrir el pedido de venta original"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.pending.delivery.line ════════════════════════════════ -->
+  <record id="view_lira_pending_delivery_line_search" model="ir.ui.view">
+    <field name="name">lira.pending.delivery.line.search</field>
+    <field name="model">lira.pending.delivery.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar pedidos pendientes de entrega">
+        <field name="partner_id" string="Cliente / NIF / Ciudad / País"
+               filter_domain="['|','|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self),
+                               ('partner_id.country_id.name','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="pedido" string="Nº pedido"/>
+        <separator/>
+        <filter name="mas_30" string="Espera &gt; 30 días" domain="[('dias_espera','>',30)]"/>
+        <filter name="mas_14" string="Espera &gt; 14 días" domain="[('dias_espera','>',14)]"/>
+        <filter name="sin_entregar" string="Sin entregar (0%)" domain="[('pct_entregado','=',0)]"/>
+        <filter name="parcial"      string="Entrega parcial (1-99%)" domain="[('pct_entregado','>',0),('pct_entregado','&lt;',100)]"/>
+        <filter name="sin_stock_dsp" string="Stock disp. &lt; 0" domain="[('stock_disponible','&lt;',0)]"/>
+        <separator/>
+        <filter name="val_1k"  string="Valor pdte. &gt; 1.000 €"  domain="[('valor_pendiente','>',1000)]"/>
+        <filter name="val_5k"  string="Valor pdte. &gt; 5.000 €"  domain="[('valor_pendiente','>',5000)]"/>
+        <filter name="val_10k" string="Valor pdte. &gt; 10.000 €" domain="[('valor_pendiente','>',10000)]"/>
+        <separator/>
+        <filter name="ped_mes" string="Pedido este mes"
+                date="fecha_pedido"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner"  string="Cliente"        context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"  string="Producto"       context="{'group_by': 'product_id'}"/>
+          <filter name="group_categ"    string="Categoría"      context="{'group_by': 'categ_id'}"/>
+          <filter name="group_pedido"   string="Pedido"         context="{'group_by': 'pedido'}"/>
+          <filter name="group_fecha"    string="Fecha pedido"   context="{'group_by': 'fecha_pedido'}"/>
+          <filter name="group_pedida"   string="Uds. pedidas"   context="{'group_by': 'qty_pedida'}"/>
+          <filter name="group_entr"     string="Uds. entregadas" context="{'group_by': 'qty_entregada'}"/>
+          <filter name="group_pdte"     string="Uds. pendientes" context="{'group_by': 'qty_pendiente'}"/>
+          <filter name="group_pct"      string="% entregado"    context="{'group_by': 'pct_entregado'}"/>
+          <filter name="group_stock"    string="Stock disp."    context="{'group_by': 'stock_disponible'}"/>
+          <filter name="group_precio"   string="Precio unit."   context="{'group_by': 'precio_unit'}"/>
+          <filter name="group_valor"    string="Valor pendiente" context="{'group_by': 'valor_pendiente'}"/>
+          <filter name="group_dias"     string="Días espera"    context="{'group_by': 'dias_espera'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_pending_delivery" model="ir.actions.server">
+    <field name="name">Pedidos pendientes de entrega Lira</field>
+    <field name="model_id" ref="model_lira_pending_delivery"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_salary_forecast_form" model="ir.ui.view">
+    <field name="name">lira.salary.forecast.form</field>
+    <field name="model">lira.salary.forecast</field>
+    <field name="arch" type="xml">
+      <form string="Previsión de gastos de personal" class="ld_form">
+        <sheet>
+
+          <!-- ══ CABECERA ═══════════════════════════════════════════════════════ -->
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Previsión de Salarios <widget name="lira_print_button" title="Previsión de Salarios" line_model="lira.salary.line"/></div>
+              <div class="ld_main_subtitle">Evolución histórica de los gastos de personal y proyección futura. Los datos históricos vienen de las cuentas contables del grupo 64. La previsión aplica el incremento anual configurado.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-sliders ld_icon_muted"/>
+                <span class="ld_sep">Historial (meses) <i class="fa fa-info-circle text-muted ms-1" title="'Historial (meses)': Meses hacia atrás que se analizan como base histórica del gasto real en personal."/></span>
+                <field name="periodos_hist" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Previsión (meses) <i class="fa fa-info-circle text-muted ms-1" title="'Previsión (meses)': Meses futuros que se proyectan, aplicando el promedio histórico más el incremento anual."/></span>
+                <field name="periodos_prev" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Incremento anual <i class="fa fa-info-circle text-muted ms-1" title="'Incremento anual': Porcentaje de subida salarial anual que se aplica sobre el gasto histórico para calcular la previsión."/></span>
+                <field name="incremento_pct" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">%</span>
+                <span class="ld_sep ms-2">SS empresa <i class="fa fa-info-circle text-muted ms-1" title="'SS empresa': Porcentaje de Seguridad Social a cargo de la empresa que se añade sobre los salarios brutos para calcular el coste total de personal."/></span>
+                <field name="tasa_ss" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">%</span>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Media mensual real <i class="fa fa-info-circle text-muted ms-1" title="'Media mensual real': Gasto mensual medio real en personal (salarios brutos + SS empresa) calculado a partir de los meses históricos de la contabilidad (cuentas grupo 64)."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="media_mensual" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total histórico <i class="fa fa-info-circle text-muted ms-1" title="'Total histórico': Suma total del gasto real en personal durante los meses históricos analizados."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_historico" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Media prevista <i class="fa fa-info-circle text-muted ms-1" title="'Media prevista': Gasto mensual estimado futuro: media histórica ajustada con el incremento anual configurado."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="media_prevista" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total previsión <i class="fa fa-info-circle text-muted ms-1" title="'Total previsión': Suma total del gasto estimado en personal para todos los meses futuros proyectados."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_prevision" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ EVOLUCIÓN ══════════════════════════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-users me-2"/>
+              Evolución mensual de gastos de personal
+            </span>
+            <button name="action_open_lines" type="object"
+                    class="ld_explore_btn"
+                    title="Abrir tabla completa con buscador, filtros y agrupaciones de Odoo">
+              <i class="fa fa-table me-1"/> Explorar tabla
+          </button></div>
+
+          <!-- ══ AVISO DE CEROS ════════════════════════════════════════════════ -->
+          <div class="ld_legend_strip" invisible="not tiene_ceros">
+            <i class="fa fa-info-circle ld_ls_ico"/>
+            <strong class="ld_ls_title">¿Por qué aparecen 0,00?</strong>
+            <span class="ld_ls_item">Salarios = 0: sin apuntes contabilizados en cuenta 640 (Sueldos) en ese mes</span><span class="ld_ls_item">SS = 0: sin apuntes en cuenta 642 (Seguridad Social empresa)</span>
+          </div>
+
+          <field name="line_ids">
+            <list string="Evolución" create="0" delete="0"
+                  decoration-info="tipo == 'prevision'"
+                  decoration-muted="tipo == 'real'">
+              <field name="mes" string="Mes" readonly="1"
+                     help="Mes al que corresponde la fila. Verde = dato real; azul = estimación futura."/>
+              <field name="tipo" string="Tipo" widget="badge"
+                     decoration-info="tipo == 'prevision'"
+                     decoration-success="tipo == 'real'" readonly="1"
+                     help="Real = dato contable real del mes. Previsión = estimación calculada."/>
+              <field name="salarios_brutos" string="Salarios brutos (€)"
+                     help="Salarios brutos pagados a empleados ese mes. Fuente: cuenta 640 (sueldos y salarios)." readonly="1"/>
+              <field name="ss_empresa" string="Seg. Social emp. (€)"
+                     help="Cuota de Seguridad Social a cargo de la empresa. Fuente: cuenta 642 (meses reales) o estimado aplicando el % SS configurado sobre salarios brutos (meses de previsión)." readonly="1"/>
+              <field name="otros" string="Otros personal (€)"
+                     help="Otros gastos de personal: indemnizaciones (641), dietas y seguros (643), otros (649). Solo aplica a meses reales; en previsión es 0." readonly="1"/>
+              <field name="total" string="Total (€)"
+                     help="Coste total de personal del mes: salarios brutos + Seg. Social empresa + otros gastos de personal." readonly="1"/>
+            </list>
+          </field>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_lira_salary_forecast" model="ir.actions.server">
+    <field name="name">Previsión salarios Lira</field>
+    <field name="model_id" ref="model_lira_salary_forecast"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+  <!-- ══ LISTA lira.salary.line ═════════════════════════════════════════════ -->
+  <record id="view_lira_salary_line_list2" model="ir.ui.view">
+    <field name="name">lira.salary.line.list2</field>
+    <field name="model">lira.salary.line</field>
+    <field name="arch" type="xml">
+      <list string="Gastos de personal" create="0" delete="0" edit="0"
+            decoration-info="tipo == 'prevision'"
+            decoration-muted="tipo == 'real'">
+        <field name="mes" string="Mes"
+               help="Mes al que corresponde la fila."/>
+        <field name="tipo" string="Tipo" widget="badge"
+               decoration-info="tipo == 'prevision'" decoration-success="tipo == 'real'"
+               help="Real: dato contable del mes. Previsión: estimación."/>
+        <field name="salarios_brutos" string="Salarios brutos (€)" sum="Total salarios"
+               help="Salarios brutos del mes. Fuente: cuenta 640."/>
+        <field name="ss_empresa" string="Seg. Social emp. (€)" sum="Total SS"
+               help="Cuota de Seguridad Social a cargo de la empresa. Fuente: cuenta 642."/>
+        <field name="otros" string="Otros personal (€)" sum="Total otros"
+               help="Otros gastos de personal (indemnizaciones, dietas, seguros)."/>
+        <field name="total" string="Total (€)" sum="Total personal"
+               help="Coste total de personal del mes = Salarios + SS + Otros."/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver apuntes grupo 64"
+                invisible="tipo == 'prevision'"
+                title="Abrir apuntes contables del grupo 64 (gastos de personal) de este mes"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.salary.line ══════════════════════════════════════════ -->
+  <record id="view_lira_salary_line_search" model="ir.ui.view">
+    <field name="name">lira.salary.line.search</field>
+    <field name="model">lira.salary.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en gastos de personal">
+        <field name="mes" string="Mes"/>
+        <field name="tipo" string="Tipo"/>
+        <separator/>
+        <filter name="real" string="Solo datos reales" domain="[('tipo','=','real')]"/>
+        <filter name="prev" string="Solo previsiones"  domain="[('tipo','=','prevision')]"/>
+        <separator/>
+        <filter name="bruto_10k"  string="Salarios &gt; 10.000 €" domain="[('salarios_brutos','&gt;',10000)]"/>
+        <filter name="bruto_50k"  string="Salarios &gt; 50.000 €" domain="[('salarios_brutos','&gt;',50000)]"/>
+        <filter name="total_10k"  string="Total &gt; 10.000 €"    domain="[('total','&gt;',10000)]"/>
+        <filter name="total_100k" string="Total &gt; 100.000 €"   domain="[('total','&gt;',100000)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_tipo"   string="Tipo"            context="{'group_by': 'tipo'}"/>
+          <filter name="group_mes"    string="Mes"             context="{'group_by': 'mes'}"/>
+          <filter name="group_bruto"  string="Salarios brutos" context="{'group_by': 'salarios_brutos'}"/>
+          <filter name="group_ss"     string="Seg. Social"     context="{'group_by': 'ss_empresa'}"/>
+          <filter name="group_otros"  string="Otros"           context="{'group_by': 'otros'}"/>
+          <filter name="group_total"  string="Total"           context="{'group_by': 'total'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+</odoo>

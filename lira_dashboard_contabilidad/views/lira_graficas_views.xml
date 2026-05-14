@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO PRINCIPAL ══════════════════════════════════════════════ -->
+  <record id="view_lira_graficas_form" model="ir.ui.view">
+    <field name="name">lira.graficas.form</field>
+    <field name="model">lira.graficas</field>
+    <field name="arch" type="xml">
+      <form string="Gráficas financieras" class="ld_form">
+        <sheet>
+
+          <!-- ══ CABECERA ═════════════════════════════════════════════════ -->
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">
+                Gráficas de Análisis Financiero
+                <widget name="lira_print_button" title="Gráficas de Análisis Financiero"/>
+              </div>
+              <div class="ld_main_subtitle">
+                Evolución visual de ventas, morosidad, cashflow y resultado del ejercicio.
+                Cambia el año y pulsa Actualizar. Usa el icono de gráfica en cada tabla para ver la representación visual.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-bar-chart ld_icon_muted"/>
+                <span class="ld_sep">Ejercicio <i class="fa fa-info-circle text-muted ms-1"
+                     title="'Ejercicio': Año fiscal que se analiza. Cambia el número y pulsa Actualizar para ver otro ejercicio."/>
+                </span>
+                <field name="ejercicio" nolabel="1" class="ld_date_input"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ FILA 1: VENTAS + RESULTADO ═══════════════════════════════ -->
+          <div class="row mt-3">
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-header fw-bold">
+                  <span class="fa fa-bar-chart me-2 text-primary"/>
+                  Evolución de Ventas
+                  <small class="text-muted fw-normal ms-2">Facturas emitidas confirmadas, sin IVA</small>
+                </div>
+                <div class="card-body p-1">
+                  <field name="ventas_line_ids" nolabel="1">
+                    <list create="0" delete="0">
+                      <field name="mes" string="Mes"
+                             help="Mes del ejercicio (01 Ene, 02 Feb…)"/>
+                      <field name="valor" string="Ventas netas (€)"
+                             help="Suma de facturas de cliente confirmadas ese mes, sin IVA. Fuente: facturas de cliente (out_invoice) validadas."/>
+                    </list>
+                  </field>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-header fw-bold">
+                  <span class="fa fa-line-chart me-2 text-success"/>
+                  Resultado Mensual
+                  <small class="text-muted fw-normal ms-2">Beneficio/pérdida + acumulado</small>
+                </div>
+                <div class="card-body p-1">
+                  <field name="resultado_line_ids" nolabel="1">
+                    <list create="0" delete="0">
+                      <field name="mes" string="Mes"
+                             help="Mes del ejercicio analizado."/>
+                      <field name="valor" string="Resultado mensual (€)"
+                             help="Ingresos (cuentas 7xx) menos gastos (cuentas 6xx) del mes. Positivo = beneficio, negativo = pérdida."/>
+                      <field name="valor2" string="Acumulado (€)"
+                             help="Suma acumulada del resultado desde enero hasta este mes del ejercicio."/>
+                    </list>
+                  </field>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ FILA 2: MOROSOS + PROVEEDOR VENCIDAS ═════════════════════ -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-header fw-bold">
+                  <span class="fa fa-exclamation-triangle me-2 text-danger"/>
+                  Clientes Morosos — Deuda Vencida
+                  <small class="text-muted fw-normal ms-2">Por mes de vencimiento</small>
+                </div>
+                <div class="card-body p-1">
+                  <field name="morosos_line_ids" nolabel="1">
+                    <list create="0" delete="0">
+                      <field name="mes" string="Mes de vencimiento"
+                             help="Mes en el que venció la factura de cliente."/>
+                      <field name="valor" string="Importe vencido (€)"
+                             help="Total de facturas de cliente vencidas ese mes que siguen sin cobrar (importe pendiente). Fuente: out_invoice con payment_state = not_paid/partial."/>
+                    </list>
+                  </field>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-header fw-bold">
+                  <span class="fa fa-building me-2 text-warning"/>
+                  Facturas Proveedor Vencidas
+                  <small class="text-muted fw-normal ms-2">Pendiente de pago</small>
+                </div>
+                <div class="card-body p-1">
+                  <field name="prov_vencidas_line_ids" nolabel="1">
+                    <list create="0" delete="0">
+                      <field name="mes" string="Mes de vencimiento"
+                             help="Mes en el que venció la factura del proveedor."/>
+                      <field name="valor" string="Importe vencido (€)"
+                             help="Total de facturas de proveedor vencidas ese mes que siguen sin pagar. Fuente: in_invoice con payment_state = not_paid/partial."/>
+                    </list>
+                  </field>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ FILA 3: CASHFLOW ══════════════════════════════════════════ -->
+          <div class="row">
+            <div class="col-12 mb-3">
+              <div class="card">
+                <div class="card-header fw-bold">
+                  <span class="fa fa-exchange me-2 text-info"/>
+                  Cashflow — Resultado mensual de explotación
+                  <small class="text-muted fw-normal ms-2">Ingresos menos gastos contabilizados (cuentas 7xx y 6xx)</small>
+                </div>
+                <div class="card-body p-1">
+                  <field name="cashflow_line_ids" nolabel="1">
+                    <list create="0" delete="0">
+                      <field name="mes" string="Mes"
+                             help="Mes del ejercicio analizado."/>
+                      <field name="valor" string="Resultado explotación (€)"
+                             help="Ingresos (cuentas 7xx) menos gastos (6xx) del mes. Positivo = mes con superávit operativo, negativo = mes con déficit."/>
+                    </list>
+                  </field>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN SERVIDOR ══════════════════════════════════════════════════ -->
+  <record id="action_lira_graficas" model="ir.actions.server">
+    <field name="name">Gráficas financieras Lira</field>
+    <field name="model_id" ref="model_lira_graficas"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

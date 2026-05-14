@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Hito 11 - Settings: override del campo Studio sale.order -->
+    <record id="view_apunts_res_config_settings" model="ir.ui.view">
+        <field name="name">apunts.costes.of.res.config.settings.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="mrp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@data-string='Manufacturing']" position="inside">
+                <block title="Apunts Costes OF" id="apunts_costes_of_settings_block">
+                    <setting id="apunts_studio_sale_field_setting"
+                             string="Campo Studio venta"
+                             help="Si vinculas OF -&gt; sale.order via un campo custom de Odoo Studio (ej. x_studio_venta), pon aqui su nombre tecnico para que el modulo lo use al calcular ingreso/margen. Vacio = auto-deteccion. '__none__' = deshabilitar auto-deteccion.">
+                        <field name="apunts_studio_sale_field" placeholder="x_studio_venta"/>
+                        <div class="text-muted">
+                            <p>
+                                Apunts Costes OF detecta y soporta dos formas de vincular OF con pedido cliente:
+                            </p>
+                            <ol>
+                                <li><strong>sale_id</strong> estandar de Odoo (preferido).</li>
+                                <li>Campo custom anyadido via Odoo Studio, m2o(sale.order). Auto-detectado al instalar.</li>
+                            </ol>
+                            <p>
+                                Override manual aqui solo si la auto-deteccion no encuentra el campo correcto.
+                            </p>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

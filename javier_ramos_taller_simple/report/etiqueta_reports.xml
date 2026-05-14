@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <record id="report_stock_picking" model="ir.actions.report">
+            <field name="name">Etiqueta</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">javier_ramos_taller_simple.etiqueta_albaran</field>
+            <field name="report_file">javier_ramos_taller_simple.etiqueta_albaran</field>
+            <field name="paperformat_id" ref="javier_ramos_taller_simple.paperformat_euro_etiqueta"/>
+            <field name="print_report_name">'Etiquetas'</field>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+        </record>
+   
+    </data>
+</odoo>

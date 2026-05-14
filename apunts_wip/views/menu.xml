@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- Menú raíz propio "WIP" para que sea independiente -->
+  <menuitem id="menu_apunts_wip_root"
+            name="WIP"
+            sequence="58"
+            web_icon="apunts_wip,static/description/icon.png"/>
+
+  <menuitem id="menu_apunts_wip_mrp"
+            name="Fabricación en Curso (WIP)"
+            parent="menu_apunts_wip_root"
+            action="action_apunts_mrp_wip"
+            sequence="1"/>
+
+  <menuitem id="menu_apunts_wip_valuation"
+            name="Valoración de Producto en Curso"
+            parent="menu_apunts_wip_root"
+            action="action_apunts_wip_valuation"
+            sequence="2"/>
+
+</odoo>

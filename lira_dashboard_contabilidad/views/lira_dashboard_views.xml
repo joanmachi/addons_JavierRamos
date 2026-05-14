@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_dashboard_form" model="ir.ui.view">
+    <field name="name">lira.dashboard.form</field>
+    <field name="model">lira.dashboard</field>
+    <field name="arch" type="xml">
+      <form class="ld_form">
+        <sheet>
+
+          <!-- ══ CABECERA ════════════════════════════════════════════════════ -->
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Tablero de Contabilidad <widget name="lira_print_button" title="Tablero de Contabilidad"/></div>
+              <div class="ld_main_subtitle">Resumen financiero del periodo: rentabilidad, liquidez, balance y ciclo de maduración. Todos los datos proceden de los asientos contables registrados en Odoo.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Ventas del periodo <i class="fa fa-info-circle text-muted ms-1" title="'Ventas del periodo': Suma de ingresos por ventas del período: facturas de cliente emitidas y validadas, sin IVA. Fuente: cuentas del grupo 7 (ingresos de explotación)."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="ventas_periodo" readonly="1"/>
+                </div>
+                <div class="ld_hkpi_trend">
+                  <field name="trend_ventas" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">EBITDA <i class="fa fa-info-circle text-muted ms-1" title="'EBITDA': Beneficio antes de intereses, impuestos, amortizaciones y depreciaciones. Mide la capacidad de generar beneficio operativo sin contar decisiones financieras ni contables. Fórmula: Ventas − Coste ventas − Personal − Gastos generales."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="ebitda" readonly="1"/>
+                </div>
+                <div class="ld_hkpi_trend">
+                  <field name="trend_ebitda" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Beneficio neto <i class="fa fa-info-circle text-muted ms-1" title="'Beneficio neto': Resultado final del período: ingresos menos TODOS los gastos (operativos, financieros y amortizaciones). Es lo que realmente gana la empresa. Fuente: cuentas 6xx y 7xx."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="beneficio_neto" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Margen bruto <i class="fa fa-info-circle text-muted ms-1" title="'Margen bruto': (Ventas − Coste de ventas) / Ventas × 100. Mide qué porcentaje de cada euro vendido queda después de pagar el coste directo del producto o servicio. Cuanto mayor, mejor."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="ratio_margen_bruto" readonly="1"/>
+                  <span class="ld_hkpi_unit">%</span>
+                </div>
+                <div class="ld_hkpi_trend">
+                  <field name="trend_margen" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ LIQUIDEZ Y SOLVENCIA ════════════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">Liquidez y solvencia</span>
+          </div>
+
+          <div class="ld_ratio_row">
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_liquidez != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_liquidez != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_liquidez != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Liquidez general <i class="fa fa-info-circle text-muted ms-1" title="'Liquidez general': Activo corriente / Pasivo corriente. Mide si la empresa puede pagar sus deudas a corto plazo con lo que tiene disponible (dinero, stock, cobros pendientes). Valor ideal superior a 1,5."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_liquidez_general" readonly="1"/>
+                </div>
+                <div class="ld_card_ref">Óptimo › 1,5 &#160;|&#160; Mínimo 1,0</div>
+                <div class="ld_card_formula">Activo corriente / Pasivo corriente</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_liq_inmediata != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_liq_inmediata != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_liq_inmediata != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Liquidez inmediata <i class="fa fa-info-circle text-muted ms-1" title="'Liquidez inmediata': (Activo corriente − Existencias) / Pasivo corriente. Como la liquidez general pero sin contar el stock, que puede tardar en convertirse en dinero. Valor ideal superior a 1."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_liquidez_inmediata" readonly="1"/>
+                </div>
+                <div class="ld_card_ref">Óptimo › 1,0 &#160;|&#160; Mínimo 0,75</div>
+                <div class="ld_card_formula">(Activo cte. – Existencias) / Pasivo cte.</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_tesoreria != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_tesoreria != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_tesoreria != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Ratio de tesorería <i class="fa fa-info-circle text-muted ms-1" title="'Ratio de tesorería': Tesorería (dinero en caja y bancos) / Pasivo corriente. Mide si el dinero disponible en este momento cubre las deudas a muy corto plazo. Valor ideal superior a 0,3."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_tesoreria" readonly="1"/>
+                </div>
+                <div class="ld_card_ref">Óptimo › 0,3 &#160;|&#160; Mínimo 0,1</div>
+                <div class="ld_card_formula">Tesorería / Pasivo corriente</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_solvencia != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_solvencia != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_solvencia != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Solvencia <i class="fa fa-info-circle text-muted ms-1" title="'Solvencia': Activo total / Pasivo total. Mide si la empresa podría pagar todas sus deudas vendiendo todos sus bienes. Valor ideal superior a 2. Por debajo de 1 la empresa está en quiebra técnica."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_solvencia" readonly="1"/>
+                </div>
+                <div class="ld_card_ref">Óptimo › 2,0 &#160;|&#160; Mínimo 1,0</div>
+                <div class="ld_card_formula">Activo total / Pasivo total</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_endeudamiento != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_endeudamiento != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_endeudamiento != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Endeudamiento <i class="fa fa-info-circle text-muted ms-1" title="'Endeudamiento': Pasivo total / Activo total × 100. Porcentaje del activo que está financiado con deuda (ajena). Por encima del 70% la empresa depende demasiado de financiación externa. Ideal por debajo del 50%."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_endeudamiento" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo ‹ 50% &#160;|&#160; Máximo 70%</div>
+                <div class="ld_card_formula">Pasivo total / Activo total × 100</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ RENTABILIDAD ════════════════════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">Rentabilidad del periodo</span>
+          </div>
+
+          <div class="ld_ratio_row">
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_margen_bruto != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_margen_bruto != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_margen_bruto != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Margen bruto <i class="fa fa-info-circle text-muted ms-1" title="'Margen bruto': (Ventas − Coste de ventas) / Ventas × 100. De cada 100€ vendidos, cuántos quedan después de pagar solo el coste directo del producto o servicio. Cuanto mayor, más rentable el negocio."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_margen_bruto" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo › 40%</div>
+                <div class="ld_card_trend">
+                  <field name="trend_margen" readonly="1"/>
+                </div>
+                <div class="ld_card_formula">(Ventas – Coste ventas) / Ventas</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_ebitda != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_ebitda != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_ebitda != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">EBITDA % <i class="fa fa-info-circle text-muted ms-1" title="'EBITDA %': EBITDA / Ventas × 100. Porcentaje del margen operativo antes de amortizaciones e intereses. Un valor alto indica que el negocio genera suficiente caja para cubrir inversiones y deudas."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_ebitda_pct" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo › 15%</div>
+                <div class="ld_card_trend">
+                  <field name="trend_ebitda" readonly="1"/>
+                </div>
+                <div class="ld_card_formula">EBITDA / Ventas × 100</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_margen_neto != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_margen_neto != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_margen_neto != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">Margen neto <i class="fa fa-info-circle text-muted ms-1" title="'Margen neto': Beneficio neto / Ventas × 100. De cada 100€ vendidos, cuántos quedan como beneficio real después de pagar absolutamente todos los gastos (operativos, financieros e impuestos)."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_margen_neto" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo › 10%</div>
+                <div class="ld_card_formula">Beneficio neto / Ventas × 100</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_roe != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_roe != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_roe != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">ROE <i class="fa fa-info-circle text-muted ms-1" title="'ROE': Return on Equity: Beneficio neto / Patrimonio neto. Rentabilidad que genera la empresa para sus propietarios. Indica cuánto gana la empresa por cada euro aportado por los socios."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_roe" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo › 10%</div>
+                <div class="ld_card_formula">Beneficio neto / Patrimonio neto</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_roa != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_roa != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_roa != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">ROA <i class="fa fa-info-circle text-muted ms-1" title="'ROA': Return on Assets: Beneficio neto / Activo total. Mide la eficiencia con la que la empresa usa sus activos (bienes e inversiones) para generar beneficio."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_roa" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_ref">Óptimo › 5%</div>
+                <div class="ld_card_formula">Beneficio neto / Activo total</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ CUENTA DE RESULTADOS + BALANCE ════════════════════════════ -->
+          <div class="ld_two_col">
+
+            <!-- Columna izquierda: Cuenta de resultados -->
+            <div class="ld_col">
+              <div class="ld_section_header">
+                <span class="ld_section_line"/>
+                <span class="ld_section_title">Cuenta de resultados</span>
+              </div>
+              <div class="ld_table">
+                <div class="ld_trow ld_trow_income ld_drillable">
+                  <span class="ld_tlabel">
+                    Ingresos de explotación
+                    <i class="fa fa-info-circle text-muted ms-1" title="'Ingresos de explotación': Cuentas grupo 7: ingresos por ventas de productos y servicios, sin IVA."/>
+                  </span>
+                  <field name="ventas_periodo" readonly="1"/>
+                  <button name="action_drill_ventas" type="object" class="ld_drill_btn" title="Ver apuntes de ingresos"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_drillable">
+                  <span class="ld_tlabel">
+                    – Coste de ventas
+                    <i class="fa fa-info-circle text-muted ms-1" title="'– Coste de ventas': Cuentas grupo 60 y 61: coste de la mercancía vendida o materiales consumidos directamente en el producto/servicio."/>
+                  </span>
+                  <field name="coste_ventas" readonly="1"/>
+                  <button name="action_drill_coste_ventas" type="object" class="ld_drill_btn" title="Ver apuntes de coste de ventas"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_trow_sub ld_no_drill">
+                  <span class="ld_tlabel">= Beneficio bruto <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
+                  <field name="beneficio_bruto" readonly="1"/>
+                </div>
+                <div class="ld_trow ld_drillable">
+                  <span class="ld_tlabel">
+                    – Gastos de personal
+                    <i class="fa fa-info-circle text-muted ms-1" title="'– Gastos de personal': Cuentas grupo 64: sueldos, salarios y Seguridad Social de todos los empleados."/>
+                  </span>
+                  <field name="gastos_personal" readonly="1"/>
+                  <button name="action_drill_personal" type="object" class="ld_drill_btn" title="Ver apuntes de personal"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_drillable">
+                  <span class="ld_tlabel">
+                    – Gastos generales
+                    <i class="fa fa-info-circle text-muted ms-1" title="'– Gastos generales': Cuentas grupo 62 y 63: alquileres, suministros, comunicaciones, servicios profesionales y otros gastos de estructura."/>
+                  </span>
+                  <field name="gastos_generales" readonly="1"/>
+                  <button name="action_drill_generales" type="object" class="ld_drill_btn" title="Ver apuntes de gastos generales"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_trow_sub ld_no_drill">
+                  <span class="ld_tlabel">= EBITDA <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
+                  <field name="ebitda" readonly="1"/>
+                </div>
+                <div class="ld_trow ld_drillable">
+                  <span class="ld_tlabel">
+                    – Amortizaciones
+                    <i class="fa fa-info-circle text-muted ms-1" title="'– Amortizaciones': Cuentas grupo 68: desgaste anual de los activos fijos (maquinaria, vehículos, instalaciones). No es una salida de dinero, pero sí un gasto contable."/>
+                  </span>
+                  <field name="amortizaciones" readonly="1"/>
+                  <button name="action_drill_amortizaciones" type="object" class="ld_drill_btn" title="Ver apuntes de amortizaciones"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_trow_sub ld_no_drill">
+                  <span class="ld_tlabel">= EBIT (Res. explotación) <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
+                  <field name="ebit" readonly="1"/>
+                </div>
+                <div class="ld_trow ld_drillable">
+                  <span class="ld_tlabel">
+                    ± Resultado financiero
+                    <i class="fa fa-info-circle text-muted ms-1" title="'± Resultado financiero': Cuentas grupo 76 menos 66: intereses cobrados (ingresos financieros) menos intereses pagados de préstamos y deudas (gastos financieros)."/>
+                  </span>
+                  <field name="resultado_financiero" readonly="1"/>
+                  <button name="action_drill_financiero" type="object" class="ld_drill_btn" title="Ver apuntes financieros"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_trow ld_trow_total ld_no_drill">
+                  <span class="ld_tlabel">= Beneficio neto (BAI) <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
+                  <field name="beneficio_neto" readonly="1"/>
+                </div>
+              </div>
+
+              <!-- Distribución de costes -->
+              <div class="ld_section_header mt-4">
+                <span class="ld_section_line"/>
+                <span class="ld_section_title">Distribución de costes (% s/ingresos)</span>
+              </div>
+              <div class="ld_cost_table">
+                <div class="ld_cost_row ld_drillable">
+                  <span class="ld_cdot ld_cdot_slate"/>
+                  <span class="ld_cost_label">Coste de ventas</span>
+                  <span class="ld_cost_pct">
+                    <field name="pct_coste_ventas" readonly="1"/>%
+                  </span>
+                  <button name="action_drill_coste_ventas" type="object" class="ld_drill_btn ms-1" title="Ver apuntes"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_cost_row ld_drillable">
+                  <span class="ld_cdot ld_cdot_indigo"/>
+                  <span class="ld_cost_label">Personal</span>
+                  <span class="ld_cost_pct">
+                    <field name="pct_personal" readonly="1"/>%
+                  </span>
+                  <button name="action_drill_personal" type="object" class="ld_drill_btn ms-1" title="Ver apuntes"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_cost_row ld_drillable">
+                  <span class="ld_cdot ld_cdot_gray"/>
+                  <span class="ld_cost_label">Generales</span>
+                  <span class="ld_cost_pct">
+                    <field name="pct_generales" readonly="1"/>%
+                  </span>
+                  <button name="action_drill_generales" type="object" class="ld_drill_btn ms-1" title="Ver apuntes"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_cost_row ld_drillable">
+                  <span class="ld_cdot ld_cdot_orange"/>
+                  <span class="ld_cost_label">Amortizaciones</span>
+                  <span class="ld_cost_pct">
+                    <field name="pct_amort" readonly="1"/>%
+                  </span>
+                  <button name="action_drill_amortizaciones" type="object" class="ld_drill_btn ms-1" title="Ver apuntes"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="ld_cost_row ld_cost_result ld_no_drill">
+                  <span class="ld_cdot ld_cdot_green"/>
+                  <span class="ld_cost_label">Resultado neto <span class="ld_nodrill_badge">calculado</span></span>
+                  <span class="ld_cost_pct">
+                    <field name="pct_resultado" readonly="1"/>%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna derecha: Balance -->
+            <div class="ld_col">
+              <div class="ld_section_header">
+                <span class="ld_section_line"/>
+                <span class="ld_section_title">Balance de situación</span>
+              </div>
+              <div class="ld_balance_cols">
+                <div class="ld_balance_side">
+                  <div class="ld_balance_header">Activo</div>
+                  <div class="ld_trow">
+                    <span class="ld_tlabel">No corriente</span>
+                    <field name="activo_no_corriente" readonly="1"/>
+                  </div>
+                  <div class="ld_trow">
+                    <span class="ld_tlabel">Corriente</span>
+                    <field name="activo_corriente" readonly="1"/>
+                  </div>
+                  <div class="ld_trow ld_trow_total">
+                    <span class="ld_tlabel">Total activo</span>
+                    <field name="activo_total" readonly="1"/>
+                  </div>
+                </div>
+                <div class="ld_balance_side">
+                  <div class="ld_balance_header">Pasivo + PN</div>
+                  <div class="ld_trow">
+                    <span class="ld_tlabel">Patrimonio neto</span>
+                    <field name="patrimonio_neto" readonly="1"/>
+                  </div>
+                  <div class="ld_trow">
+                    <span class="ld_tlabel">Pasivo no corriente</span>
+                    <field name="pasivo_no_corriente" readonly="1"/>
+                  </div>
+                  <div class="ld_trow">
+                    <span class="ld_tlabel">Pasivo corriente</span>
+                    <field name="pasivo_corriente" readonly="1"/>
+                  </div>
+                  <div class="ld_trow ld_trow_total">
+                    <span class="ld_tlabel">Total Pasivo + PN</span>
+                    <field name="total_pasivo_pn" readonly="1"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ CICLO DE MADURACIÓN ════════════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">Ciclo de maduración y plazo de servicio</span>
+          </div>
+
+          <div class="ld_cycle_row">
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-users"/>
+              <div class="ld_cycle_label">Periodo medio de cobro <i class="fa fa-info-circle text-muted ms-1" title="'Periodo medio de cobro': Días que tardamos en cobrar de nuestros clientes de media. Fórmula: (Saldo clientes / Ventas) × días del período. Cuanto menor, mejor liquidez."/></div>
+              <div class="ld_cycle_value">
+                <field name="pmc" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">(Clientes / Ventas) × días</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-truck"/>
+              <div class="ld_cycle_label">Periodo medio de pago <i class="fa fa-info-circle text-muted ms-1" title="'Periodo medio de pago': Días que tardamos en pagar a nuestros proveedores. Fórmula: (Saldo proveedores / Compras) × días del período. Un plazo mayor nos favorece financieramente."/></div>
+              <div class="ld_cycle_value">
+                <field name="pmp" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">(Proveedores / Compras) × días</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-cubes"/>
+              <div class="ld_cycle_label">Periodo medio de almacén <i class="fa fa-info-circle text-muted ms-1" title="'Periodo medio de almacén': Días que el stock permanece en almacén antes de venderse. Fórmula: (Existencias / Coste de ventas) × días del período. Un valor alto implica más capital inmovilizado en stock."/></div>
+              <div class="ld_cycle_value">
+                <field name="pma" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">(Existencias / Coste ventas) × días</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-clock-o"/>
+              <div class="ld_cycle_label">Término medio de servicio <i class="fa fa-info-circle text-muted ms-1" title="'Término medio de servicio': Días de media entre que un cliente hace el pedido y se emite la factura. Mide la agilidad de la empresa para entregar y facturar."/></div>
+              <div class="ld_cycle_value">
+                <field name="tms_dias" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">Pedido → Factura (media)</div>
+            </div>
+
+            <div class="ld_cycle_result_card">
+              <div class="ld_strip ld_strip_green"  invisible="ciclo_semaforo != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="ciclo_semaforo != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="ciclo_semaforo != 'red'"/>
+              <div class="ld_cycle_result_body">
+                <div class="ld_cycle_icon fa fa-hourglass-half"/>
+                <div class="ld_cycle_label">Ciclo de caja <i class="fa fa-info-circle text-muted ms-1" title="'Ciclo de caja': PMC + PMA − PMP. Días que la empresa financia con su propio dinero el ciclo de producción y venta. Un ciclo de caja positivo alto indica necesidad de financiación externa."/></div>
+                <div class="ld_cycle_value_big">
+                  <field name="ciclo_caja" readonly="1"/>
+                  <span class="ld_unit"> días</span>
+                </div>
+                <div class="ld_cycle_formula">PMC + PMA − PMP</div>
+                <div class="mt-2">
+                  <field name="ciclo_semaforo" readonly="1" widget="badge"
+                         decoration-success="ciclo_semaforo == 'green'"
+                         decoration-warning="ciclo_semaforo == 'yellow'"
+                         decoration-danger="ciclo_semaforo == 'red'"/>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ CICLO REAL ═════════════════════════════════════════════════ -->
+          <div class="ld_cycle_row mt-2">
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-users" style="color:#7c3aed"/>
+              <div class="ld_cycle_label">PMC real <i class="fa fa-info-circle text-muted ms-1" title="'PMC real': Promedio real de días entre la fecha de emisión y la fecha de cobro de cada factura de cliente. Cálculo: promedio(fecha_pago − fecha_factura) para todas las facturas cobradas."/></div>
+              <div class="ld_cycle_value">
+                <field name="pmc_real" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">Promedio (fecha cobro − fecha factura)</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-truck" style="color:#7c3aed"/>
+              <div class="ld_cycle_label">PMP real <i class="fa fa-info-circle text-muted ms-1" title="'PMP real': Promedio real de días entre la fecha de recepción de la factura del proveedor y la fecha en que se efectuó el pago. Cálculo: promedio(fecha_pago − fecha_factura) de todas las facturas de proveedor pagadas."/></div>
+              <div class="ld_cycle_value">
+                <field name="pmp_real" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">Promedio (fecha pago − fecha factura prov.)</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-cubes" style="color:#7c3aed"/>
+              <div class="ld_cycle_label">PMA real <i class="fa fa-info-circle text-muted ms-1" title="'PMA real': Promedio real de días que los productos permanecen en el almacén entre su recepción y su entrega al cliente. Cálculo: promedio(fecha_entrega − fecha_recepción) por movimiento de stock."/></div>
+              <div class="ld_cycle_value">
+                <field name="pma_real" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">Promedio (fecha entrega − fecha recepción)</div>
+            </div>
+
+            <div class="ld_cycle_card">
+              <div class="ld_cycle_icon fa fa-clock-o" style="color:#7c3aed"/>
+              <div class="ld_cycle_label">TMS real <i class="fa fa-info-circle text-muted ms-1" title="'TMS real': Promedio real de días desde que el cliente confirma el pedido hasta que recibe la entrega (albarán validado). Cálculo: promedio(fecha_entrega − fecha_pedido) para todos los pedidos entregados."/></div>
+              <div class="ld_cycle_value">
+                <field name="tms_real" readonly="1"/>
+                <span class="ld_unit"> días</span>
+              </div>
+              <div class="ld_cycle_formula">Promedio (fecha entrega − fecha pedido)</div>
+            </div>
+
+            <div class="ld_cycle_result_card">
+              <div class="ld_cycle_result_body">
+                <div class="ld_cycle_icon fa fa-hourglass-half" style="color:#7c3aed"/>
+                <div class="ld_cycle_label">Ciclo de caja real <i class="fa fa-info-circle text-muted ms-1" title="'Ciclo de caja real': PMC real + PMA real − PMP real. Días reales que la empresa financia el ciclo operativo con recursos propios."/></div>
+                <div class="ld_cycle_value_big" style="color:#7c3aed">
+                  — <span class="ld_unit">próximamente</span>
+                </div>
+                <div class="ld_cycle_formula">PMC real + PMA real − PMP real</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ ALERTAS INTELIGENTES ════════════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-exclamation-triangle me-2"/>
+              Alertas — activa o desactiva las que quieras mostrar
+            </span>
+          </div>
+
+          <field name="alerta_ids">
+            <list string="Alertas" create="0" delete="0"
+                  decoration-danger="nivel == 'red'"
+                  decoration-warning="nivel == 'yellow'"
+                  decoration-success="nivel == 'info'">
+              <field name="nivel" string="Estado" widget="badge"
+                     decoration-danger="nivel == 'red'"
+                     decoration-warning="nivel == 'yellow'"
+                     decoration-success="nivel == 'info'"
+                     help="Nivel: Crítico (rojo) = acción urgente; Atención (naranja) = mejorable; OK (verde) = dentro del rango saludable."/>
+              <field name="mensaje" string="Descripción" readonly="1"
+                     help="Descripción del indicador y su valor actual en el período analizado."/>
+              <field name="visible" string="Mostrar"
+                     help="Marca esta casilla para que este aviso aparezca destacado en el panel de alertas. Desmárcala para ocultarlo."/>
+            </list>
+          </field>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_lira_dashboard" model="ir.actions.server">
+    <field name="name">Dashboard Financiero Lira</field>
+    <field name="model_id" ref="model_lira_dashboard"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open_dashboard()</field>
+  </record>
+
+</odoo>

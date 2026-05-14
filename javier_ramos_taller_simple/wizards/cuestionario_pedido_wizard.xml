@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<odoo>
+    <record id="cuestionario" model="ir.ui.view">
+        <field name="name">javier_ramos_taller_simple.cuestionario.form</field>
+        <field name="model">javier_ramos_taller_simple.cuestionario</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="multi_step_wizard.multi_step_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='open_next']" position="replace">
+                <field name="mostrar_boton" invisible="1"/>
+                <button
+                    name="action_guardar"
+                    string="Confirmar"
+                    type="object"
+                    class="btn-primary"
+                    invisible="state != 'final'"
+                    
+                />
+                <button
+                    name="open_next"
+                    string="Siguiente"
+                    type="object"
+                    class="btn-primary"
+                    invisible="mostrar_boton != True"
+                    
+                />
+            </xpath>
+            <xpath expr="//footer" position="before">
+           
+              
+                <group name="start" invisible="state != 'start'">
+                    <group>
+                        <field name="tipo_producto" />
+                    </group>
+                </group>
+                <group name="dos" invisible="state != 'dos'">
+                    <group colspan="2">
+                        <field name="componentes" mode="list"  add-label="Añadir linea">
+                            <list editable="bottom">
+                                <field name="producto" />
+                                <field name="tiempo_recepcion" />
+                            </list>
+                        </field>
+                    </group>
+                </group>
+                <group name="dos_conjunto" invisible="state != 'dos_conjunto'">
+                    <group colspan="2">
+                        <field name="id_modelo" invisible="1"/>
+                        <field name="nombre_modelo" invisible="1"/>
+                        <field name="componentes_conjunto" mode="list"  add-label="Añadir linea" context="{'producto': id_modelo, 'modelo_product' : nombre_modelo}">
+                            <list editable="bottom">
+                                <field name="custom_producto_domain" column_invisible="True"/>
+                                <field name="producto" domain='custom_producto_domain' />
+                                <field name="cantidad" />
+                                <field name="precio_unidad" />
+                                <field name="total" />
+                            </list>
+                        </field>
+                    </group>
+                </group>
+                <group name="tres" invisible="state != 'tres'">
+                    <group colspan="2">
+                        <field name="diametro"/>
+                        <field name="largo"/>
+                        <field name="ancho"/>
+                        <field name="altura"/>
+                        
+                    </group>
+                </group>
+                <group name="cuatro" invisible="state != 'cuatro'">
+                    <group colspan="2">
+                        <field name="servicios" mode="list"  add-label="Añadir linea">
+                            <list editable="bottom">
+                                <field name="producto"/>
+                                <field name="tipo_producto" column_invisible="True"/>
+                                <field name="tiempo_esperado"  required="tipo_producto == 'conjunto'"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+                <group name="tres_conjunto" invisible="state != 'tres_conjunto'">
+                    <group colspan="2">
+                        <field name="servicios_conjunto" mode="list"  add-label="Añadir linea">
+                            <list editable="bottom">
+                                <field name="producto"/>
+                                <field name="precio_unidad"/>
+                                <field name="tipo_producto" column_invisible="True"/>
+                                <field name="tiempo_esperado"  required="tipo_producto == 'conjunto'"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+                <group name="final" invisible="state != 'final'">
+                    <group colspan="2">
+                        <field name="fases" mode="list"  add-label="Añadir linea">
+                            <list editable="bottom">
+                                <field name="num_fases"/>
+                                <field name="operacion"/>
+                                <field name="centro_trabajo"  domain="[('tag_ids.name','=','PRESUPUESTO')]"/>
+                                <field name="minutos"/>
+                                <field name="ignorar_preparacion_limpieza"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+
+            </xpath>
+          
+     
+		
+        </field>
+    </record>
+
+
+
+</odoo>

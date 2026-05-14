@@ -1,0 +1,147 @@
+<odoo>
+
+
+        <record id="picking_type_wc_assembly_7" model="stock.picking.type">
+            <field name="name">Soldadura 1</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">SOLDADURA_1</field>
+            <field name="sequence_code">S01</field>
+        </record>
+        <record id="picking_type_wc_assembly_8" model="stock.picking.type">
+            <field name="name">Soldadura 2</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">SOLDADURA_2</field>
+            <field name="sequence_code">S02</field>
+        </record>
+        <record id="picking_type_wc_assembly_9" model="stock.picking.type">
+            <field name="name">Soldadura 3</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">SOLDADURA_3</field>
+            <field name="sequence_code">S03</field>
+        </record>
+        <record id="picking_type_wc_assembly_10" model="stock.picking.type">
+            <field name="name">Hartford</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">HARTFORD</field>
+            <field name="sequence_code">C01</field>
+        </record>
+        <record id="picking_type_wc_assembly_11" model="stock.picking.type">
+            <field name="name">Akira seiki</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">AKIRA_SEIKI</field>
+            <field name="sequence_code">C02</field>
+        </record>
+        <record id="picking_type_wc_assembly_12" model="stock.picking.type">
+            <field name="name">Okuma 1</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">OKUMA_1</field>
+            <field name="sequence_code">C04</field>
+        </record>
+        <record id="picking_type_wc_assembly_13" model="stock.picking.type">
+            <field name="name">Okuma 2</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">OKUMA_1</field>
+            <field name="sequence_code">C05</field>
+        </record>
+        <record id="picking_type_wc_assembly_14" model="stock.picking.type">
+            <field name="name">JHON FORD SL70</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">JHON_FORD_SL70</field>
+            <field name="sequence_code">T01</field>
+        </record>
+      
+        <record id="picking_type_wc_assembly_15" model="stock.picking.type">
+            <field name="name">JHON FORD ST50</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">JHON_FORD_ST50</field>
+            <field name="sequence_code">T02</field>
+        </record>
+        <record id="picking_type_wc_assembly_16" model="stock.picking.type">
+            <field name="name">JHON FORD TC35</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">JHON_FORD_TC35</field>
+            <field name="sequence_code">T03</field>
+        </record>
+        <record id="picking_type_wc_assembly_17" model="stock.picking.type">
+            <field name="name">JHON FORD TC35 A</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">JHON_FORD_TC35_A</field>
+            <field name="sequence_code">T04</field>
+        </record>
+        <record id="picking_type_wc_assembly_18" model="stock.picking.type">
+            <field name="name">PINACHO</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">PINACHO</field>
+            <field name="sequence_code">T05</field>
+        </record>
+        <record id="picking_type_wc_assembly_19" model="stock.picking.type">
+            <field name="name">CAD</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">CAD</field>
+            <field name="sequence_code">F01</field>
+        </record>
+        <record id="picking_type_wc_assembly_20" model="stock.picking.type">
+            <field name="name">DYE</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">DYE</field>
+            <field name="sequence_code">F02</field>
+        </record>
+        <record id="picking_type_wc_assembly_21" model="stock.picking.type">
+            <field name="name">LOGISTICA Y CORTE</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">LOGISTICA_Y_CORTE</field>
+            <field name="sequence_code">L01</field>
+        </record>
+        <record id="picking_type_wc_assembly_22" model="stock.picking.type">
+            <field name="name">MONTAJE</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">MONTAJE</field>
+            <field name="sequence_code">M01</field>
+        </record>
+        <!-- 
+    
+        <record id="picking_type_wc_assembly_17" model="stock.picking.type">
+            <field name="name">TORNEADO</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">TORNEADO</field>
+            <field name="sequence_code">TORNEADO</field>
+        </record>
+        <record id="picking_type_wc_assembly_18" model="stock.picking.type">
+            <field name="name">FRESADO</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">FRESADO</field>
+            <field name="sequence_code">FRESADO</field>
+        </record>
+        <record id="picking_type_wc_assembly_19" model="stock.picking.type">
+            <field name="name">SOLDADURA</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">SOLDADURA</field>
+            <field name="sequence_code">SOLDADURA</field>
+        </record>
+        <record id="picking_type_wc_assembly_20" model="stock.picking.type">
+            <field name="name">OTROS</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">OTROS</field>
+            <field name="sequence_code">OTROS</field>
+        </record>
+            -->
+        <record id="picking_type_wc_assembly_32" model="stock.picking.type">
+            <field name="name">TRABAJOS MANUALES</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">TRABAJOS_MANUALES</field>
+            <field name="sequence_code">TRABAJOS_MANUALES</field>
+        </record>
+        <record id="picking_type_wc_assembly_36" model="stock.picking.type">
+            <field name="name">SERVICIOS EXTERNOS</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">SERVICIOS_EXTERNOS</field>
+            <field name="sequence_code">SERVICIOS_EXTERNOS</field>
+        </record>
+        <record id="picking_type_wc_assembly_38" model="stock.picking.type">
+            <field name="name">PROGRAMACION</field>
+            <field name="code">mrp_operation</field>
+            <field name="barcode">PROGRAMACION</field>
+            <field name="sequence_code">PROGRAMACION</field>
+        </record>
+      
+</odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+  
+   
+
+    <record id="view_pedido_form" model="ir.ui.view">
+        <field name="name">javier_ramos_taller_simple.pedido.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+	   		<xpath expr="//field[@name='x_studio_rdenes_de_fabricacin']" position="after">
+          
+					<field name="total_cuestionario_fase_presupuesto" widget="monetary"/>
+                    <field name="total_cuestionario_servicios_presupuesto" widget="monetary"/>
+                    <field name="total_cuestionario_material_presupuesto" widget="monetary"/>
+            </xpath>
+         
+         
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="margen_beneficio"/>
+            </xpath>
+         
+            <xpath expr="//field[@name='technical_price_unit']" position="after">
+                <field name="coste_sin_beneficio"  optional="show"/>
+                <field name="cotizado" widget="checkbox" readonly="1" optional="show" />
+            </xpath>
+           
+         
+        </field>
+    </record>
+
+
+
+
+    
+</odoo>

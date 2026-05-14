@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+  
+   
+
+    <record id="view_centro_trabajo_form" model="ir.ui.view">
+        <field name="name">javier_ramos_taller_simple.centro_trabajo.form</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='costing']" position="after">
+                <group>
+                    <div >
+                        <group>
+
+                            <field name="small_coste_hora" class="oe_inline"  />
+                        </group>
+                        <group>
+                            <field name="small_diametro" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="small_largo" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="small_ancho" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="small_altura" class="oe_inline"/>
+                        </group>
+                    </div>
+                    <br/>
+                    <div >
+                        <group>
+
+                            <field name="mediano_coste_hora" class="oe_inline"  />
+                        </group>
+                        <group>
+                            <field name="mediano_diametro" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="mediano_largo" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="mediano_ancho" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="mediano_altura" class="oe_inline"/>
+                        </group>
+                    </div>
+                    <br/>
+                    <div >
+                        <group>
+
+                            <field name="grande_coste_hora" class="oe_inline"  />
+                        </group>
+                        <group>
+                            <field name="grande_diametro" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="grande_largo" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="grande_ancho" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="grande_altura" class="oe_inline"/>
+                        </group>
+                    </div>
+                    <br/>
+                    <div >
+                        <group>
+
+                            <field name="muy_grande_coste_hora" class="oe_inline"  />
+                        </group>
+                        <group>
+                            <field name="muy_grande_diametro" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="muy_grande_largo" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="muy_grande_ancho" class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name="muy_grande_altura" class="oe_inline"/>
+                        </group>
+                    </div>
+                    <br/>
+
+                </group>
+          
+                 
+            </xpath>
+         
+       
+         
+        </field>
+    </record>
+
+
+
+
+    
+</odoo>

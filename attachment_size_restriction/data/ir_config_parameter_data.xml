@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!-- New system parameter for the attachment size limit # T7329 -->
+    <record id="max_attachment_size" model="ir.config_parameter">
+        <field name="key">attachment_size_restriction.attachment_size_limit</field>
+        <field name="value" />
+    </record>
+</odoo>

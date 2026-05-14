@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_apunts_mrp_wip_user,apunts.mrp.wip.user,model_apunts_mrp_wip,base.group_user,1,1,1,1
+access_apunts_mrp_wip_line_user,apunts.mrp.wip.line.user,model_apunts_mrp_wip_line,base.group_user,1,1,1,1
+access_apunts_wip_valuation_user,apunts.wip.valuation.user,model_apunts_wip_valuation,base.group_user,1,1,1,1
+access_apunts_wip_valuation_line_user,apunts.wip.valuation.line.user,model_apunts_wip_valuation_line,base.group_user,1,1,1,1

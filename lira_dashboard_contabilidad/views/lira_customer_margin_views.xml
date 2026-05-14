@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Margen por Cliente ═════════════════════════════════════ -->
+  <record id="view_lira_customer_margin_form" model="ir.ui.view">
+    <field name="name">lira.customer.margin.form</field>
+    <field name="model">lira.customer.margin</field>
+    <field name="arch" type="xml">
+      <form string="Análisis de margen por cliente" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Margen por Cliente <widget name="lira_print_button" title="Margen por Cliente" line_model="lira.customer.margin.line"/></div>
+              <div class="ld_main_subtitle">¿Qué cliente te genera más beneficio real? Clasifica tu cartera de clientes por rentabilidad, detecta los más valiosos y los que vendes por debajo de coste.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-2">Cliente</span>
+                <field name="partner_id" options="{'no_create': True}" nolabel="1"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total facturado <i class="fa fa-info-circle text-muted ms-1" title="Suma de todas las facturas emitidas a clientes en el período (sin IVA)."/></div>
+                <div class="ld_hkpi_value"><field name="total_facturado" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Margen total <i class="fa fa-info-circle text-muted ms-1" title="Suma del margen bruto de todos los clientes: facturado menos coste estimado."/></div>
+                <div class="ld_hkpi_value"><field name="total_margen" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Margen medio <i class="fa fa-info-circle text-muted ms-1" title="(Margen total / Total facturado) × 100."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="media_margen" readonly="1"/><span class="ld_hkpi_unit">%</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Mejor</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="mejor_cliente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">A revisar</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem"><field name="peor_cliente" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-users"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver ranking de margen por cliente</strong>
+              <span>Abre la tabla con buscador nativo: filtra por cliente, NIF, ciudad, país; ordena por margen o facturación.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.customer.margin.line ═══════════════════════════════════ -->
+  <record id="view_lira_customer_margin_line_list" model="ir.ui.view">
+    <field name="name">lira.customer.margin.line.list</field>
+    <field name="model">lira.customer.margin.line</field>
+    <field name="arch" type="xml">
+      <list string="Margen por cliente" create="0" delete="0" edit="0"
+            decoration-danger="margen_pct &lt; 10"
+            decoration-warning="margen_pct &lt; 25 and margen_pct &gt;= 10"
+            decoration-success="margen_pct &gt;= 25">
+        <field name="rank" string="#" width="44"
+               help="Posición ordenada de mayor a menor margen porcentual."/>
+        <field name="partner_id" string="Cliente"
+               help="Cliente."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="Número de identificación fiscal del cliente."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del cliente."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del cliente."/>
+        <field name="partner_ref" string="Ref. cliente" optional="hide"
+               help="Referencia interna del cliente."/>
+        <field name="partner_email" string="Email" optional="hide"
+               help="Email de contacto."/>
+        <field name="partner_phone" string="Teléfono" optional="hide"
+               help="Teléfono."/>
+        <field name="total_facturado" string="Facturado (€)" sum="Total facturado"
+               help="Ingresos por ventas del cliente en el período (sin IVA)."/>
+        <field name="coste_estimado" string="Coste est. (€)" sum="Total coste"
+               help="Coste estimado de lo vendido: Σ (unidades × precio coste del producto)."/>
+        <field name="margen_euros" string="Margen (€)" sum="Total margen"
+               help="Beneficio bruto = Facturado − Coste estimado."/>
+        <field name="margen_pct" string="Margen (%)" avg="Margen medio"
+               help="Porcentaje de margen = (Margen € / Facturado) × 100."/>
+        <field name="num_facturas" string="Facturas" sum="Total facturas"
+               help="Nº de facturas emitidas al cliente."/>
+        <field name="ultimo_pedido" string="Último pedido"
+               help="Fecha de la factura más reciente del cliente."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver facturas del cliente"
+                title="Abrir todas las facturas emitidas a este cliente"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.customer.margin.line ════════════════════════════════ -->
+  <record id="view_lira_customer_margin_line_search" model="ir.ui.view">
+    <field name="name">lira.customer.margin.line.search</field>
+    <field name="model">lira.customer.margin.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar margen por cliente">
+        <field name="partner_id" string="Cliente / NIF / Ciudad / País"
+               filter_domain="['|','|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self),
+                               ('partner_id.country_id.name','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="partner_email" string="Email"/>
+        <separator/>
+        <filter name="margen_critico" string="Margen crítico (&lt;10%)"
+                domain="[('margen_pct','&lt;',10)]"/>
+        <filter name="margen_bajo"    string="Margen bajo (10–25%)"
+                domain="[('margen_pct','&gt;=',10),('margen_pct','&lt;',25)]"/>
+        <filter name="margen_ok"      string="Margen OK (≥25%)"
+                domain="[('margen_pct','&gt;=',25)]"/>
+        <filter name="perdidas"       string="En pérdidas (&lt;0%)"
+                domain="[('margen_pct','&lt;',0)]"/>
+        <separator/>
+        <filter name="fact_1k"   string="Facturado &gt; 1.000 €"  domain="[('total_facturado','>',1000)]"/>
+        <filter name="fact_10k"  string="Facturado &gt; 10.000 €" domain="[('total_facturado','>',10000)]"/>
+        <filter name="fact_50k"  string="Facturado &gt; 50.000 €" domain="[('total_facturado','>',50000)]"/>
+        <separator/>
+        <filter name="mas_3_fact"  string="≥ 3 facturas"   domain="[('num_facturas','>=',3)]"/>
+        <filter name="mas_10_fact" string="≥ 10 facturas"  domain="[('num_facturas','>=',10)]"/>
+        <separator/>
+        <filter name="ultimo_mes" string="Última compra este mes"
+                date="ultimo_pedido"/>
+        <separator/>
+        <filter name="top10" string="Top 10" domain="[('rank','&lt;=',10)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner"    string="Cliente"         context="{'group_by': 'partner_id'}"/>
+          <filter name="group_ultimo_ped" string="Último pedido"   context="{'group_by': 'ultimo_pedido'}"/>
+          <filter name="group_rank"       string="Ranking"         context="{'group_by': 'rank'}"/>
+          <filter name="group_fact"       string="Facturado"       context="{'group_by': 'total_facturado'}"/>
+          <filter name="group_coste"      string="Coste estimado"  context="{'group_by': 'coste_estimado'}"/>
+          <filter name="group_margen_e"   string="Margen €"        context="{'group_by': 'margen_euros'}"/>
+          <filter name="group_margen_p"   string="Margen %"        context="{'group_by': 'margen_pct'}"/>
+          <filter name="group_num_fact"   string="Nº facturas"     context="{'group_by': 'num_facturas'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_customer_margin" model="ir.actions.server">
+    <field name="name">Margen por cliente Lira</field>
+    <field name="model_id" ref="model_lira_customer_margin"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

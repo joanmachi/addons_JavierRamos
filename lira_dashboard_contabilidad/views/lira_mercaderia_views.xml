@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_mercaderia_form" model="ir.ui.view">
+    <field name="name">lira.mercaderia.form</field>
+    <field name="model">lira.mercaderia</field>
+    <field name="arch" type="xml">
+      <form string="Mercadería (Compra-Reventa)" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Mercadería (Compra-Reventa) <widget name="lira_print_button" title="Mercadería" line_model="lira.mercaderia.line"/></div>
+              <div class="ld_main_subtitle">
+                Productos que la empresa compra y revende sin proceso de fabricación (sin lista de materiales en Odoo).
+                Generan margen directo: PVP − coste de compra. Son "cash" porque no tienen costes de transformación que imputar.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <button name="action_refresh" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Productos sin fabricación
+                  <i class="fa fa-info-circle text-muted ms-1" title="Número de productos almacenables o consumibles activos que NO tienen ninguna lista de materiales (BoM) configurada en el módulo de Fabricación. Son productos de compra-reventa pura."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="num_productos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Ingresos por ventas
+                  <i class="fa fa-info-circle text-muted ms-1" title="Suma de importes (sin IVA) de las ventas de mercadería del periodo. Fuente: líneas de pedido de venta confirmadas con productos sin BoM."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_ingresos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Coste de compra
+                  <i class="fa fa-info-circle text-muted ms-1" title="Coste real de adquisición de lo vendido en el periodo. Si hay compras del producto en el periodo se usa el precio medio de compra ponderado. Si no, se usa el precio de coste configurado en la ficha del producto."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_coste" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Margen bruto
+                  <i class="fa fa-info-circle text-muted ms-1" title="Ingresos por ventas − Coste de compra. Es el beneficio bruto directo que generan las mercaderías sin descontar costes estructurales."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#7c3aed"><field name="total_margen" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Margen medio (%)
+                  <i class="fa fa-info-circle text-muted ms-1" title="(Margen bruto / Ingresos) × 100. Porcentaje de margen sobre ventas de mercadería."/>
+                </div>
+                <div class="ld_hkpi_value">
+                  <field name="margen_medio_pct" readonly="1"/><span class="ld_hkpi_unit">%</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Valor stock actual (€)
+                  <i class="fa fa-info-circle text-muted ms-1" title="Valor actual del stock de mercadería = Unidades en almacén × Precio de coste configurado. Es capital inmovilizado en productos de reventa."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="valor_stock_actual" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_legend_strip" style="background:#f3f4f6; border-left:4px solid #7c3aed; padding:12px 14px; margin-top:18px">
+            <i class="fa fa-book ld_ls_ico" style="color:#7c3aed"/>
+            <strong class="ld_ls_title">Metodología</strong>
+            <span class="ld_ls_item"><strong>Criterio "sin fabricación"</strong>: producto sin lista de materiales (BoM) activa</span>
+            <span class="ld_ls_item"><strong>Coste</strong>: precio medio de compra del periodo si hay compras, si no precio de coste de la ficha</span>
+            <span class="ld_ls_item"><strong>Rotación</strong>: días estimados en agotar stock = Stock actual ÷ Ventas diarias del periodo</span>
+            <span class="ld_ls_item"><strong>Filtro</strong>: se omiten productos sin actividad en el periodo y sin stock</span>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-cubes"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle por producto</strong>
+              <span>Cada mercadería con sus ingresos, coste de adquisición, margen y rotación. Acceso directo a la ficha del producto.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver detalle" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_lira_mercaderia_line_list" model="ir.ui.view">
+    <field name="name">lira.mercaderia.line.list</field>
+    <field name="model">lira.mercaderia.line</field>
+    <field name="arch" type="xml">
+      <list string="Mercadería — detalle" create="0" delete="0" edit="0"
+            decoration-success="margen_pct &gt;= 25"
+            decoration-warning="margen_pct &gt;= 10 and margen_pct &lt; 25"
+            decoration-danger="margen_pct &lt; 10">
+        <field name="product_id" string="Producto"
+               help="Producto de compra-reventa (sin lista de materiales)."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="product_uom_name" string="U. medida" optional="hide"
+               help="Unidad de medida."/>
+        <field name="qty_vendida" string="Uds. vendidas" sum="Total uds vendidas"
+               help="Unidades vendidas en el periodo."/>
+        <field name="qty_comprada" string="Uds. compradas" sum="Total uds compradas"
+               help="Unidades compradas a proveedor en el periodo."/>
+        <field name="qty_stock" string="Uds. en stock" sum="Total uds stock"
+               help="Unidades actuales en almacén."/>
+        <field name="ingreso_ventas" string="Ingresos ventas (€)" sum="Total ingresos"
+               help="Importe facturado por la venta del producto (sin IVA)."/>
+        <field name="coste_compra" string="Coste compra (€)" sum="Total coste"
+               help="Coste de adquisición de lo vendido."/>
+        <field name="margen_euros" string="Margen (€)" sum="Total margen"
+               help="Ingresos − Coste de compra."/>
+        <field name="margen_pct" string="Margen (%)" avg="Margen medio"
+               help="(Margen / Ingresos) × 100."/>
+        <field name="rotacion_dias" string="Rotación (días)" optional="show" avg="Rotación media"
+               help="Días estimados en agotar el stock al ritmo de ventas actual. Menos días = más rotación = más cash generado."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver ficha del producto"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_mercaderia_line_search" model="ir.ui.view">
+    <field name="name">lira.mercaderia.line.search</field>
+    <field name="model">lira.mercaderia.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar mercadería">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="margen_ok"       string="Margen &gt; 25%"   domain="[('margen_pct','&gt;',25)]"/>
+        <filter name="margen_bajo"     string="Margen &lt; 10%"   domain="[('margen_pct','&lt;',10)]"/>
+        <filter name="con_ingresos"    string="Con ventas"        domain="[('ingreso_ventas','>',0)]"/>
+        <filter name="con_stock"       string="Con stock"         domain="[('qty_stock','>',0)]"/>
+        <filter name="sin_movimiento"  string="Sin compras/ventas" domain="[('qty_vendida','=',0),('qty_comprada','=',0)]"/>
+        <filter name="rotacion_rapida" string="Rotación &lt; 30 días" domain="[('rotacion_dias','>',0),('rotacion_dias','&lt;',30)]"/>
+        <filter name="rotacion_lenta"  string="Rotación &gt; 90 días" domain="[('rotacion_dias','>',90)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"   string="Categoría" context="{'group_by': 'categ_id'}"/>
+          <filter name="group_product" string="Producto"  context="{'group_by': 'product_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_mercaderia" model="ir.actions.server">
+    <field name="name">Mercadería Lira</field>
+    <field name="model_id" ref="model_lira_mercaderia"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

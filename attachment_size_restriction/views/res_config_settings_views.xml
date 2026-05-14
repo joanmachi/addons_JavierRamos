@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Inherit a form view to add a field. # T7329 -->
+    <record
+        id="res_config_settings_view_form_inherit_attachment_size_restriction"
+        model="ir.ui.view"
+    >
+        <field name="name">
+            res.config.settings.view.form.inherit.attachment.size.restriction
+        </field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="mail.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <setting id="message_translation_setting" position="after">
+                <setting
+                    id="max_attach_size"
+                    string="Maximum File Size"
+                    help="Add the size limit in Byte."
+                >
+                    <field name="max_file_attachment_size" />
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

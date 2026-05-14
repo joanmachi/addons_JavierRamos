@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+  
+    <record model="ir.ui.view" id="tipo_palet_tree">
+        <field name="name">plastec_taller.tipo_palet.list</field>
+        <field name="model">plastec_taller.tipo_palet</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <list >
+          
+                <field name="id" column_invisible="True"/>
+                <field name="name" />
+                <field name="cantidad_cajas" />
+                
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tipo_palet_form" model="ir.ui.view">
+        <field name="name">plastec_taller.tipo_palet.form</field>
+        <field name="model">plastec_taller.tipo_palet</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <form >
+                <sheet>
+                    <group name="main_group">
+                        <group>
+                            <field name="name"/>
+                            <field name="cantidad_cajas"/>
+                        </group>
+            
+                    </group>
+    
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_tipo_palet_view">
+        <field name="name">Tipo de palet</field>
+        <field name="res_model">plastec_taller.tipo_palet</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="tipo_palet_tree"/>
+   
+    </record>
+
+
+
+    <menuitem
+        action="action_tipo_palet_view" id="menu_tipo_palet_config_stock"
+        parent="stock.menu_product_in_config_stock" />
+
+    <record
+        id="product_template_form_view_inherit_tipo_palet"
+        model="ir.ui.view"
+    >
+        <field name="name">product.template.view.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='packaging_ids']" position="before">
+                
+                <field name="tipo_palet_id" />
+            </xpath>
+      
+        </field>
+    </record>
+
+    
+</odoo>

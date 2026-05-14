@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PRODUCTOS FABRICÁNDOSE NO TERMINADOS
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_mrp_in_progress_form" model="ir.ui.view">
+    <field name="name">lira.mrp.in.progress.form</field>
+    <field name="model">lira.mrp.in.progress</field>
+    <field name="arch" type="xml">
+      <form string="Productos Fabricándose (No Terminados)" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Productos Fabricándose — No Terminados <widget name="lira_print_button" title="Productos Fabricándose No Terminados" line_model="lira.mrp.in.progress.line"/></div>
+              <div class="ld_main_subtitle">Productos con órdenes de fabricación en curso (estado "En producción"). Muestra por producto cuánto se ha producido ya y cuánto queda, agrupando todas las órdenes activas.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Órdenes en producción <i class="fa fa-info-circle text-muted ms-1" title="Total de órdenes en estado En producción."/></div>
+                <div class="ld_hkpi_value" style="color:#2563eb"><field name="total_ordenes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Productos distintos <i class="fa fa-info-circle text-muted ms-1" title="Referencias de producto con al menos una orden en producción."/></div>
+                <div class="ld_hkpi_value"><field name="total_productos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Unidades restantes <i class="fa fa-info-circle text-muted ms-1" title="Suma de todas las unidades que aún quedan por producir."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="qty_total_restante" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-cogs"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver avance por producto</strong>
+              <span>Abre la tabla con buscador nativo: filtra por producto, código de barras, referencia interna o categoría.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.mrp.in.progress.line ═══════════════════════════════════ -->
+  <record id="view_lira_mrp_in_progress_line_list" model="ir.ui.view">
+    <field name="name">lira.mrp.in.progress.line.list</field>
+    <field name="model">lira.mrp.in.progress.line</field>
+    <field name="arch" type="xml">
+      <list string="Fabricándose — detalle" create="0" delete="0" edit="0"
+            decoration-success="pct_completado &gt;= 75"
+            decoration-warning="pct_completado &gt;= 25 and pct_completado &lt; 75"
+            decoration-danger="pct_completado &lt; 25">
+        <field name="product_id" string="Producto"
+               help="Producto que se fabrica."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="num_ordenes" string="Órdenes" sum="Total órdenes"
+               help="Número de órdenes en producción de este producto."/>
+        <field name="qty_a_producir" string="A producir" sum="Total a producir"
+               help="Total unidades planificadas."/>
+        <field name="qty_producida" string="Producida" sum="Total producida"
+               help="Total unidades ya fabricadas."/>
+        <field name="qty_restante" string="Restante" sum="Total restante"
+               help="A producir − Producida."/>
+        <field name="pct_completado" string="% completado" avg="% medio"
+               help="Porcentaje de producción completado."/>
+        <field name="proxima_entrega" string="Más próxima"
+               help="Fecha límite más próxima entre las órdenes activas."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver OFs en producción"
+                title="Abrir las OFs en producción de este producto"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.mrp.in.progress.line ════════════════════════════════ -->
+  <record id="view_lira_mrp_in_progress_line_search" model="ir.ui.view">
+    <field name="name">lira.mrp.in.progress.line.search</field>
+    <field name="model">lira.mrp.in.progress.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar productos fabricándose">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="avanzado"   string="Avanzado (≥75%)"  domain="[('pct_completado','&gt;=',75)]"/>
+        <filter name="en_curso"   string="En curso (25–75%)" domain="[('pct_completado','&gt;=',25),('pct_completado','&lt;',75)]"/>
+        <filter name="reciente"   string="Poco avanzado (&lt;25%)" domain="[('pct_completado','&lt;',25)]"/>
+        <filter name="mas_1_ord"  string="Con varias órdenes (≥2)" domain="[('num_ordenes','>=',2)]"/>
+        <filter name="entrega_mes" string="Entrega este mes"
+                date="proxima_entrega"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"    string="Categoría"     context="{'group_by': 'categ_id'}"/>
+          <filter name="group_product"  string="Producto"      context="{'group_by': 'product_id'}"/>
+          <filter name="group_fecha"    string="Entrega más próxima" context="{'group_by': 'proxima_entrega'}"/>
+          <filter name="group_ordenes"  string="Nº órdenes"    context="{'group_by': 'num_ordenes'}"/>
+          <filter name="group_producir" string="A producir"    context="{'group_by': 'qty_a_producir'}"/>
+          <filter name="group_producida" string="Producida"    context="{'group_by': 'qty_producida'}"/>
+          <filter name="group_restante" string="Restante"      context="{'group_by': 'qty_restante'}"/>
+          <filter name="group_pct"      string="% completado"  context="{'group_by': 'pct_completado'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_mrp_in_progress" model="ir.actions.server">
+    <field name="name">Productos Fabricándose No Terminados Lira</field>
+    <field name="model_id" ref="model_lira_mrp_in_progress"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PRODUCTOS PENDIENTES DE FABRICAR
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_mrp_to_produce_form" model="ir.ui.view">
+    <field name="name">lira.mrp.to.produce.form</field>
+    <field name="model">lira.mrp.to.produce</field>
+    <field name="arch" type="xml">
+      <form string="Productos Pendientes de Fabricar" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Productos Pendientes de Fabricar <widget name="lira_print_button" title="Productos Pendientes de Fabricar" line_model="lira.mrp.to.produce.line"/></div>
+              <div class="ld_main_subtitle">Productos con órdenes de fabricación confirmadas cuya producción aún no ha comenzado. Ordenado por fecha más próxima para priorizar la planificación.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Órdenes confirmadas <i class="fa fa-info-circle text-muted ms-1" title="Total de órdenes confirmadas pendientes de iniciar producción."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_ordenes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Productos distintos <i class="fa fa-info-circle text-muted ms-1" title="Referencias con al menos una orden confirmada sin iniciar."/></div>
+                <div class="ld_hkpi_value"><field name="total_productos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total a fabricar <i class="fa fa-info-circle text-muted ms-1" title="Suma de todas las unidades planificadas en órdenes confirmadas."/></div>
+                <div class="ld_hkpi_value"><field name="qty_total" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ol"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver productos pendientes ordenados por urgencia</strong>
+              <span>Abre la tabla con buscador nativo: filtra por producto, código de barras, referencia interna o categoría.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.mrp.to.produce.line ════════════════════════════════════ -->
+  <record id="view_lira_mrp_to_produce_line_list" model="ir.ui.view">
+    <field name="name">lira.mrp.to.produce.line.list</field>
+    <field name="model">lira.mrp.to.produce.line</field>
+    <field name="arch" type="xml">
+      <list string="Pendientes de fabricar — detalle" create="0" delete="0" edit="0">
+        <field name="product_id" string="Producto"
+               help="Producto a fabricar."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="num_ordenes" string="Órdenes" sum="Total órdenes"
+               help="Número de órdenes confirmadas de este producto."/>
+        <field name="qty_total" string="Cant. a fabricar" sum="Total a fabricar"
+               help="Total unidades planificadas en órdenes confirmadas."/>
+        <field name="stock_actual" string="Stock actual" sum="Total stock"
+               decoration-danger="stock_actual &lt; qty_total"
+               help="Unidades físicas en almacén ahora (no incluye entradas/salidas futuras)."/>
+        <field name="proxima_fecha" string="Fecha más próxima"
+               help="Fecha límite más próxima entre las órdenes."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver OFs confirmadas"
+                title="Abrir las OFs confirmadas de este producto"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.mrp.to.produce.line ══════════════════════════════════ -->
+  <record id="view_lira_mrp_to_produce_line_search" model="ir.ui.view">
+    <field name="name">lira.mrp.to.produce.line.search</field>
+    <field name="model">lira.mrp.to.produce.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar productos pendientes de fabricar">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="sin_stock" string="Sin stock (qty ≤ 0)" domain="[('stock_actual','&lt;=',0)]"/>
+        <filter name="mas_1_ord" string="Con varias órdenes (≥2)" domain="[('num_ordenes','>=',2)]"/>
+        <filter name="mas_100"   string="≥ 100 uds. a fabricar" domain="[('qty_total','>=',100)]"/>
+        <filter name="entrega_mes" string="Entrega este mes"
+                date="proxima_fecha"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"    string="Categoría"     context="{'group_by': 'categ_id'}"/>
+          <filter name="group_product"  string="Producto"      context="{'group_by': 'product_id'}"/>
+          <filter name="group_fecha"    string="Fecha más próxima" context="{'group_by': 'proxima_fecha'}"/>
+          <filter name="group_ordenes"  string="Nº órdenes"    context="{'group_by': 'num_ordenes'}"/>
+          <filter name="group_total"    string="Cant. a fabricar" context="{'group_by': 'qty_total'}"/>
+          <filter name="group_stock"    string="Stock actual"  context="{'group_by': 'stock_actual'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_mrp_to_produce" model="ir.actions.server">
+    <field name="name">Productos Pendientes de Fabricar Lira</field>
+    <field name="model_id" ref="model_lira_mrp_to_produce"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

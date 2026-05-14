@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form de account.payment: añadir Fecha cobro al lado de la fecha de pago -->
+    <record id="apunts_view_account_payment_form_fecha_cobro" model="ir.ui.view">
+        <field name="name">apunts.account.payment.form.fecha.cobro</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="apunts_sdd_collection_date"
+                       invisible="payment_type != 'inbound' or partner_type != 'customer'"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

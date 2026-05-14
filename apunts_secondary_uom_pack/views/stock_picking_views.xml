@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- En el form del picking, la sección de "Operaciones" usa stock.move
+         como list editable. Añadimos 2 columnas: UdM sec y Cantidad sec. -->
+    <record id="apunts_view_picking_form_secondary_uom" model="ir.ui.view">
+        <field name="name">apunts.stock.picking.form.secondary.uom</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Columnas en la lista de moves de la pestaña Operaciones -->
+            <xpath expr="//field[@name='move_ids_without_package']/list//field[@name='quantity']" position="after">
+                <field name="secondary_uom_qty" optional="show" string="Recibido (sec.)"/>
+                <field name="secondary_uom_id" optional="show" string="UdM sec."/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vista del PO line con columna 'Recibido (sec.)' al lado de Recibido -->
+    <record id="apunts_view_purchase_order_form_recibido_sec" model="ir.ui.view">
+        <field name="name">apunts.purchase.order.form.recibido.sec</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list//field[@name='qty_received']" position="after">
+                <field name="apunts_qty_received_secondary" optional="show" string="Recibido (kg)"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

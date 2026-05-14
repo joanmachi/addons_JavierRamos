@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_stock_delivery_document_custom" inherit_id="stock.report_delivery_document">
+        <xpath expr="//table[@name='stock_move_table']//thead//tr[1]//th[@name='th_sm_quantity']" position="after">
+            <th class="text-right">Cajas</th>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[2]" position="after">
+            <td class="text-right">
+                <span t-field="move.cantidad_caja" />
+            </td>
+        </xpath>
+
+        <xpath expr="//table[@name='stock_move_table']//thead//tr[1]//th[@name='th_sm_quantity']" position="after">
+            <th class="text-right" t-if="o.enable_quantity_in_report==True">Cantidad en cajas</th>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="after">
+            <td class="text-right" >
+                <span t-field="move.cantidad_en_caja" />
+            </td>
+        </xpath>
+    </template>
+</odoo>

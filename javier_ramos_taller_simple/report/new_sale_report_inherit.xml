@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ventas   -->
+    <template id="new_sale_report_inherit" inherit_id="sale.report_saleorder_document">
+
+
+   
+        <xpath expr="//div[@t-if='doc.date_order']" position="after">
+            <div t-if="doc.commitment_date" class="col-auto col-3 mw-100 mb-2">
+                <strong>Fecha de entrega:</strong>
+                <p class="m-0" t-field="doc.commitment_date" t-options="{'format': 'dd/MM/YYYY'}"/>
+            </div>
+        </xpath>
+
+ 
+
+    </template>
+
+
+</odoo>

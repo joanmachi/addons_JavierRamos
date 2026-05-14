@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+ 
+    <template id="internal_layout_inherit" inherit_id="web.internal_layout">
+
+
+   
+        <xpath expr="//div[hasclass('header')]" position="replace">
+            <div class="header">
+                <div class="row">
+                    <div class="col-3">
+                    </div>
+                    <div class="col-2 offset-2 text-center">
+                        <img t-if="company.logo"  t-att-src="image_data_uri(company.logo)" alt="Logo" style="max-width: 170px;"/>
+                        
+                    </div>
+                    <div class="col-2 offset-3 text-end">
+                    
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+ 
+
+    </template>
+
+
+    <template id="etiqueta_albaran">
+        <t t-call="web.html_container">
+            <meta charset="UTF-8"  />
+            <t t-foreach="docs" t-as="o">
+                <t t-if="o.picking_type_id.barcode == 'WHOUT'">
+                    <t t-call="javier_ramos_taller_simple.etiqueta_albaran_entrega_document" t-lang="o.partner_id.lang"/>
+                    
+                </t>
+                <t t-if="o.picking_type_id.barcode == 'WHIN'">
+                    <t t-call="javier_ramos_taller_simple.etiqueta_albaran_recepcion_document" t-lang="o.partner_id.lang"/>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="etiqueta_albaran_entrega_document">
+        <t t-call="web.internal_layout" >
+            <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+          
+            
+            <t t-foreach="o.move_ids_without_package" t-as="linea_albaran">
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        <div style="margin-top:20px;">
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                        </div>
+                        <table style="width: 80%; height: 100%;margin: 0px auto; border-collapse:collapse; page-break-after:always; font-size:3rem !important;">
+                            <tr style="border-style: solid">
+                                <td colspan="2" style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <h1 style="width:100%; text-align:center;">
+                                                    FASE DE EXPEDICIÓN CONFORME
+                                                </h1>
+                                                
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td style="width:50%; border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>ARTICULO </b>
+                                                <t t-if="linea_albaran.product_id">
+                                                    <t t-esc="linea_albaran.product_id.default_code"/>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                                <td style="width:50%; border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>ORDEN </b>
+                                                <t t-if="linea_albaran.fabricacion">
+                                                    <t t-esc="linea_albaran.fabricacion.name"/>
+                                                    
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2" style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>DESCRIPCIÓN</b><br/>
+                                                <t t-if="linea_albaran.product_id">
+                                                    <t t-if="linea_albaran.product_id.default_code">
+                                                        [<t t-esc="linea_albaran.product_id.default_code"/>]
+                                                        
+                                                    </t>
+                                                    <t t-esc="linea_albaran.product_id.name"/>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2"  style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>REF. CLIENTE </b>
+                                                <t t-if="linea_albaran.product_id">
+                                                    <t t-if="linea_albaran.product_id.description_sale">
+
+                                                        <t t-esc="linea_albaran.product_id.description_sale"/>
+                                                    </t>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2"  style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>PEDIDO JR </b>
+                                                <t t-if="linea_albaran.sale_line_id">
+                                                    <t t-esc="linea_albaran.sale_line_id.order_id.name"/>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2"  style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>Nº PEDIDO CLIENTE </b>
+                                                <t t-if="linea_albaran.sale_line_id">
+                                                    <t t-esc="linea_albaran.sale_line_id.order_id.client_order_ref"/>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2"  style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>CLIENTE </b><br/>
+                                                <t t-if="linea_albaran.sale_line_id">
+                                                    <b>
+                                                        <t t-esc="linea_albaran.sale_line_id.order_id.partner_id.name"/>
+                                                        
+                                                    </b>
+                                                </t>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            
+                            <tr style="border-style : solid!important;">
+                                <td colspan="2"  style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <b>CANTIDAD </b>
+        
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            </tr>
+                            
+                            
+                        </table>
+                    </div>
+                    
+                </t>
+                
+                
+                
+                
+            </t>
+            
+        </template>
+        
+        <template id="etiqueta_albaran_recepcion_document">
+            <t t-call="web.internal_layout" >
+                <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                
+                <div class="page">
+                    <div class="oe_structure"/>
+                    <div style="margin-top:20px;">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                    </div>
+                    <t t-foreach="o.move_ids_without_package" t-as="linea_albaran">
+                        
+                        <table style="width: 80%; height: 100%;margin: 0px auto; border-collapse:collapse; page-break-after:always; font-size:3rem !important;">
+                            <tr style="border-style: solid">
+                                <td colspan="2" style="border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;">
+                                                <h1 style="width:100%; text-align:center;">
+                                                    FASE DE RECEPCIÓN CONFORME
+                                                </h1>
+                                                
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                </td>
+                            </tr>
+                            <tr style="border-style : solid!important;">
+                                <td style="width:50%; border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;  text-align:center;">
+                                                <b>ORDEN</b><br/>
+                                                <t t-if="linea_albaran.fabricacion">
+                                                    <img t-if="linea_albaran.fabricacion.name"
+                                                    style="width:100%;height:36px"
+                                                    t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN13', linea_albaran.fabricacion.name, 265, 80)"/>
+                                                    <t t-esc="linea_albaran.fabricacion.name"/>
+                                                    
+                                                </t>
+                            
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                                <td style="width:50%; border-style : hidden!important;">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td style="padding:5px;background:#DCDCDC;  text-align:center;">
+                            
+                                                <b>ARTICULO</b><br/>
+                                                <t t-if="linea_albaran.product_id">
+                                                    <img t-if="linea_albaran.product_id.default_code"
+                                                    style="width:100%;height:36px"
+                                                    t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN13', linea_albaran.product_id.default_code, 265, 80)"/>
+                                                    <t t-esc="linea_albaran.product_id.default_code"/>
+                                                </t>
+                                                
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                </td>
+                            
+                        </tr>
+                        <tr style="border-style : solid!important;">
+                            <td colspan="2"  style="border-style : hidden!important;">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td style="padding:5px;background:#DCDCDC;">
+                                            <b>DESCRIPCIÓN</b><br/>
+                                            <t t-if="linea_albaran.product_id">
+                                                <t t-esc="linea_albaran.product_id.name"/>
+                                            </t>
+                        
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                            </td>
+                        </tr>
+                        
+                        <tr style="border-style : solid!important;">
+                            <td colspan="2"  style="border-style : hidden!important;">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td style="padding:5px;background:#DCDCDC;">
+                                            <b>CLIENTE </b><br/>
+                                            <t t-if="linea_albaran.sale_line_id">
+                                                <b>
+                                                    <t t-esc="linea_albaran.sale_line_id.order_id.partner_id.name"/>
+                                                    
+                                                </b>
+                                            </t>
+                        
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                            </td>
+                        </tr>
+                        
+                        <tr style="border-style : solid!important;">
+                            <td colspan="1" style="width:50%; border-style : hidden!important;">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td style="padding:5px;background:#DCDCDC;">
+                                            <b>CANTIDAD </b>
+                        
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                            </td>
+                            <td colspan="1" style="width:50%; border-style : hidden!important;" >
+                                <table style="width:100%">
+                                    <tr>
+                                        <td style="padding:5px;background:#DCDCDC;">
+                                            <b>LONGITUD </b>
+                        
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                            </td>
+                       </tr>
+                        
+                     
+                    </table>
+        
+                </t>
+
+            </div>
+          
+            
+
+        </t>
+
+    </template>
+   
+
+</odoo>

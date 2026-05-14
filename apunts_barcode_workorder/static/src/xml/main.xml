@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="apunts_barcode_workorder.LineTitle" t-inherit="stock_barcode.LineTitle" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('d-flex')]" position="replace">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="o_barcode_line_title">
+                    <div t-if="line.product_id.default_code or line.product_id.code" class="o_product_ref fs-2">
+                        <span t-if="line.product_id.default_code" class="o_product_code font-monospace" t-esc="line.product_id.default_code"/>
+                        <span t-if="line.product_id.code != line.product_id.default_code" class="o_partner_code ms-1 text-muted" t-esc="line.product_id.code"/>
+                    </div>
+                    <div class="o_product_label small" t-esc="line.product_id.display_name"/>
+                </div>
+                <t t-if="env.model.resModel != 'mrp.production'">
+                    <t t-if="upperButtons !== false" t-call="{{upperButtons || 'stock_barcode.LineUpperButtons'}}"/>
+                </t>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="apunts_barcode_workorder.LineQuantity" t-inherit="stock_barcode.LineQuantity" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='lowerButtons !== false']" position="replace">
+            <t t-if="env.model.resModel != 'mrp.production'">
+                <t t-if="lowerButtons !== false" t-call="{{lowerButtons || 'stock_barcode.LineLowerButtons'}}"/>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="apunts_barcode_workorder.MainComponent" t-inherit="stock_barcode.MainComponent" t-inherit-mode="extension">
+
+        <xpath expr="//button[hasclass('o_add_line')]" position="replace">
+            <t t-if="env.model.resModel != 'mrp.production'">
+                <button t-if="env.model.displayAddProductButton" class="o_add_line btn btn-secondary" t-on-click="onOpenProductPage">
+                    <t t-out="addLineBtnName"/>
+                </button>
+            </t>
+        </xpath>
+
+        <xpath expr="//button[hasclass('o_validate_page')]" position="replace">
+            <t t-if="env.model.resModel != 'mrp.production'">
+                <button t-if="env.model.displayValidateButton" t-on-click="validate"
+                    class="o_validate_page btn"
+                    t-att-disabled="!env.model.canBeValidate"
+                    t-attf-class="{{highlightValidateButton ? 'btn-primary' : 'btn-secondary'}}">
+                    <t t-out="env.model.validateButtonLabel"/>
+                </button>
+            </t>
+            <t t-else="">
+                <t t-if="env.model.isComplete">
+                    <button t-if="env.model.displayValidateButton" t-on-click="validate"
+                        class="o_validate_page btn"
+                        t-att-disabled="!env.model.canBeValidate"
+                        t-attf-class="{{highlightValidateButton ? 'btn-primary' : 'btn-secondary'}}">
+                        <t t-out="env.model.validateButtonLabel"/>
+                    </button>
+                </t>
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_barcode_lines_header')]" position="replace">
+            <div class="o_barcode_lines_header py-3 px-1 text-bg-800" t-if="env.model.resModel != 'mrp.production'">
+                <t t-set="info" t-value="env.model.barcodeInfo"/>
+                <div t-if="info.warning" class="o_barcode_pic position-relative text-center my-2">
+                    <i t-attf-class="fa fa-5x fa-{{info.icon}}"/>
+                </div>
+                <div name="barcode_messages" class="d-flex align-items-center justify-content-center w-100">
+                    <span t-if="!info.warning and info.icon" t-attf-class="fa fa-lg fa-{{info.icon}} me-3"/>
+                    <span class="o_scan_message" t-attf-class="o_{{info.class}}" t-out="info.message"/>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_barcode_lines')]" position="inside">
+            <t t-if="env.model.resModel == 'mrp.production'">
+            <div class="apunts-mrp-wrapper">
+
+                <!-- ══ SECCIÓN PRODUCTO — info izq + imagen circular der ══════ -->
+                <div class="apunts-prod-card">
+                    <div class="apunts-prod-left">
+                        <div class="apunts-prod-label">Produciendo</div>
+                        <div class="apunts-prod-name" t-if="env.model.record and env.model.record.product_id">
+                            <t t-esc="env.model.record.product_id.display_name"/>
+                        </div>
+                        <div class="apunts-prod-qty">
+                            <span class="apunts-prod-qty-done"><t t-esc="env.model.qty_produced"/></span>
+                            <span class="apunts-prod-qty-sep"> / </span>
+                            <span class="apunts-prod-qty-total"><t t-esc="env.model.product_qty"/></span>
+                            <span class="apunts-prod-qty-uom"><t t-esc="env.model.product_uom_name"/></span>
+                        </div>
+                        <button class="apunts-disp-btn" t-on-click="() => env.model.comprobarDisponibilidad()">
+                            <i class="fa fa-cubes me-2"/>Comprobar disponibilidad
+                        </button>
+                    </div>
+                    <div class="apunts-prod-right">
+                        <t t-if="env.model.product_image">
+                            <div class="apunts-prod-img-circle"
+                                 t-on-click.stop="() => env.model.toggleImage()">
+                                <img t-attf-src="data:image/png;base64,#{env.model.product_image}"
+                                     class="apunts-prod-img"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Zoom overlay -->
+                <div t-if="env.model.isEnlarged"
+                    t-on-click.stop.capture="() => env.model.toggleImage()"
+                    class="apunts-zoom-overlay">
+                    <img t-attf-src="data:image/png;base64,{{env.model.product_image}}"
+                        class="apunts-zoom-img" t-on-click.stop=""/>
+                    <button class="apunts-zoom-close"><i class="fa fa-times"/></button>
+                </div>
+
+                <!-- ══ PANEL MATERIALES (modal dialog) ═══════════════════════ -->
+                <div t-if="env.model.showComponentes" class="apunts-mat-backdrop"
+                     t-on-click="() => env.model.toggleComponentes()">
+                    <div class="apunts-mat-dialog" t-on-click.stop="">
+                        <div class="apunts-mat-header">
+                            <span><i class="fa fa-cubes me-2"/>Lista de materiales</span>
+                            <button class="apunts-mat-close" t-on-click="() => env.model.toggleComponentes()">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                        <div class="apunts-mat-list">
+                            <t t-foreach="env.model.componentes" t-as="comp" t-key="comp.id">
+                                <div class="apunts-mat-row"
+                                     t-att-class="{'apunts-mat-done': comp.estado === 'done', 'apunts-mat-partial': comp.hecho > 0 and comp.estado !== 'done'}">
+                                    <div class="apunts-mat-info">
+                                        <div class="apunts-mat-ref" t-if="comp.referencia">
+                                            <t t-esc="comp.referencia"/>
+                                        </div>
+                                        <div class="apunts-mat-nombre"><t t-esc="comp.nombre"/></div>
+                                    </div>
+                                    <div class="apunts-mat-qty">
+                                        <span class="apunts-mat-hecho"><t t-esc="comp.hecho"/></span>
+                                        <span class="apunts-mat-sep">/</span>
+                                        <span class="apunts-mat-total"><t t-esc="comp.cantidad"/></span>
+                                        <span class="apunts-mat-uom"><t t-esc="comp.uom"/></span>
+                                    </div>
+                                </div>
+                            </t>
+                            <div t-if="!env.model.componentes.length" class="apunts-mat-empty">
+                                <i class="fa fa-inbox me-2"/>Sin componentes registrados
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ NOTA DE PRODUCCIÓN ═════════════════════════════════════ -->
+                <div t-if="env.model.log_note" class="apunts-nota">
+                    <i class="fa fa-sticky-note-o me-1"/>
+                    <span t-esc="env.model.log_note"/>
+                </div>
+
+                <!-- ══ BARRA ACCIÓN — trabajador + FICHAR + MAT ══════════════ -->
+                <div class="apunts-action-bar">
+                    <div class="apunts-worker-left">
+                        <i class="fa fa-user apunts-worker-icon"/>
+                        <span t-if="env.model.empleadoElegido" class="apunts-worker-name">
+                            <t t-esc="env.model.empleadoElegido.name"/>
+                        </span>
+                        <span t-else="" class="apunts-worker-empty">Sin fichar</span>
+                    </div>
+                    <button class="apunts-fichar-btn" t-on-click="() => this.openFicharDialog()">
+                        <i class="fa fa-qrcode me-1"/>FICHAR
+                    </button>
+                    <button class="apunts-mat-btn" t-on-click="() => env.model.toggleComponentes()">
+                        <i class="fa fa-cubes"/>
+                        <span>MAT.</span>
+                    </button>
+                </div>
+
+                <!-- ══ BANNER FASE ACTIVA ═════════════════════════════════════ -->
+                <t t-if="env.model.empleadoElegido">
+                    <t t-set="orden_activa" t-value="env.model.workorderLines.find(o => o.employee_ids.includes(env.model.empleadoElegido.id))"/>
+                    <t t-if="orden_activa">
+                        <t t-set="piezas_restantes" t-value="orden_activa.prev_validated_qty - orden_activa.qty_ready_to_validate"/>
+                        <div class="apunts-active-bar">
+                            <div class="apunts-active-left">
+                                <span class="apunts-active-pulse"/>
+                                <span class="apunts-active-phase"><t t-esc="orden_activa.name"/></span>
+                            </div>
+                            <div class="apunts-active-stats">
+                                <span class="apunts-active-stat-num"><t t-esc="piezas_restantes"/></span>
+                                <span class="apunts-active-stat-lbl">x hacer</span>
+                                <span class="apunts-active-stat-div"/>
+                                <span class="apunts-active-stat-num apunts-active-stat-done"><t t-esc="orden_activa.qty_validated"/></span>
+                                <span class="apunts-active-stat-lbl">val.</span>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="apunts-idle-bar">
+                            <i class="fa fa-pause-circle me-1"/>
+                            Fichado — pulsa <strong>INICIAR</strong> para empezar
+                        </div>
+                    </t>
+                </t>
+
+                <!-- ══ FASES ═══════════════════════════════════════════════════ -->
+                <div class="apunts-section-title">Fases de fabricación</div>
+
+                <t t-foreach="env.model.workorderLines" t-as="orden" t-key="orden.id">
+                    <t t-set="is_active"  t-value="env.model.empleadoElegido and orden.employee_ids.includes(env.model.empleadoElegido.id)"/>
+                    <t t-set="is_done"    t-value="0 >= orden.qty_remaining"/>
+                    <t t-set="is_waiting" t-value="orden.prev_validated_qty == 0"/>
+                    <t t-set="total_qty"  t-value="orden.qty_validated + (orden.qty_remaining > 0 ? orden.qty_remaining : 0)"/>
+                    <t t-set="pct"        t-value="total_qty > 0 ? Math.round(orden.qty_validated / total_qty * 100) : 0"/>
+
+                    <div class="apunts-wo-card"
+                         t-att-class="{
+                           'apunts-wo-active':  is_active,
+                           'apunts-wo-done':    is_done and !is_active,
+                           'apunts-wo-waiting': !is_done and is_waiting
+                         }">
+
+                        <!-- Fila 1: círculo nº + nombre + duración + badge -->
+                        <div class="apunts-wo-row1">
+                            <span class="apunts-wo-num"><t t-esc="orden_index + 1"/></span>
+                            <strong class="apunts-wo-name"><t t-esc="orden.name"/></strong>
+                            <span t-if="orden.duration_str" class="apunts-wo-duration">
+                                <i class="fa fa-clock-o me-1"/><t t-esc="orden.duration_str"/>
+                            </span>
+                            <span t-if="is_done"     class="apunts-badge apunts-badge-done"><i class="fa fa-check me-1"/>LISTO</span>
+                            <span t-elif="is_waiting" class="apunts-badge apunts-badge-waiting"><i class="fa fa-clock-o me-1"/>ESPERA</span>
+                        </div>
+
+                        <!-- Fila 2: progreso -->
+                        <div class="apunts-wo-progress">
+                            <div class="apunts-progress-track">
+                                <div class="apunts-progress-fill" t-att-style="{'width': pct + '%'}"/>
+                            </div>
+                            <span class="apunts-progress-label"><t t-esc="orden.qty_validated"/>/<t t-esc="total_qty"/></span>
+                        </div>
+
+                        <!-- Fila 3: cantidades 2 columnas -->
+                        <div class="apunts-wo-qty2col">
+                            <div class="apunts-qty2-block">
+                                <span class="apunts-qty2-lbl">Por hacer</span>
+                                <t t-if="env.model.empleadoElegido and this.isEnableWorkorder(orden)">
+                                    <button class="apunts-qty2-num apunts-qty2-tapable"
+                                            t-att-disabled="is_waiting"
+                                            t-on-click="() => this.openQtyDialog(orden)">
+                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate"/>
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <span class="apunts-qty2-num apunts-qty2-disabled">
+                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate"/>
+                                    </span>
+                                </t>
+                            </div>
+                            <div class="apunts-qty2-sep"/>
+                            <div class="apunts-qty2-block">
+                                <span class="apunts-qty2-lbl">Pend. validar</span>
+                                <span class="apunts-qty2-num apunts-qty2-pending">
+                                    <t t-esc="orden.qty_ready_to_validate"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Fichados (solo si no es la activa) -->
+                        <div t-if="orden.texto_fichados and !is_active" class="apunts-wo-fichados">
+                            <i class="fa fa-users me-1"/><t t-esc="orden.texto_fichados"/>
+                        </div>
+
+                        <!-- Botón Iniciar/Pausar -->
+                        <t t-if="env.model.empleadoElegido and !is_waiting">
+                            <button class="apunts-play-btn"
+                                    t-att-class="this.isEnableWorkorder(orden) ? 'apunts-play-btn-pause' : 'apunts-play-btn-play'"
+                                    t-on-click="() => this.env.model.iniciar_parar_orden(orden.barcode)">
+                                <i t-att-class="this.isEnableWorkorder(orden) ? 'fa fa-pause' : 'fa fa-play'"/>
+                                <t t-esc="this.isEnableWorkorder(orden) ? 'PAUSAR' : 'INICIAR'"/>
+                            </button>
+                        </t>
+
+                    </div>
+                </t>
+
+            </div>
+            </t>
+        </xpath>
+
+    </t>
+
+</templates>

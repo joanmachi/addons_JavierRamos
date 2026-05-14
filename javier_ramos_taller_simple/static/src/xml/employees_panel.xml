@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="javier_ramos_taller_simple.MrpDisplayEmployeesPanel" t-inherit="mrp_workorder.MrpDisplayEmployeesPanel" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='props.popupAddEmployee']" position="before">
+            <button class="btn btn-light d-flex align-items-center gap-2 position-fixed position-lg-absolute  w-100 border-top rounded-0 py-3" style="bottom:50px !important"
+                t-on-click="popupAsistencia">
+                <i class="fa fa-plus"/>
+                <span>Fichaje Entrada/Salida</span>
+            </button>
+
+        </xpath>
+    </t>
+</templates>

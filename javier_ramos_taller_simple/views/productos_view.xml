@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record
+        id="product_template_form_view_inherit_cuestionario"
+        model="ir.ui.view"
+    >
+        <field name="name">product.product.view.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//button[@name='action_open_label_layout']"
+                position="after"
+            >
+                <button string="Cuestionario" type="object" name="action_abrir_cuestionario"/>
+                <button string="Actualizar precio" type="object" class="btn-primary" invisible="not sale_order_line"  name="action_actualizar_precio"/>
+            </xpath>
+            <xpath
+                expr="//field[@name='categ_id']"
+                position="after"
+            >
+
+        
+                <div  invisible="(type != 'service')">
+                    <group>
+                        <field name="precio_small" class="oe_inline"  />
+
+                    </group>
+                    <group>
+                        <field name="min_small" class="oe_inline"/>
+                    </group>
+                    <group>
+                        <field name="max_small" class="oe_inline"/>
+                    </group>
+                </div>
+
+                <br/>
+
+                <div  invisible="(type != 'service')">
+                    <group>
+                        <field name="precio_mediano" class="oe_inline"  />
+
+                    </group>
+                    <group>
+                        <field name="min_mediano" class="oe_inline"/>
+                    </group>
+                    <group>
+                        <field name="max_mediano" class="oe_inline"/>
+                    </group>
+                </div>
+                <br/>
+       
+
+                <div  invisible="(type != 'service')">
+                    <group>
+
+                        <field name="precio_grande" class="oe_inline"  />
+                    </group>
+                    <group>
+                        <field name="min_grande" class="oe_inline"/>
+                    </group>
+                    <group>
+                        <field name="max_grande" class="oe_inline"/>
+                    </group>
+                </div>
+                <br/>
+
+                <div  invisible="(type != 'service')">
+                    <group>
+                        <field name="precio_muy_grande" class="oe_inline"  />
+
+                    </group>
+                    <group>
+                        <field name="min_muy_grande" class="oe_inline"/>
+                    </group>
+                    <group>
+                        <field name="max_muy_grande" class="oe_inline"/>
+                    </group>
+                </div>
+                <br/>
+
+            </xpath>
+            <xpath
+                expr="//page[@name='inventory']"
+                position="after"
+            >
+                <page string="Cuestionario" name="cuestionario" >
+                    <group >
+                        <group  colspan="2">
+                            <group>
+                                <field name="parte_conjunto" />
+                                <field name="tipo_producto" />
+                                <field name="sale_order" invisible="parte_conjunto"/>
+                                <field name="sale_order_line" domain="[('order_id', 'in', [sale_order])]" invisible="parte_conjunto"/>
+
+                            </group>
+                            <group colspan="2" invisible="tipo_producto != 'unitario' and tipo_producto != 'serie' ">
+                                <field name="diametro" />
+                                <field name="largo" />
+                                <field name="ancho" />
+                                <field name="altura" />
+                                <field name="superficie" readonly="1"   force_save = "1"/>
+                                <field name="peso"  readonly="1"  force_save = "1" />
+                                <field name="componentes" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="producto" />
+                                        <field name="cantidad"/>
+                                        <field name="precio_unidad"/>
+                                        <field name="total"/>
+                                        <field name="tiempo_recepcion" />
+                                    </list>
+                                </field>
+                                <field name="total_precio_componentes"  widget="monetary" /> 
+                                <field name="total_cuestionario_material_presupuesto"  widget="monetary" /> 
+    
+                                <field name="servicios" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="producto"/>
+                                        <field name="cantidad"/>
+                                        <field name="precio_unidad" force_save = "1"/>
+                                        <field name="total"/>
+                                        <field name="tipo_producto" column_invisible="True"/>
+                                        <field name="tiempo_esperado" required="tipo_producto == 'conjunto'"/>
+                                    </list>
+                                </field>
+                                <field name="total_precio_servicio"  widget="monetary" /> 
+                                <field name="total_cuestionario_servicios_presupuesto"  widget="monetary" /> 
+                                <field name="fases" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="num_fases"/>
+                                        <field name="operacion"/>
+                                        <field name="centro_trabajo" domain="[('tag_ids.name','=','PRESUPUESTO')]"/>
+                                        <field name="minutos"/>
+                                        <field name="ignorar_preparacion_limpieza"/>
+                                        
+                                    </list>
+                                </field>
+                                <field name="total_operaciones"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_fase_presupuesto"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_presupuesto"  readonly="1" widget="monetary" />
+                                
+                            </group>
+                            <group colspan="2" invisible="tipo_producto != 'conjunto'  ">
+                        
+                                <field name="componentes_unitario" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="custom_producto_domain" column_invisible="True"/>
+                                        <field name="producto" domain='custom_producto_domain'/>
+                                        <field name="cantidad"/>
+                                        <field name="precio_unidad"/>
+                                        <field name="total"/>
+                                    </list>
+                                </field>
+                                <field name="total_precio_componentes_unitario"  readonly="1" widget="monetary" force_save = "1"/>
+                                <field name="total_cuestionario_material_presupuesto"  readonly="1" widget="monetary" force_save = "1"/>
+                                
+                                <field name="servicios_conjunto" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="producto"/>
+                                        <field name="precio_unidad" force_save = "1"/>
+                                        <field name="tipo_producto" column_invisible="True"/>
+                                        <field name="tiempo_esperado" required="tipo_producto == 'conjunto'"/>
+                                    </list>
+                                </field>
+                                <field name="total_precio_servicio_conjunto"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_servicios_presupuesto"  readonly="1" widget="monetary" />
+                                <field name="fases" mode="list"  add-label="Añadir linea">
+                                    <list editable="bottom">
+                                        <field name="num_fases"/>
+                                        <field name="operacion"/>
+                                        <field name="centro_trabajo" domain="[('tag_ids.name','=','PRESUPUESTO')]"/>
+                                        <field name="minutos"/>
+                                        <field name="ignorar_preparacion_limpieza"/>
+                                    </list>
+                                </field>
+                                <field name="total_operaciones"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_fase_presupuesto"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_conjunto"  readonly="1" widget="monetary" />
+                                <field name="total_cuestionario_presupuesto"  readonly="1" widget="monetary" />
+                                
+                            </group>
+                        </group>
+                    </group>
+               
+                </page>
+            </xpath>
+      
+        </field>
+    </record>
+
+
+    <record id="product_template_form_view" model="ir.ui.view">
+        <field name="name">Product template Secondary Unit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product_secondary_unit.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='factor']"      position="replace"
+            >
+                <field name="factor" digits="[42,9]" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_supplierinfo_form_view" model="ir.ui.view">
+        <field name="name">product.supplierinfo.form.view</field>
+        <field name="model">product.supplierinfo</field>
+        <field name="inherit_id" ref="product.product_supplierinfo_form_view" />
+        <field name="arch" type="xml">
+
+        
+            <xpath
+                expr="//field[@name='product_id']"
+                position="after"
+            >
+        
+                <field
+                    name="secondary_uom_qty"
+                    class="oe_inline oe_no_button"
+                
+                />
+                <field
+                    name="secondary_uom_id"
+                    class="oe_inline"
+                    domain="product_id and ['|', ('product_id', '=', product_id),
+                                '&amp;', ('product_tmpl_id.product_variant_ids', 'in', [product_id]),
+                                        ('product_id', '=', False)] or [(0, '=', 1)]"
+                    options="{'no_create': True}"
+                    required="secondary_uom_qty != 0.0"
+                />
+            </xpath>
+
+        </field>
+    </record>
+
+
+    
+</odoo>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_validate_wizard_form" model="ir.ui.view">
+    <field name="name">lira.validate.wizard.form</field>
+    <field name="model">lira.validate.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Validar cantidad">
+        <sheet>
+
+          <!-- ── Cabecera: datos del producto ── -->
+          <div class="lira-wiz-header">
+            <div class="lira-wiz-info">
+              <div class="lira-wiz-product-name">
+                <field name="product_name" readonly="1" nolabel="1"/>
+              </div>
+              <div class="lira-wiz-order-ref">
+                <i class="fa fa-industry me-1 text-muted"/>
+                <field name="production_name" readonly="1" nolabel="1"/>
+              </div>
+              <div class="lira-wiz-phase">
+                <i class="fa fa-cog me-1 text-muted"/>
+                <field name="workorder_name" readonly="1" nolabel="1"/>
+              </div>
+              <div class="lira-wiz-operator" invisible="not operator_names">
+                <i class="fa fa-user me-1 text-muted"/>
+                <field name="operator_names" readonly="1" nolabel="1"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Bloque de cantidades ── -->
+          <div class="lira-wiz-qty-block">
+            <div class="lira-wiz-qty-row lira-wiz-qty-requested">
+              <span class="lira-wiz-qty-label">Solicita el operario</span>
+              <span class="lira-wiz-qty-num">
+                <field name="qty_pending" readonly="1" nolabel="1"/>
+              </span>
+            </div>
+            <div class="lira-wiz-qty-separator"/>
+
+            <!-- VALIDAR -->
+            <div class="lira-wiz-qty-row" invisible="wizard_mode != 'validate'">
+              <span class="lira-wiz-qty-label lira-wiz-qty-label-edit">Cantidad a validar</span>
+              <span class="lira-wiz-qty-num lira-wiz-qty-editable">
+                <field name="qty_to_validate" nolabel="1"
+                       required="wizard_mode == 'validate'"/>
+              </span>
+            </div>
+
+            <!-- RECHAZAR -->
+            <div class="lira-wiz-qty-row" invisible="wizard_mode != 'reject'">
+              <span class="lira-wiz-qty-label lira-wiz-qty-label-reject">Motivo del rechazo</span>
+              <field name="rejection_note" nolabel="1" class="lira-wiz-note-input"
+                     required="wizard_mode == 'reject'"
+                     placeholder="Explica brevemente el motivo..."/>
+            </div>
+          </div>
+
+          <field name="wizard_mode" invisible="1"/>
+
+        </sheet>
+
+        <footer>
+          <button name="action_validate"
+                  string="✓  Confirmar validación"
+                  type="object"
+                  class="btn-success"
+                  invisible="wizard_mode != 'validate'"/>
+          <button name="action_reject"
+                  string="✗  Confirmar rechazo"
+                  type="object"
+                  class="btn-danger"
+                  invisible="wizard_mode != 'reject'"/>
+          <button string="Cancelar" class="btn-secondary" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+</odoo>

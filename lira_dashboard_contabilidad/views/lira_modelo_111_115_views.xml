@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_modelo_111_form" model="ir.ui.view">
+    <field name="name">lira.modelo.111.form</field>
+    <field name="model">lira.modelo.111</field>
+    <field name="arch" type="xml">
+      <form string="Modelo 111/115 — Retenciones IRPF" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Modelo 111/115 — Retenciones IRPF <widget name="lira_print_button" title="Modelo 111 115" line_model="lira.modelo.111.line"/></div>
+              <div class="ld_main_subtitle">
+                Retenciones de IRPF practicadas (lo que retuvimos al pagar a trabajadores, profesionales, arrendadores).
+                Incluye los datos para presentar el Modelo 111 (trabajadores/profesionales) y el Modelo 115 (alquileres), separados por concepto.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar ld_icon_muted"/>
+                <span class="ld_sep">Ejercicio:</span>
+                <field name="ejercicio" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-3">Trimestre:</span>
+                <field name="trimestre" class="ld_date_input" nolabel="1"/>
+                <button name="action_refresh" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Rendimientos del trabajo
+                  <i class="fa fa-info-circle text-muted ms-1" title="Retenciones practicadas a empleados (nóminas). Se identifican cuando el apunte en cuenta 4751 tiene como contrapartida cuentas de nóminas (640, 641 o 642). Estas retenciones se declaran en el Modelo 111, clave A."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#2563eb"><field name="total_trabajo" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Profesionales
+                  <i class="fa fa-info-circle text-muted ms-1" title="Retenciones practicadas a profesionales/autónomos al pagar sus facturas. Se identifican cuando el apunte en 4751 procede de una factura de proveedor (in_invoice) que no tiene alquiler ni nómina asociados. Se declaran en el Modelo 111, clave G."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#7c3aed"><field name="total_profesional" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Alquileres (Modelo 115)
+                  <i class="fa fa-info-circle text-muted ms-1" title="Retenciones practicadas al pagar alquileres de inmuebles. Se identifican cuando el apunte en 4751 tiene como contrapartida cuentas de alquiler (621 o 622). Estas se declaran por separado en el Modelo 115 trimestral."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_alquiler" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Otros
+                  <i class="fa fa-info-circle text-muted ms-1" title="Retenciones que no encajan en las categorías anteriores (premios, ganancias patrimoniales, rendimientos del capital mobiliario). Revisar caso por caso antes de declarar."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="total_otros" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  TOTAL a ingresar (4751)
+                  <i class="fa fa-info-circle text-muted ms-1" title="Suma total de retenciones practicadas en el periodo. Es el importe que debemos ingresar a Hacienda mediante Modelo 111 (trabajo + profesional + otros) más Modelo 115 (alquileres)."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_retenido" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Perceptores</div>
+                <div class="ld_hkpi_value"><field name="num_perceptores" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_legend_strip" style="background:#f3f4f6; border-left:4px solid #7c3aed; padding:12px 14px; margin-top:18px">
+            <i class="fa fa-book ld_ls_ico" style="color:#7c3aed"/>
+            <strong class="ld_ls_title">Metodología (clasificación automática)</strong>
+            <span class="ld_ls_item"><strong>Origen</strong>: apuntes de abono (credit) en cuenta 4751 — HP acreedora por retenciones</span>
+            <span class="ld_ls_item"><strong>Trabajo</strong>: factura con contracuenta en 640/641/642 (nóminas)</span>
+            <span class="ld_ls_item"><strong>Alquiler</strong>: factura con contracuenta en 621 o 622</span>
+            <span class="ld_ls_item"><strong>Profesional</strong>: factura de proveedor sin alquiler ni nómina</span>
+            <span class="ld_ls_item"><strong>% retención</strong>: Retenido ÷ Base estimada (líneas de gasto de la factura)</span>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ul"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle por perceptor</strong>
+              <span>Tabla con cada retención: perceptor, concepto, base, importe, trimestre. Filtro por 111 o 115.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver detalle" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_lira_modelo_111_line_list" model="ir.ui.view">
+    <field name="name">lira.modelo.111.line.list</field>
+    <field name="model">lira.modelo.111.line</field>
+    <field name="arch" type="xml">
+      <list string="Retenciones IRPF — detalle" create="0" delete="0" edit="0"
+            decoration-info="concepto == 'profesional'"
+            decoration-warning="concepto == 'alquiler'"
+            decoration-success="concepto == 'trabajo'">
+        <field name="fecha" string="Fecha"
+               help="Fecha del apunte contable de la retención."/>
+        <field name="trimestre" string="Trim."
+               help="Trimestre del año al que corresponde."/>
+        <field name="partner_id" string="Perceptor"
+               help="Persona/empresa a la que se le practicó la retención."/>
+        <field name="partner_vat" string="NIF/CIF" optional="show"
+               help="NIF del perceptor (obligatorio en el modelo)."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del perceptor."/>
+        <field name="concepto" string="Concepto" widget="badge"
+               decoration-info="concepto == 'profesional'"
+               decoration-warning="concepto == 'alquiler'"
+               decoration-success="concepto == 'trabajo'"
+               help="Tipo de retención: trabajo (Mod. 111), profesional (Mod. 111), alquiler (Mod. 115) u otros."/>
+        <field name="referencia" string="Referencia"
+               help="Número de la factura o nómina que generó la retención."/>
+        <field name="base" string="Base (€)" sum="Total base"
+               help="Importe sobre el que se calculó la retención (base imponible del gasto)."/>
+        <field name="importe_retenido" string="Retenido (€)" sum="Total retenido"
+               help="Importe retenido al perceptor."/>
+        <field name="pct_retencion" string="%" avg="% medio"
+               help="Porcentaje de retención = Retenido / Base × 100."/>
+        <field name="ejercicio" optional="hide"/>
+        <field name="user_id" column_invisible="1"/>
+        <field name="move_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver factura origen"
+                title="Abrir la factura o apunte contable de origen"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_modelo_111_line_search" model="ir.ui.view">
+    <field name="name">lira.modelo.111.line.search</field>
+    <field name="model">lira.modelo.111.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar retenciones IRPF">
+        <field name="partner_id" string="Perceptor / NIF"
+               filter_domain="['|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="referencia" string="Nº factura/nómina"/>
+        <separator/>
+        <filter name="trabajo"     string="Mod. 111 — Trabajo"      domain="[('concepto','=','trabajo')]"/>
+        <filter name="profesional" string="Mod. 111 — Profesional"  domain="[('concepto','=','profesional')]"/>
+        <filter name="alquiler"    string="Mod. 115 — Alquiler"     domain="[('concepto','=','alquiler')]"/>
+        <filter name="otros"       string="Otros conceptos"         domain="[('concepto','=','otros')]"/>
+        <separator/>
+        <filter name="t1" string="T1 (Ene-Mar)" domain="[('trimestre','=','T1')]"/>
+        <filter name="t2" string="T2 (Abr-Jun)" domain="[('trimestre','=','T2')]"/>
+        <filter name="t3" string="T3 (Jul-Sep)" domain="[('trimestre','=','T3')]"/>
+        <filter name="t4" string="T4 (Oct-Dic)" domain="[('trimestre','=','T4')]"/>
+        <separator/>
+        <filter name="fecha_mes"  string="Fecha" date="fecha"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_concepto"  string="Concepto"  context="{'group_by': 'concepto'}"/>
+          <filter name="group_trimestre" string="Trimestre" context="{'group_by': 'trimestre'}"/>
+          <filter name="group_partner"   string="Perceptor" context="{'group_by': 'partner_id'}"/>
+          <filter name="group_fecha"     string="Fecha"     context="{'group_by': 'fecha'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_modelo_111" model="ir.actions.server">
+    <field name="name">Modelo 111/115 Lira</field>
+    <field name="model_id" ref="model_lira_modelo_111"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

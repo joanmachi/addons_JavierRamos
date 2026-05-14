@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+   
+
+   <t t-name="javier_ramos_taller_simple.pie_orden_trabajo"
+   t-inherit="mrp_workorder.MrpDisplayWorkorderFooter" t-inherit-mode="extension">
+
+      <xpath expr="//button[@t-if='displayDoneButton']" position="attributes">
+       
+         <attribute name="t-if">displayDoneButton and this.props.record.data.validado</attribute>
+      
+      </xpath>
+
+
+      
+
+   </t>
+
+
+
+</templates>

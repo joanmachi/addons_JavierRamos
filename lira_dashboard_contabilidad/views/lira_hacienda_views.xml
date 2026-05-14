@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       LIQUIDACIÓN IVA — MODELO 303
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_vat_settlement_form" model="ir.ui.view">
+    <field name="name">lira.vat.settlement.form</field>
+    <field name="model">lira.vat.settlement</field>
+    <field name="arch" type="xml">
+      <form string="Liquidación IVA — Modelo 303" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Liquidación IVA — Modelo 303 <widget name="lira_print_button" title="Liquidación IVA Modelo 303" line_model="lira.vat.line"/></div>
+              <div class="ld_main_subtitle">Resultado de la liquidación del IVA: repercutido (cuentas 477x) menos deducible (cuentas 472x). Desglose mensual para el período seleccionado. Referencia orientativa para la autoliquidación trimestral.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar ld_icon_muted"/>
+                <span class="ld_sep">Desde:</span>
+                <field name="date_from" class="ld_date_input"/>
+                <span class="ld_sep">Hasta:</span>
+                <field name="date_to" class="ld_date_input"/>
+                <button name="action_refresh" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">IVA repercutido <i class="fa fa-info-circle text-muted ms-1" title="'IVA repercutido': Cuota total de IVA cobrada a clientes en el período. Fuente: saldo acreedor neto de cuentas 477x (IVA repercutido)."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_cuota_rep" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">IVA deducible <i class="fa fa-info-circle text-muted ms-1" title="'IVA deducible': Cuota total de IVA pagada a proveedores y deducible en el período. Fuente: saldo deudor neto de cuentas 472x (IVA soportado)."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_cuota_ded" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Resultado período <i class="fa fa-info-circle text-muted ms-1" title="'Resultado período': Repercutido − Deducible acumulado. Positivo = importe a ingresar a Hacienda. Negativo = crédito a devolver o compensar."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="resultado_total" readonly="1"
+                         style="color: var(--ld-red)"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Último trimestre cerrado <i class="fa fa-info-circle text-muted ms-1" title="'Último trimestre cerrado': Resultado neto del último trimestre completo (independientemente del período seleccionado). Orientativo para el próximo pago del Modelo 303."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04">
+                  <field name="ultimo_trimestre" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Base ventas <i class="fa fa-info-circle text-muted ms-1" title="'Base ventas': Suma de las bases imponibles de las ventas del período (importe antes de IVA)."/></div>
+                <div class="ld_hkpi_value" style="font-size:1rem">
+                  <field name="total_base_rep" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Base compras <i class="fa fa-info-circle text-muted ms-1" title="'Base compras': Suma de las bases imponibles de las compras deducibles del período."/></div>
+                <div class="ld_hkpi_value" style="font-size:1rem">
+                  <field name="total_base_ded" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-table me-2"/>
+              Desglose mensual
+            </span>
+            <button name="action_open_lines" type="object" class="ld_explore_btn"
+                    title="Abrir tabla completa con buscador y filtros de Odoo">
+              <i class="fa fa-table me-1"/> Explorar tabla
+          </button></div>
+
+          <div class="ld_legend_strip" invisible="not tiene_ceros">
+            <i class="fa fa-info-circle ld_ls_ico"/>
+            <strong class="ld_ls_title">¿Por qué aparecen meses con 0,00?</strong>
+            <span class="ld_ls_item">No hay apuntes en cuentas 477x o 472x ese mes: puede que no haya facturas contabilizadas en ese período</span><span class="ld_ls_item">Verifica que el período seleccionado coincide con el ejercicio con datos contables</span>
+          </div>
+
+          <field name="line_ids">
+            <list string="IVA mensual" create="0" delete="0"
+                  decoration-danger="resultado > 0"
+                  decoration-success="resultado &lt; 0"
+                  decoration-muted="resultado == 0 and cuota_repercutida == 0">
+              <field name="mes" string="Mes" readonly="1"/>
+              <field name="base_repercutida" string="Base ventas (€)"
+                     help="Base imponible de las ventas del mes." readonly="1"/>
+              <field name="cuota_repercutida" string="IVA repercutido (€)"
+                     help="IVA cobrado a clientes el mes (saldo acreedor 477x)." readonly="1"/>
+              <field name="base_deducible" string="Base compras (€)"
+                     help="Base imponible de las compras deducibles del mes." readonly="1"/>
+              <field name="cuota_deducible" string="IVA deducible (€)"
+                     help="IVA pagado a proveedores y deducible el mes (saldo deudor 472x)." readonly="1"/>
+              <field name="resultado" string="Resultado (€)"
+                     help="Repercutido − Deducible del mes. Rojo = a ingresar, verde = a devolver/compensar."
+                     decoration-danger="resultado > 0"
+                     decoration-success="resultado &lt; 0"
+                     readonly="1"/>
+            </list>
+          </field>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_lira_vat_settlement" model="ir.actions.server">
+    <field name="name">Liquidación IVA Modelo 303 Lira</field>
+    <field name="model_id" ref="model_lira_vat_settlement"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+  <!-- ══ LISTA lira.vat.line ════════════════════════════════════════════════ -->
+  <record id="view_lira_vat_line_list2" model="ir.ui.view">
+    <field name="name">lira.vat.line.list2</field>
+    <field name="model">lira.vat.line</field>
+    <field name="arch" type="xml">
+      <list string="IVA mensual" create="0" delete="0" edit="0"
+            decoration-danger="resultado &gt; 0"
+            decoration-success="resultado &lt; 0"
+            decoration-muted="resultado == 0 and cuota_repercutida == 0">
+        <field name="mes" string="Mes"
+               help="Mes natural al que corresponde la liquidación."/>
+        <field name="base_repercutida" string="Base ventas (€)" sum="Total base ventas"
+               help="Base imponible de ventas del mes."/>
+        <field name="cuota_repercutida" string="IVA repercutido (€)" sum="Total IVA repercutido"
+               help="IVA cobrado a clientes (cuentas 477x)."/>
+        <field name="base_deducible" string="Base compras (€)" sum="Total base compras"
+               help="Base imponible de compras deducibles del mes."/>
+        <field name="cuota_deducible" string="IVA deducible (€)" sum="Total IVA deducible"
+               help="IVA pagado a proveedores y deducible (cuentas 472x)."/>
+        <field name="resultado" string="Resultado (€)" sum="Total resultado"
+               decoration-danger="resultado &gt; 0" decoration-success="resultado &lt; 0"
+               help="Repercutido − Deducible. Positivo = a ingresar. Negativo = a devolver."/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver facturas del mes en Contabilidad"
+                title="Abrir todas las facturas (ventas + compras) de este mes en Contabilidad"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.vat.line ═════════════════════════════════════════════ -->
+  <record id="view_lira_vat_line_search" model="ir.ui.view">
+    <field name="name">lira.vat.line.search</field>
+    <field name="model">lira.vat.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en liquidación IVA">
+        <field name="mes" string="Mes"/>
+        <separator/>
+        <filter name="a_ingresar"   string="A ingresar (resultado &gt; 0)" domain="[('resultado','&gt;',0)]"/>
+        <filter name="a_devolver"   string="A devolver (resultado &lt; 0)" domain="[('resultado','&lt;',0)]"/>
+        <filter name="rep_1k"       string="Repercutido &gt; 1.000 €"    domain="[('cuota_repercutida','&gt;',1000)]"/>
+        <filter name="ded_1k"       string="Deducible &gt; 1.000 €"      domain="[('cuota_deducible','&gt;',1000)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_mes"       string="Mes"              context="{'group_by': 'mes'}"/>
+          <filter name="group_base_rep"  string="Base ventas"      context="{'group_by': 'base_repercutida'}"/>
+          <filter name="group_cuota_rep" string="IVA repercutido"  context="{'group_by': 'cuota_repercutida'}"/>
+          <filter name="group_base_ded"  string="Base compras"     context="{'group_by': 'base_deducible'}"/>
+          <filter name="group_cuota_ded" string="IVA deducible"    context="{'group_by': 'cuota_deducible'}"/>
+          <filter name="group_result"    string="Resultado"        context="{'group_by': 'resultado'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       IRPF — CUENTA 4751
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_irpf_form" model="ir.ui.view">
+    <field name="name">lira.irpf.form</field>
+    <field name="model">lira.irpf</field>
+    <field name="arch" type="xml">
+      <form string="IRPF a Ingresar — Cuenta 4751" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">IRPF a Ingresar — Cuenta 4751 <widget name="lira_print_button" title="IRPF a Ingresar Cuenta 4751" line_model="lira.irpf.line"/></div>
+              <div class="ld_main_subtitle">Saldo pendiente de ingreso a Hacienda en concepto de IRPF retenido. Cuenta 4751: H.P. acreedora por retenciones practicadas (nóminas, alquileres, profesionales). Un saldo positivo representa IRPF retenido que aún no se ha ingresado a la Agencia Tributaria.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <span class="ld_sep">Meses:</span>
+                <field name="meses" class="ld_date_input"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Saldo pendiente (4751) <i class="fa fa-info-circle text-muted ms-1" title="'Saldo pendiente': Saldo acreedor total acumulado de la cuenta 4751. Representa el IRPF retenido que todavía no se ha ingresado a Hacienda. Calculado sobre todos los apuntes contabilizados desde el origen."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626">
+                  <field name="saldo_actual" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Retenido en el período <i class="fa fa-info-circle text-muted ms-1" title="'Retenido en el período': IRPF acumulado (abonos en 4751) en los meses mostrados."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_retenido_periodo" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Ingresado a Hacienda <i class="fa fa-info-circle text-muted ms-1" title="'Ingresado a Hacienda': Pagos realizados a la AEAT en los meses mostrados (cargos en 4751)."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a">
+                  <field name="total_ingresado_periodo" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-table me-2"/>
+              Movimientos mensuales cuenta 4751
+            </span>
+            <button name="action_open_lines" type="object" class="ld_explore_btn"
+                    title="Abrir tabla completa con buscador y filtros de Odoo">
+              <i class="fa fa-table me-1"/> Explorar tabla
+          </button></div>
+
+          <div class="ld_legend_strip" invisible="not tiene_ceros">
+            <i class="fa fa-info-circle ld_ls_ico"/>
+            <strong class="ld_ls_title">Sin movimientos en el período</strong>
+            <span class="ld_ls_item">No hay apuntes contabilizados en la cuenta 4751 en los meses mostrados. Verifica que las nóminas y retenciones estén correctamente contabilizadas.</span>
+          </div>
+
+          <field name="line_ids">
+            <list string="IRPF mensual" create="0" delete="0"
+                  decoration-danger="saldo_mes > 0"
+                  decoration-muted="retenido == 0 and ingresado == 0">
+              <field name="mes" string="Mes" readonly="1"/>
+              <field name="retenido" string="Retenido (€)"
+                     help="IRPF acumulado el mes (abonos en 4751): retenciones de nóminas, alquileres y profesionales." readonly="1"/>
+              <field name="ingresado" string="Ingresado a Hacienda (€)"
+                     help="Pagos realizados a la AEAT el mes (cargos en 4751)." readonly="1"/>
+              <field name="saldo_mes" string="Saldo del mes (€)"
+                     help="Retenido menos ingresado en el mes. Positivo = IRPF pendiente de pago del período."
+                     decoration-danger="saldo_mes > 0"
+                     decoration-success="saldo_mes &lt;= 0"
+                     readonly="1"/>
+            </list>
+          </field>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_lira_irpf" model="ir.actions.server">
+    <field name="name">IRPF a Ingresar Cuenta 4751 Lira</field>
+    <field name="model_id" ref="model_lira_irpf"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+  <!-- ══ LISTA lira.irpf.line ═══════════════════════════════════════════════ -->
+  <record id="view_lira_irpf_line_list2" model="ir.ui.view">
+    <field name="name">lira.irpf.line.list2</field>
+    <field name="model">lira.irpf.line</field>
+    <field name="arch" type="xml">
+      <list string="IRPF mensual" create="0" delete="0" edit="0"
+            decoration-danger="saldo_mes &gt; 0"
+            decoration-muted="retenido == 0 and ingresado == 0">
+        <field name="mes" string="Mes"
+               help="Mes natural del movimiento contable."/>
+        <field name="retenido" string="Retenido (€)" sum="Total retenido"
+               help="IRPF retenido el mes (abonos en cuenta 4751): nóminas, alquileres, profesionales."/>
+        <field name="ingresado" string="Ingresado a Hacienda (€)" sum="Total ingresado"
+               help="Pagos a la AEAT el mes (cargos en cuenta 4751)."/>
+        <field name="saldo_mes" string="Saldo del mes (€)" sum="Saldo total"
+               decoration-danger="saldo_mes &gt; 0" decoration-success="saldo_mes &lt;= 0"
+               help="Retenido − Ingresado. Positivo = IRPF pendiente del mes."/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver apuntes cuenta 4751"
+                title="Abrir apuntes contables de la cuenta 4751 de este mes"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.irpf.line ════════════════════════════════════════════ -->
+  <record id="view_lira_irpf_line_search" model="ir.ui.view">
+    <field name="name">lira.irpf.line.search</field>
+    <field name="model">lira.irpf.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en IRPF (4751)">
+        <field name="mes" string="Mes"/>
+        <separator/>
+        <filter name="pdte_pago"  string="Pendiente de pago (&gt;0)" domain="[('saldo_mes','&gt;',0)]"/>
+        <filter name="con_pago"   string="Con pago realizado" domain="[('ingresado','&gt;',0)]"/>
+        <filter name="con_reten"  string="Con retención"      domain="[('retenido','&gt;',0)]"/>
+        <filter name="reten_1k"   string="Retenido &gt; 1.000 €" domain="[('retenido','&gt;',1000)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_mes"       string="Mes"       context="{'group_by': 'mes'}"/>
+          <filter name="group_retenido"  string="Retenido"  context="{'group_by': 'retenido'}"/>
+          <filter name="group_ingresado" string="Ingresado" context="{'group_by': 'ingresado'}"/>
+          <filter name="group_saldo"     string="Saldo mes" context="{'group_by': 'saldo_mes'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="sale_order_report_document_custom" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//th[@name='th_description']" position="before">
+                <t t-set="ocultar_posiciones" t-value="1"/>
+                <t t-foreach="lines_to_report" t-as="linea">
+                    <t t-if="linea.pos_palet">
+                        <t t-set="ocultar_posiciones" t-value="0"/>
+                    </t>
+                </t>
+            </xpath>
+        <xpath expr="//table/thead/tr[1]/th[1]" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <th class="text-right">POS.</th>
+
+            </t>
+        </xpath>
+        <xpath expr="//table//tbody//tr[1]//td[1]" position="before">
+            <t t-if="ocultar_posiciones == 0">
+                <td class="text-right">
+                    <span t-field="line.pos_palet" />
+                </td>
+
+            </t>
+        </xpath>
+        
+
+
+    </template>
+</odoo>

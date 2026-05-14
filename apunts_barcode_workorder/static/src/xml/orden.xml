@@ -1,0 +1,23 @@
+<templates>
+    <t t-name="apunts_barcode_workorder.OrdenComponent">
+        <div 
+            class="o_barcode_line list-group-item d-flex flex-row flex-nowrap"
+             t-attf-class="{{componentClasses}}" >
+            <div class="o_barcode_line_details flex-grow-1 flex-column flex-nowrap">
+                <div >
+                    <span  t-esc="orden.name"/>
+                    <br/>
+                    
+                    <t t-esc="nombreTrabajadores"/>
+                    
+                  
+                
+
+                  
+                </div>
+            </div>
+        </div>
+    </t>
+
+
+</templates>

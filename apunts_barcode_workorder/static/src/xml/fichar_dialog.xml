@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="apunts_barcode_workorder.introducir_pin">
+        <div class="o_tablet_popups">
+        <Dialog size="'md'" title="props.title" modalRef="modalRef">
+            <t t-set-slot="header">
+                <div class="d-flex align-items-center gap-2 w-100">
+                    <i class="fa fa-qrcode fa-lg text-primary"/>
+                    <span class="fw-bold fs-5">Fichar</span>
+                </div>
+            </t>
+
+            <div class="apunts-dialog-body">
+                <div class="apunts-dialog-hint">Escanea o introduce tu PIN</div>
+                <input type="text"
+                       class="apunts-dialog-input"
+                       t-att-class="{'is-invalid': state.error}"
+                       t-model="state.barcode"
+                       inputmode="text"
+                       autocomplete="off"
+                       autofocus="1"
+                       t-on-input="() => state.error = false"/>
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-primary px-4" t-on-click="confirm">
+                    <i class="fa fa-check me-2"/>Fichar
+                </button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancelar</button>
+            </t>
+        </Dialog>
+        </div>
+    </t>
+
+</templates>

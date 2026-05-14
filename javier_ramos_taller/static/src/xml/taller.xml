@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+   
+   <t t-name="javier_ramos_taller.agregar_cantidad_producida"
+   t-inherit="mrp_workorder.MrpRegisterProductionDialog" t-inherit-mode="extension">
+      <xpath expr="//div[@class='o_workorder_bar_content']" position="replace">
+ 
+       
+            <div class="o_workorder_bar_content">
+                  
+                  <div class="o_quantity row">
+                     <t t-if="this.props.worksheetData and !this.props.worksheetData.is_last_unfinished_wo">
+                        <span class=" ps-0" style="display:flex; justify-content:center;">
+                           <span name="qty_producing" class="mx-2"
+                                 t-esc="this.props.worksheetData.qty_production - this.props.worksheetData.qty_remaining"/>
+                           /<span name="product_qty" class="mx-2"
+                                 t-esc="formatFloat(this.props.worksheetData.qty_production)"/>
+                           <span t-esc="recordData.product_uom_id[1]"/>
+                        </span>
+                        
+                     </t>
+                     <t t-else="">
+                        <span class=" ps-0" style="display:flex; justify-content:center;">
+                           <span name="qty_producing" class="mx-2"
+                                 t-esc="formatFloat(recordData.qty_producing)"/>
+                           /<span name="product_qty" class="mx-2"
+                                 t-esc="formatFloat(quantityToProduce)"/>
+                           <span t-esc="recordData.product_uom_id[1]"/>
+                        </span>
+   
+                     </t>
+                  </div>
+                  <div class="row">
+                     <div class="col-12">
+                        <div style="display:flex; justify-content:center;">
+                           <span class="col-3">Cantidad a producir</span>
+                           <span name="qty_done" class="o_field_widget text-end pe-2">
+                              <input id="aux_producir" class="o_input" min="0" type="number" value="0"/>
+                           </span>
+                        </div>
+                     </div>
+                  </div>
+                  <div t-if="recordData.product_tracking &amp;&amp; recordData.product_tracking !== 'none'" class="o_workorder_lot row">
+                     <span class="text-capitalize col-3" t-esc="recordData.product_tracking"/>
+                     <div name="lot_producing_id" class="o_field_widget col-4">
+                        <Many2OneField t-props="lotInfo"/>
+                     </div>
+                     <button t-if="!recordData.lot_producing_id" t-att-disabled="state.disabled" class="btn btn-info fa fa-plus col-1" t-on-click="actionGenerateSerial"/>
+                  </div>
+            </div>
+
+   
+      </xpath>
+
+   </t>
+   <t t-name="javier_ramos_taller.agregar_cantidad_producida"
+   t-inherit="mrp_workorder.MrpDisplayRecord" t-inherit-mode="extension">
+      <xpath expr="//button[@t-on-click.stop='quickRegisterProduction']" position="replace">
+        
+          <button t-if="props.record.data.is_last_unfinished_wo and props.record.resModel=='mrp.workorder'" t-on-click.stop="quickRegisterProduction" class="btn btn-secondary btn-sm text-nowrap"
+                   t-att-class="productionComplete ? 'opacity-50 bg-transparent text-black' : ''">
+             <t t-out="quantityProducing"/> /
+             <t t-out="quantityToProduce"/>
+             <span class="ms-1" t-esc="uom"/>
+          </button>
+          
+          <button t-if="!props.record.data.is_last_unfinished_wo and props.record.resModel=='mrp.workorder'" t-on-click.stop="quickRegisterProduction" class="btn btn-secondary btn-sm text-nowrap"
+                   t-att-class="productionComplete ? 'opacity-50 bg-transparent text-black' : ''">
+             <t t-out="quantityToProduce - props.record.data.qty_remaining"/> /
+             <t t-out="quantityToProduce"/>
+             <span class="ms-1" t-esc="uom"/>
+          </button>
+      </xpath>
+
+   </t>
+   <t t-name="javier_ramos_taller.pie_orden_trabajo"
+   t-inherit="mrp_workorder.MrpDisplayWorkorderFooter" t-inherit-mode="extension">
+      <xpath expr="//button[@t-if='displayDoneButton']" position="replace">
+       
+         <t t-if="props.record.data.is_last_unfinished_wo">
+            <button t-if="displayDoneButton and (quantityProducing >= quantityToProduce)" t-attf-class="btn #{_btn_type}"
+                   t-on-click="onClickValidateButton" t-att-barcode_trigger="props.barcodeTarget ? 'CLWO' : false">
+               <t t-if="state.underValidation">Undo</t>
+               <t t-else="">Mark as Done</t>
+           </button>
+           
+           
+         </t>
+         <t t-else="">
+            <button t-if="displayDoneButton and ((quantityToProduce - props.record.data.qty_remaining) >= quantityToProduce)" t-attf-class="btn #{_btn_type}"
+                   t-on-click="onClickValidateButton" t-att-barcode_trigger="props.barcodeTarget ? 'CLWO' : false">
+               <t t-if="state.underValidation">Undo</t>
+               <t t-else="">Mark as Done</t>
+           </button>
+ 
+
+         </t>
+      </xpath>
+
+   </t>
+
+
+
+</templates>

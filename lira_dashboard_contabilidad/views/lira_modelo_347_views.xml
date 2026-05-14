@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_modelo_347_form" model="ir.ui.view">
+    <field name="name">lira.modelo.347.form</field>
+    <field name="model">lira.modelo.347</field>
+    <field name="arch" type="xml">
+      <form string="Modelo 347 — Operaciones con Terceros" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Modelo 347 — Operaciones con Terceros <widget name="lira_print_button" title="Modelo 347" line_model="lira.modelo.347.line"/></div>
+              <div class="ld_main_subtitle">
+                Declaración anual de operaciones con clientes y proveedores que superan 3.005,06 € IVA incluido en el ejercicio.
+                Muestra el desglose por trimestres tal como lo exige Hacienda en el Modelo 347.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar ld_icon_muted"/>
+                <span class="ld_sep">Ejercicio:</span>
+                <field name="ejercicio" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-3">Umbral legal:</span>
+                <field name="umbral" class="ld_date_input" readonly="1" nolabel="1"/>
+                <span class="ld_sep">€</span>
+                <button name="action_refresh" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Total clientes declarables
+                  <i class="fa fa-info-circle text-muted ms-1" title="Suma de operaciones con clientes que superan el umbral 3.005,06 €/año (IVA incluido). Fuente: facturas emitidas (out_invoice) y abonos (out_refund) del ejercicio agrupadas por cliente. Se restan los abonos."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_clientes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Total proveedores declarables
+                  <i class="fa fa-info-circle text-muted ms-1" title="Suma de operaciones con proveedores que superan el umbral. Fuente: facturas recibidas (in_invoice) y abonos (in_refund) del ejercicio agrupadas por proveedor."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_proveedores" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Clientes a declarar
+                  <i class="fa fa-info-circle text-muted ms-1" title="Número de clientes distintos con operaciones anuales superiores al umbral."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="num_clientes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Proveedores a declarar
+                  <i class="fa fa-info-circle text-muted ms-1" title="Número de proveedores distintos con operaciones anuales superiores al umbral."/>
+                </div>
+                <div class="ld_hkpi_value"><field name="num_proveedores" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Terceros totales
+                  <i class="fa fa-info-circle text-muted ms-1" title="Número total de líneas a declarar (un mismo tercero puede aparecer dos veces si es a la vez cliente y proveedor)."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#7c3aed"><field name="num_total_terceros" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_legend_strip" style="background:#f3f4f6; border-left:4px solid #7c3aed; padding:12px 14px; margin-top:18px">
+            <i class="fa fa-book ld_ls_ico" style="color:#7c3aed"/>
+            <strong class="ld_ls_title">Metodología Modelo 347 (simplificada)</strong>
+            <span class="ld_ls_item"><strong>Umbral</strong>: 3.005,06 € IVA incluido anual por cada tercero</span>
+            <span class="ld_ls_item"><strong>Incluye</strong>: facturas emitidas/recibidas publicadas del ejercicio</span>
+            <span class="ld_ls_item"><strong>Desglose</strong>: por trimestres naturales (T1 = Ene-Mar, T2 = Abr-Jun, T3 = Jul-Sep, T4 = Oct-Dic)</span>
+            <span class="ld_ls_item"><strong>Abonos</strong>: se restan del total (signo negativo)</span>
+            <span class="ld_ls_item"><strong>No incluido</strong>: operaciones intracomunitarias (van al 349), operaciones exentas sin obligación de declarar</span>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ul"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver terceros a declarar con desglose trimestral</strong>
+              <span>Tabla con todos los clientes y proveedores que superan el umbral, cada uno con sus 4 trimestres.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver detalle" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_lira_modelo_347_line_list" model="ir.ui.view">
+    <field name="name">lira.modelo.347.line.list</field>
+    <field name="model">lira.modelo.347.line</field>
+    <field name="arch" type="xml">
+      <list string="Modelo 347 — detalle" create="0" delete="0" edit="0"
+            decoration-success="tipo_operacion == 'venta'"
+            decoration-warning="tipo_operacion == 'compra'">
+        <field name="partner_id" string="Tercero"
+               help="Cliente o proveedor a declarar (solo los que superan 3.005,06 € anuales)."/>
+        <field name="partner_vat" string="NIF/CIF"
+               help="Número de identificación fiscal del tercero (obligatorio en el modelo 347)."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del tercero."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del tercero."/>
+        <field name="tipo_operacion" string="Tipo" widget="badge"
+               decoration-success="tipo_operacion == 'venta'"
+               decoration-warning="tipo_operacion == 'compra'"
+               help="Clave A (ventas a clientes) o B (compras a proveedores). Así lo clasifica la AEAT."/>
+        <field name="total" string="Total anual (€)" sum="Total"
+               help="Importe total anual IVA incluido (facturas − abonos)."/>
+        <field name="trim_1" string="T1 (€)" sum="T1"
+               help="Operaciones del 1er trimestre (enero a marzo)."/>
+        <field name="trim_2" string="T2 (€)" sum="T2"
+               help="Operaciones del 2º trimestre (abril a junio)."/>
+        <field name="trim_3" string="T3 (€)" sum="T3"
+               help="Operaciones del 3er trimestre (julio a septiembre)."/>
+        <field name="trim_4" string="T4 (€)" sum="T4"
+               help="Operaciones del 4º trimestre (octubre a diciembre)."/>
+        <field name="num_facturas" string="Nº facturas" sum="Total" optional="show"
+               help="Número de facturas del ejercicio con este tercero."/>
+        <field name="ejercicio" string="Ejercicio" optional="hide"/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver facturas del ejercicio"
+                title="Abrir todas las facturas de este tercero en el ejercicio"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_modelo_347_line_search" model="ir.ui.view">
+    <field name="name">lira.modelo.347.line.search</field>
+    <field name="model">lira.modelo.347.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en Modelo 347">
+        <field name="partner_id" string="Tercero / NIF / Ciudad"
+               filter_domain="['|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <separator/>
+        <filter name="ventas"    string="Solo ventas (clientes)"    domain="[('tipo_operacion','=','venta')]"/>
+        <filter name="compras"   string="Solo compras (proveedores)" domain="[('tipo_operacion','=','compra')]"/>
+        <separator/>
+        <filter name="mas_10k"   string="Total &gt; 10.000 €"  domain="[('total','>',10000)]"/>
+        <filter name="mas_50k"   string="Total &gt; 50.000 €"  domain="[('total','>',50000)]"/>
+        <filter name="mas_100k"  string="Total &gt; 100.000 €" domain="[('total','>',100000)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_tipo"    string="Tipo operación" context="{'group_by': 'tipo_operacion'}"/>
+          <filter name="group_partner" string="Tercero"        context="{'group_by': 'partner_id'}"/>
+          <filter name="group_country" string="País"           context="{'group_by': 'partner_country_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_modelo_347" model="ir.actions.server">
+    <field name="name">Modelo 347 Lira</field>
+    <field name="model_id" ref="model_lira_modelo_347"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

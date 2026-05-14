@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_plastec_taller_tipo_palet,plastec_taller.tipo_palet,model_plastec_taller_tipo_palet,,1,1,1,1

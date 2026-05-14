@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_aging_supplier_form" model="ir.ui.view">
+    <field name="name">lira.aging.supplier.form</field>
+    <field name="model">lira.aging.supplier</field>
+    <field name="arch" type="xml">
+      <form string="Antigüedad de Saldos — Proveedores" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Antigüedad de Saldos — Proveedores <widget name="lira_print_button" title="Antigüedad Proveedores" line_model="lira.aging.supplier.line"/></div>
+              <div class="ld_main_subtitle">Facturas de proveedor pendientes de pago clasificadas por tramos de antigüedad. Permite detectar a qué proveedores debemos más y cuánto tiempo llevan sin cobrar.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total a pagar <i class="fa fa-info-circle text-muted ms-1" title="Suma del importe pendiente de pagar a proveedores (corriente + vencido)."/></div>
+                <div class="ld_hkpi_value"><field name="total_pendiente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Corriente <i class="fa fa-info-circle text-muted ms-1" title="Facturas de proveedor aún no vencidas (dentro del plazo de pago acordado con el proveedor)."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="importe_corriente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total vencido <i class="fa fa-info-circle text-muted ms-1" title="Suma de facturas de proveedor con fecha de vencimiento ya pasada que seguimos sin pagar."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_vencido" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">+90 días (crítico) <i class="fa fa-info-circle text-muted ms-1" title="Facturas con más de 90 días vencidas. Riesgo de conflicto con el proveedor o corte de suministro."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="importe_critico" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Proveedores con vencidos <i class="fa fa-info-circle text-muted ms-1" title="Número de proveedores distintos con al menos una factura vencida sin pagar."/></div>
+                <div class="ld_hkpi_value"><field name="proveedores_vencidos" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-table"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver deuda por proveedor y tramo de antigüedad</strong>
+              <span>Abre la tabla con buscador nativo de Odoo: filtra por proveedor, NIF, ciudad o país.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_lira_aging_supplier_line_list" model="ir.ui.view">
+    <field name="name">lira.aging.supplier.line.list</field>
+    <field name="model">lira.aging.supplier.line</field>
+    <field name="arch" type="xml">
+      <list string="Antigüedad de saldos — proveedores" create="0" delete="0" edit="0"
+            decoration-danger="tramo_mas &gt; 0"
+            decoration-warning="tramo_90 &gt; 0 and tramo_mas == 0"
+            decoration-success="tramo_30 == 0 and tramo_60 == 0 and tramo_90 == 0 and tramo_mas == 0">
+        <field name="rank" string="#" width="44"
+               help="Posición ordenada de mayor a menor deuda con el proveedor."/>
+        <field name="partner_id" string="Proveedor"
+               help="Proveedor con facturas pendientes de pago."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="Número de identificación fiscal del proveedor."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del proveedor."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del proveedor."/>
+        <field name="partner_ref" string="Ref. proveedor" optional="hide"
+               help="Referencia interna del proveedor."/>
+        <field name="partner_email" string="Email" optional="hide"
+               help="Email de contacto."/>
+        <field name="partner_phone" string="Teléfono" optional="hide"
+               help="Teléfono."/>
+        <field name="total" string="Total (€)" sum="Total pendiente"
+               help="Suma de todas las facturas pendientes de este proveedor."/>
+        <field name="corriente" string="Corriente (€)" sum="Total"
+               help="Facturas no vencidas (dentro del plazo de pago acordado)."/>
+        <field name="tramo_30" string="1–30 d (€)" sum="Total"
+               help="Facturas vencidas entre 1 y 30 días."/>
+        <field name="tramo_60" string="31–60 d (€)" sum="Total"
+               help="Facturas vencidas entre 31 y 60 días."/>
+        <field name="tramo_90" string="61–90 d (€)" sum="Total"
+               help="Facturas vencidas entre 61 y 90 días."/>
+        <field name="tramo_mas" string="+90 d (€)" sum="Total"
+               help="Facturas vencidas hace más de 90 días (crítico)."/>
+        <field name="num_facturas" string="Facturas" sum="Total"
+               help="Número de facturas del proveedor pendientes de pago."/>
+        <field name="dias_max" string="Días máx." avg="Media"
+               help="Mayor antigüedad entre las facturas vencidas del proveedor."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver facturas del proveedor"
+                title="Abrir las facturas pendientes de pago de este proveedor"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_aging_supplier_line_search" model="ir.ui.view">
+    <field name="name">lira.aging.supplier.line.search</field>
+    <field name="model">lira.aging.supplier.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en antigüedad proveedores">
+        <field name="partner_id" string="Proveedor / NIF / Ciudad / País"
+               filter_domain="['|','|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self),
+                               ('partner_id.country_id.name','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="partner_email" string="Email"/>
+        <separator/>
+        <filter name="con_vencido" string="Con deuda vencida" domain="[('tramo_30','>',0)]"/>
+        <filter name="criticos" string="Críticos (+90 días)" domain="[('tramo_mas','>',0)]"/>
+        <filter name="con_90"  string="Con 61–90 días" domain="[('tramo_90','>',0)]"/>
+        <filter name="solo_corriente" string="Solo corriente"
+                domain="[('corriente','>',0),('tramo_30','=',0),('tramo_60','=',0),('tramo_90','=',0),('tramo_mas','=',0)]"/>
+        <separator/>
+        <filter name="total_1k"  string="Total &gt; 1.000 €"  domain="[('total','>',1000)]"/>
+        <filter name="total_10k" string="Total &gt; 10.000 €" domain="[('total','>',10000)]"/>
+        <separator/>
+        <filter name="top10" string="Top 10" domain="[('rank','&lt;=',10)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner" string="Proveedor" context="{'group_by': 'partner_id'}"/>
+          <filter name="group_country" string="País"      context="{'group_by': 'partner_country_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_aging_supplier" model="ir.actions.server">
+    <field name="name">Antigüedad Proveedores Lira</field>
+    <field name="model_id" ref="model_lira_aging_supplier"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

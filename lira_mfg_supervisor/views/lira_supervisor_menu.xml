@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ── Aplicación raíz — aparece en la pantalla de apps de Odoo ── -->
+  <menuitem id="menu_lira_supervisor_root"
+            name="Supervisor Planta"
+            sequence="52"
+            web_icon="lira_mfg_supervisor,static/description/icon.png"/>
+
+  <!-- ── Sub-menús ── -->
+  <menuitem id="menu_lira_supervisor_panel"
+            name="Panel en tiempo real"
+            parent="menu_lira_supervisor_root"
+            sequence="1"
+            action="lira_mfg_supervisor.action_lira_supervisor_panel"/>
+
+  <menuitem id="menu_lira_supervisor_history"
+            name="Historial del día"
+            parent="menu_lira_supervisor_root"
+            sequence="2"
+            action="lira_mfg_supervisor.action_lira_supervisor_history"/>
+
+</odoo>

@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_apunts_costes_of_material_user,apunts.costes.of.material.line.user,model_apunts_costes_of_material_line,mrp.group_mrp_user,1,0,0,0
+access_apunts_costes_of_material_manager,apunts.costes.of.material.line.manager,model_apunts_costes_of_material_line,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_labor_user,apunts.costes.of.labor.line.user,model_apunts_costes_of_labor_line,mrp.group_mrp_user,1,0,0,0
+access_apunts_costes_of_labor_manager,apunts.costes.of.labor.line.manager,model_apunts_costes_of_labor_line,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_alert_user,apunts.costes.of.alert.user,model_apunts_costes_of_alert,mrp.group_mrp_user,1,0,0,0
+access_apunts_costes_of_alert_manager,apunts.costes.of.alert.manager,model_apunts_costes_of_alert,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_attendance_user,apunts.costes.of.attendance.line.user,model_apunts_costes_of_attendance_line,mrp.group_mrp_user,1,0,0,0
+access_apunts_costes_of_attendance_manager,apunts.costes.of.attendance.line.manager,model_apunts_costes_of_attendance_line,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_finished_user,apunts.costes.of.finished.line.user,model_apunts_costes_of_finished_line,mrp.group_mrp_user,1,0,0,0
+access_apunts_costes_of_finished_manager,apunts.costes.of.finished.line.manager,model_apunts_costes_of_finished_line,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_master_data_user,apunts.costes.of.master.data.user,model_apunts_costes_of_master_data,mrp.group_mrp_user,1,1,1,0
+access_apunts_costes_of_master_data_manager,apunts.costes.of.master.data.manager,model_apunts_costes_of_master_data,mrp.group_mrp_manager,1,1,1,1
+access_apunts_costes_of_desglose_wizard_user,apunts.costes.of.desglose.wizard.user,model_apunts_costes_of_desglose_wizard,mrp.group_mrp_user,1,1,1,1
+access_apunts_costes_of_desglose_wizard_manager,apunts.costes.of.desglose.wizard.manager,model_apunts_costes_of_desglose_wizard,mrp.group_mrp_manager,1,1,1,1

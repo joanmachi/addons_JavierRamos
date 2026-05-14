@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_sales_monthly_form" model="ir.ui.view">
+    <field name="name">lira.sales.monthly.form</field>
+    <field name="model">lira.sales.monthly</field>
+    <field name="arch" type="xml">
+      <form string="Pedidos Confirmados por Mes" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Pedidos Confirmados por Mes <widget name="lira_print_button" title="Pedidos Confirmados por Mes" line_model="lira.sales.monthly.line"/></div>
+              <div class="ld_main_subtitle">Evolución mensual de pedidos de venta confirmados. Detecta tendencias de ventas mes a mes.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <span class="ld_sep">Meses:</span>
+                <field name="periodos" class="ld_date_input"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total pedidos <i class="fa fa-info-circle text-muted ms-1" title="Suma de todos los pedidos de venta confirmados en el periodo analizado. Solo cuentan los pedidos en estado Pedido (sale) o Hecho (done) — los borradores y cancelados no."/></div>
+                <div class="ld_hkpi_value"><field name="total_pedidos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total importe neto <i class="fa fa-info-circle text-muted ms-1" title="Suma de la base imponible (sin IVA) de todos los pedidos confirmados del periodo. Fuente: campo amount_untaxed de cada pedido de venta."/></div>
+                <div class="ld_hkpi_value"><field name="total_importe" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Media mensual <i class="fa fa-info-circle text-muted ms-1" title="Importe neto promedio por mes = Total importe neto / Meses con pedidos. Útil para comparar con los meses individuales."/></div>
+                <div class="ld_hkpi_value"><field name="media_mensual" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Mejor mes <i class="fa fa-info-circle text-muted ms-1" title="Mes con mayor importe neto del periodo analizado. Indica el pico de facturación."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="mejor_mes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Mes más bajo <i class="fa fa-info-circle text-muted ms-1" title="Mes con menor importe neto, excluyendo meses sin pedidos. Muestra el valle de actividad."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="peor_mes" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Meses sin pedidos <i class="fa fa-info-circle text-muted ms-1" title="Número de meses del periodo analizado con 0 pedidos confirmados. Si aparecen muchos, indica estacionalidad extrema o periodo sin actividad."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="meses_sin_pedidos" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-calendar"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver evolución mensual completa</strong>
+              <span>Abre la tabla con el buscador nativo de Odoo: busca por mes, ordena por importe o variación.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_lira_sales_monthly_line_list" model="ir.ui.view">
+    <field name="name">lira.sales.monthly.line.list</field>
+    <field name="model">lira.sales.monthly.line</field>
+    <field name="arch" type="xml">
+      <list string="Evolución mensual" create="0" delete="0" edit="0"
+            decoration-success="es_mejor_mes == True"
+            decoration-muted="num_pedidos == 0">
+        <field name="mes" string="Mes"
+               help="Mes natural al que corresponde la fila."/>
+        <field name="num_pedidos" string="Pedidos" sum="Total pedidos"
+               help="Número de pedidos de venta confirmados del mes."/>
+        <field name="total_neto" string="Importe neto (€)" sum="Total neto"
+               help="Base imponible total del mes (sin IVA)."/>
+        <field name="ticket_medio" string="Ticket medio (€)" avg="Ticket medio"
+               help="Importe medio por pedido = Importe neto / Nº pedidos."/>
+        <field name="variacion_pct" string="Var. % vs ant." avg="Variación media"
+               decoration-danger="variacion_pct &lt; 0"
+               decoration-success="variacion_pct &gt; 0"
+               help="Variación del importe respecto al mes anterior."/>
+        <field name="es_mejor_mes" string="Mejor" optional="hide"
+               help="True si es el mes con mayor importe neto del periodo analizado."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedidos del mes"
+                title="Abrir los pedidos de venta confirmados de este mes"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_sales_monthly_line_search" model="ir.ui.view">
+    <field name="name">lira.sales.monthly.line.search</field>
+    <field name="model">lira.sales.monthly.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar evolución mensual">
+        <field name="mes" string="Mes"/>
+        <separator/>
+        <filter name="con_pedidos"   string="Con pedidos"   domain="[('num_pedidos','>',0)]"/>
+        <filter name="sin_pedidos"   string="Sin pedidos"   domain="[('num_pedidos','=',0)]"/>
+        <filter name="mejor_mes"     string="Mejor mes"     domain="[('es_mejor_mes','=',True)]"/>
+        <filter name="crecimiento"   string="Crecimiento"   domain="[('variacion_pct','>',0)]"/>
+        <filter name="caida"         string="Caída"         domain="[('variacion_pct','&lt;',0)]"/>
+        <separator/>
+        <filter name="neto_10k" string="Neto &gt; 10.000 €"  domain="[('total_neto','>',10000)]"/>
+        <filter name="neto_50k" string="Neto &gt; 50.000 €"  domain="[('total_neto','>',50000)]"/>
+        <filter name="mas_10_ped" string="≥ 10 pedidos"     domain="[('num_pedidos','>=',10)]"/>
+        <filter name="mas_50_ped" string="≥ 50 pedidos"     domain="[('num_pedidos','>=',50)]"/>
+        <filter name="crec_10"   string="Crecimiento &gt; 10%" domain="[('variacion_pct','>',10)]"/>
+        <filter name="caida_10"  string="Caída &gt; 10%"       domain="[('variacion_pct','&lt;',-10)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_mes"     string="Mes"               context="{'group_by': 'mes'}"/>
+          <filter name="group_mejor"   string="Mejor mes"         context="{'group_by': 'es_mejor_mes'}"/>
+          <filter name="group_num_ped" string="Nº pedidos"        context="{'group_by': 'num_pedidos'}"/>
+          <filter name="group_neto"    string="Importe neto"      context="{'group_by': 'total_neto'}"/>
+          <filter name="group_ticket"  string="Ticket medio"      context="{'group_by': 'ticket_medio'}"/>
+          <filter name="group_varpct"  string="Variación %"       context="{'group_by': 'variacion_pct'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_sales_monthly" model="ir.actions.server">
+    <field name="name">Pedidos Confirmados por Mes Lira</field>
+    <field name="model_id" ref="model_lira_sales_monthly"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

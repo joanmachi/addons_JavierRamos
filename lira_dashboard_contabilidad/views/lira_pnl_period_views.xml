@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO P&G por Periodos ══════════════════════════════════════ -->
+  <record id="view_lira_pnl_period_form" model="ir.ui.view">
+    <field name="name">lira.pnl.period.form</field>
+    <field name="model">lira.pnl.period</field>
+    <field name="arch" type="xml">
+      <form string="P&amp;G por Periodos" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">P&amp;G por Periodos <widget name="lira_print_button" title="P&amp;G por Periodos" line_model="lira.pnl.line"/></div>
+              <div class="ld_main_subtitle">
+                Cuenta de resultados filtrada por periodo con saldo desglosado por cuenta.
+                Separa Ingresos, Costes Variables (7 cuentas marcadas por el contable) y Costes Fijos (resto).
+                Permite ver el margen bruto real (sin costes fijos) y el resultado neto.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+                <button name="%(lira_dashboard_contabilidad.action_lira_variable_account)d"
+                        string="⚙ Gestionar cuentas variables" type="action"
+                        class="btn btn-secondary ms-2" icon="fa-cogs"
+                        title="Añadir, quitar o editar las cuentas marcadas como variables"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Ingresos
+                  <i class="fa fa-info-circle text-muted ms-1" title="Total de ingresos del periodo. Fuente: Σ (credit − debit) de account.move.line donde account_id.code empieza por 7 y parent_state=posted."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_ingresos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Costes variables
+                  <i class="fa fa-info-circle text-muted ms-1" title="Total de gastos de las 7 cuentas marcadas como variables: 60010005, 601007, 6070002, 6070003, 600017, 6000018, 62800001. Fuente: Σ (debit − credit) de account.move.line en esas cuentas."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_variables" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Costes fijos
+                  <i class="fa fa-info-circle text-muted ms-1" title="Total del resto de gastos (grupo 6 excluyendo las 7 variables). Fuente: Σ (debit − credit) de account.move.line donde account_id.code empieza por 6 y NO está en la lista de variables."/>
+                </div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_fijos" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Margen bruto
+                  <i class="fa fa-info-circle text-muted ms-1" title="Ingresos − Costes variables. Indica la capacidad de la empresa de generar margen antes de los costes estructurales fijos."/>
+                </div>
+                <div class="ld_hkpi_value">
+                  <field name="margen_bruto" readonly="1"/>
+                  <span class="ld_hkpi_unit"> (</span>
+                  <field name="margen_bruto_pct" readonly="1"/>
+                  <span class="ld_hkpi_unit">%)</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">
+                  Resultado
+                  <i class="fa fa-info-circle text-muted ms-1" title="Ingresos − Costes variables − Costes fijos. Resultado operativo del periodo (equivalente al BAII si solo hay gastos 6xx)."/>
+                </div>
+                <div class="ld_hkpi_value">
+                  <field name="resultado" readonly="1"/>
+                  <span class="ld_hkpi_unit"> (</span>
+                  <field name="resultado_pct" readonly="1"/>
+                  <span class="ld_hkpi_unit">%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contador de cuentas por bloque -->
+          <div class="ld_header_kpis" style="margin-top:12px">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Cuentas Ingresos</div>
+              <div class="ld_hkpi_value" style="color:#16a34a"><field name="num_ctas_ingresos" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Cuentas Variables <i class="fa fa-info-circle text-muted ms-1" title="Cuentas marcadas: 60010005, 601007, 6070002, 6070003, 600017, 6000018, 62800001"/></div>
+              <div class="ld_hkpi_value" style="color:#ca8a04"><field name="num_ctas_variables" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Cuentas Fijas</div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="num_ctas_fijos" readonly="1"/></div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ul"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle por cuenta</strong>
+              <span>Abre la tabla agrupada por bloque (Ingresos/Variables/Fijos). Cada fila con acceso directo a los apuntes contables.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver detalle" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.pnl.line ═══════════════════════════════════════════════ -->
+  <record id="view_lira_pnl_line_list" model="ir.ui.view">
+    <field name="name">lira.pnl.line.list</field>
+    <field name="model">lira.pnl.line</field>
+    <field name="arch" type="xml">
+      <list string="P&amp;G — detalle por cuenta" create="0" delete="0" edit="0"
+            decoration-success="bloque == 'ingresos'"
+            decoration-warning="bloque == 'variables'"
+            decoration-danger="bloque == 'fijos'">
+        <field name="bloque" string="Bloque" widget="badge"
+               decoration-success="bloque == 'ingresos'"
+               decoration-warning="bloque == 'variables'"
+               decoration-danger="bloque == 'fijos'"
+               help="Ingresos (7xx) · Costes variables (7 cuentas marcadas por el contable) · Costes fijos (resto 6xx)."/>
+        <field name="codigo_cuenta" string="Código"
+               help="Código contable de la cuenta. Fuente: account.account.code."/>
+        <field name="nombre_cuenta" string="Nombre"
+               help="Nombre de la cuenta. Fuente: account.account.name."/>
+        <field name="saldo" string="Saldo (€)" sum="Total saldo"
+               help="Saldo de la cuenta en el periodo (ingresos o gastos según tipo)."/>
+        <field name="pct_sobre_bloque" string="% s/bloque" avg="% medio"
+               help="Porcentaje que representa esta cuenta sobre el total de su bloque."/>
+        <field name="pct_sobre_ingresos" string="% s/ingresos" avg="% medio"
+               help="Porcentaje sobre el total de ingresos. Útil para ver el peso relativo."/>
+        <field name="date_from" optional="hide"/>
+        <field name="date_to" optional="hide"/>
+        <field name="account_id" column_invisible="1"/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver apuntes en Contabilidad"
+                title="Abrir los apuntes contables de esta cuenta en el periodo analizado"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.pnl.line ═══════════════════════════════════════════ -->
+  <record id="view_lira_pnl_line_search" model="ir.ui.view">
+    <field name="name">lira.pnl.line.search</field>
+    <field name="model">lira.pnl.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en P&amp;G">
+        <field name="codigo_cuenta" string="Código cuenta"/>
+        <field name="nombre_cuenta" string="Nombre cuenta"/>
+        <field name="account_id" string="Cuenta"/>
+        <separator/>
+        <filter name="bloque_ingresos"  string="Solo Ingresos"          domain="[('bloque','=','ingresos')]"/>
+        <filter name="bloque_variables" string="Solo Costes variables"  domain="[('bloque','=','variables')]"/>
+        <filter name="bloque_fijos"     string="Solo Costes fijos"      domain="[('bloque','=','fijos')]"/>
+        <separator/>
+        <filter name="saldo_pos"   string="Saldo &gt; 0"         domain="[('saldo','>',0)]"/>
+        <filter name="saldo_1k"    string="Saldo &gt; 1.000 €"   domain="[('saldo','>',1000)]"/>
+        <filter name="saldo_10k"   string="Saldo &gt; 10.000 €"  domain="[('saldo','>',10000)]"/>
+        <filter name="peso_5"      string="Peso &gt; 5% del bloque" domain="[('pct_sobre_bloque','>',5)]"/>
+        <filter name="peso_ing_5"  string="Peso &gt; 5% de ingresos" domain="[('pct_sobre_ingresos','>',5)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_bloque"  string="Bloque"        context="{'group_by': 'bloque'}"/>
+          <filter name="group_account" string="Cuenta"        context="{'group_by': 'account_id'}"/>
+          <filter name="group_codigo"  string="Código cuenta" context="{'group_by': 'codigo_cuenta'}"/>
+          <filter name="group_saldo"   string="Saldo"         context="{'group_by': 'saldo'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ═══════════════════════════════════════════════════ -->
+  <record id="action_lira_pnl_period" model="ir.actions.server">
+    <field name="name">P&amp;G por Periodos Lira</field>
+    <field name="model_id" ref="model_lira_pnl_period"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

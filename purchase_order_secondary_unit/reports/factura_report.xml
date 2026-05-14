@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_account_invoice_custom" inherit_id="account.report_invoice_document">
+       
+    
+        <xpath expr="//table[@name='invoice_line_table']//tbody//td[@name='td_quantity']" position="replace">
+            <td name="td_quantity" class="text-end text-nowrap">
+                <span t-field="line.quantity">3.00</span>
+                <t t-if="line.secondary_uom_id">
+                    <span t-field="line.secondary_uom_id.uom_id.name" groups="uom.group_uom">units</span>
+
+                </t>
+                <t t-else="">
+                    <span t-field="line.product_uom_id" groups="uom.group_uom">units</span>
+
+                </t>
+            </td>
+        </xpath>
+    </template>
+</odoo>

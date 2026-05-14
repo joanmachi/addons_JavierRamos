@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Sustituye TODO el body de la tabla de líneas por una tabla custom
+         agrupada por (producto, UoM) con qty SOLO del picking actual.
+         Aplica priority alta para ganar a otros customs. -->
+    <template id="apunts_report_delivery_grouped"
+              inherit_id="stock.report_delivery_document"
+              priority="99">
+
+        <!-- Reemplaza la tabla state!=done -->
+        <xpath expr="//table[@name='stock_move_table']" position="replace">
+            <table class="table table-borderless" name="stock_move_table">
+                <thead>
+                    <tr>
+                        <th name="th_sm_product"><strong>Producto</strong></th>
+                        <th name="th_sm_ordered" class="text-end"><strong>Pedido</strong></th>
+                        <th name="th_sm_quantity" class="text-end"><strong>Entregado</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="o.apunts_grouped_lines()" t-as="line">
+                        <td>
+                            <span t-esc="line['product_id'].display_name"/>
+                        </td>
+                        <td class="o_td_quantity text-end">
+                            <span t-esc="line['qty_ordered']"/>
+                            <span t-esc="line['product_uom'].name" groups="uom.group_uom"/>
+                        </td>
+                        <td class="o_td_quantity text-end">
+                            <span t-esc="line['qty']"/>
+                            <span t-esc="line['product_uom'].name" groups="uom.group_uom"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+
+        <!-- Reemplaza la tabla state==done -->
+        <xpath expr="//table[@name='stock_move_line_table']" position="replace">
+            <table class="table table-borderless mt48" name="stock_move_line_table">
+                <thead>
+                    <tr>
+                        <th name="th_sml_product"><strong>Producto</strong></th>
+                        <th name="th_sml_qty_ordered" class="text-center"><strong>Pedido</strong></th>
+                        <th name="th_sml_quantity" class="text-center"><strong>Entregado</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="o.apunts_grouped_lines()" t-as="line">
+                        <td>
+                            <span t-esc="line['product_id'].display_name"/>
+                        </td>
+                        <td class="text-center">
+                            <span t-esc="line['qty_ordered']"/>
+                            <span t-esc="line['product_uom'].name" groups="uom.group_uom"/>
+                        </td>
+                        <td class="text-center">
+                            <span t-esc="line['qty']"/>
+                            <span t-esc="line['product_uom'].name" groups="uom.group_uom"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+
+        <!-- Ocultar la tabla "Remaining quantities not yet delivered" (backorders).
+             El cliente quiere ver SOLO lo del albarán actual, sin pendientes
+             de futuros envíos. -->
+        <xpath expr="//table[@name='stock_backorder_table']/.." position="replace">
+            <div/>
+        </xpath>
+    </template>
+
+</odoo>

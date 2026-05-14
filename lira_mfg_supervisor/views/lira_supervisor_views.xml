@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ── LISTA — Panel en tiempo real ────────────────────────────────────── -->
+  <record id="view_lira_supervisor_list" model="ir.ui.view">
+    <field name="name">lira.supervisor.workorder.list</field>
+    <field name="model">mrp.workorder</field>
+    <field name="arch" type="xml">
+      <list string="Panel Supervisor"
+            create="0" delete="0" edit="0"
+            decoration-danger="lira_validation_state == 'pending'"
+            decoration-info="lira_validation_state == 'working'"
+            decoration-warning="lira_validation_state == 'idle'"
+            decoration-muted="lira_validation_state in ('validated','waiting')">
+
+        <!-- Número corto sin FAB/MO/ -->
+        <field name="lira_production_seq"     string="Orden"   class="lira-sv-col-order"/>
+        <field name="product_id"              string="Producto" class="lira-sv-col-product" width="300"/>
+        <field name="name"                    string="Fase"/>
+        <field name="workcenter_id"           string="Centro"           optional="show"/>
+
+        <!-- Quién pidió la validación (se guarda al enviar, no depende de fichaje activo) -->
+        <field name="lira_requested_by_names" string="Solicitado por"/>
+
+        <!-- Cuánto envió el operario — la acción a hacer -->
+        <field name="qty_ready_to_validate"   string="Solicita operario"
+               decoration-danger="qty_ready_to_validate > 0"
+               decoration-muted="qty_ready_to_validate == 0"/>
+
+        <!-- Estado -->
+        <field name="lira_validation_state"   string="Estado" widget="badge"
+               decoration-danger="lira_validation_state == 'pending'"
+               decoration-info="lira_validation_state == 'working'"
+               decoration-warning="lira_validation_state == 'idle'"
+               decoration-muted="lira_validation_state in ('waiting','validated')"/>
+
+        <!-- Validado/Total sin decimales — formato "2/22" -->
+        <field name="lira_qty_progress"       string="Val./Total" class="lira-sv-col-validated"/>
+
+        <!-- Datos históricos -->
+        <field name="lira_supervisor_note"    string="Motivo rechazo"  optional="hide"/>
+        <field name="lira_validated_by"       string="Validado por"    optional="hide"/>
+        <field name="lira_validated_date"     string="Validado el"     optional="hide"/>
+        <field name="lira_rejection_date"     string="Rechazado el"    optional="hide"/>
+
+        <button name="action_open_validate_wizard"
+                string="✓ Validar" type="object"
+                class="btn btn-sm btn-success lira-sv-btn-validate"
+                invisible="lira_validation_state != 'pending'"/>
+        <button name="action_open_reject_wizard"
+                string="✗ Rechazar" type="object"
+                class="btn btn-sm btn-danger lira-sv-btn-reject"
+                invisible="lira_validation_state != 'pending'"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ── LISTA — Historial del día ───────────────────────────────────────── -->
+  <record id="view_lira_supervisor_history_list" model="ir.ui.view">
+    <field name="name">lira.supervisor.workorder.history.list</field>
+    <field name="model">mrp.workorder</field>
+    <field name="arch" type="xml">
+      <list string="Historial del día"
+            create="0" delete="0" edit="0"
+            decoration-success="lira_validated_date != False"
+            decoration-danger="lira_rejection_date != False and lira_validated_date == False">
+
+        <field name="lira_production_seq"    string="Orden"/>
+        <field name="product_id"             string="Producto"    width="300"/>
+        <field name="name"                   string="Fase"/>
+        <field name="workcenter_id"          string="Centro"      optional="show"/>
+        <field name="lira_requested_by_names" string="Operario(s)" optional="show"/>
+        <field name="lira_qty_progress"      string="Val./Total"/>
+        <field name="lira_validated_by"      string="Validado por"/>
+        <field name="lira_validated_date"    string="Validado el"/>
+        <field name="lira_rejection_date"    string="Rechazado el" optional="show"/>
+        <field name="lira_supervisor_note"   string="Motivo rechazo"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ── BÚSQUEDA — Panel ─────────────────────────────────────────────────── -->
+  <record id="view_lira_supervisor_search" model="ir.ui.view">
+    <field name="name">lira.supervisor.workorder.search</field>
+    <field name="model">mrp.workorder</field>
+    <field name="arch" type="xml">
+      <search string="Buscar">
+        <field name="lira_production_seq"  string="Nº Orden"/>
+        <field name="production_id"        string="Orden completa"/>
+        <field name="product_id"           string="Producto"/>
+        <field name="name"                 string="Fase"/>
+        <field name="workcenter_id"        string="Centro de trabajo"/>
+        <field name="lira_requested_by_names" string="Operario"/>
+        <field name="lira_supervisor_note" string="Motivo rechazo"/>
+        <field name="lira_validated_by"    string="Validado por"/>
+
+        <separator/>
+        <filter name="filter_pending" string="Pendiente de validar"
+                domain="[('lira_validation_state','=','pending')]"/>
+        <filter name="filter_working" string="En proceso"
+                domain="[('lira_validation_state','=','working')]"/>
+        <filter name="filter_idle"    string="Disponibles próximas"
+                domain="[('lira_validation_state','=','idle')]"/>
+        <filter name="filter_active"  string="Todo activo"
+                domain="[('lira_validation_state','in',['pending','working','idle'])]"/>
+
+        <separator/>
+        <filter name="filter_validated_today" string="Validadas hoy"
+                domain="[('lira_validated_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+        <filter name="filter_rejected_today" string="Rechazadas hoy"
+                domain="[('lira_rejection_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+        <filter name="filter_has_rejection" string="Con motivo de rechazo"
+                domain="[('lira_supervisor_note','!=',False)]"/>
+
+        <group expand="1" string="Agrupar por">
+          <filter name="group_state"      string="Estado"
+                  context="{'group_by': 'lira_validation_state'}"/>
+          <filter name="group_production" string="Orden"
+                  context="{'group_by': 'production_id'}"/>
+          <filter name="group_center"     string="Centro de trabajo"
+                  context="{'group_by': 'workcenter_id'}"/>
+          <filter name="group_val_day"    string="Día validación"
+                  context="{'group_by': 'lira_validated_date:day'}"/>
+          <filter name="group_rej_day"    string="Día rechazo"
+                  context="{'group_by': 'lira_rejection_date:day'}"/>
+          <filter name="group_reason"     string="Motivo rechazo"
+                  context="{'group_by': 'lira_supervisor_note'}"/>
+          <filter name="group_validator"  string="Validado por"
+                  context="{'group_by': 'lira_validated_by'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ── BÚSQUEDA — Historial ─────────────────────────────────────────────── -->
+  <record id="view_lira_supervisor_history_search" model="ir.ui.view">
+    <field name="name">lira.supervisor.workorder.history.search</field>
+    <field name="model">mrp.workorder</field>
+    <field name="arch" type="xml">
+      <search string="Buscar historial">
+        <field name="lira_production_seq"  string="Nº Orden"/>
+        <field name="production_id"        string="Orden completa"/>
+        <field name="product_id"           string="Producto"/>
+        <field name="name"                 string="Fase"/>
+        <field name="workcenter_id"        string="Centro"/>
+        <field name="lira_supervisor_note" string="Motivo rechazo"/>
+        <field name="lira_validated_by"    string="Validado por"/>
+
+        <separator/>
+        <filter name="filter_today_all" string="Actividad de hoy"
+                domain="['|',
+                  ('lira_validated_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00')),
+                  ('lira_rejection_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00'))
+                ]"/>
+        <filter name="filter_validated_today" string="Validadas hoy"
+                domain="[('lira_validated_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+        <filter name="filter_rejected_today" string="Rechazadas hoy"
+                domain="[('lira_rejection_date','&gt;=',(context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+
+        <group expand="1" string="Agrupar por">
+          <filter name="group_val_day"   string="Día validación"
+                  context="{'group_by': 'lira_validated_date:day'}"/>
+          <filter name="group_rej_day"   string="Día rechazo"
+                  context="{'group_by': 'lira_rejection_date:day'}"/>
+          <filter name="group_reason"    string="Motivo rechazo"
+                  context="{'group_by': 'lira_supervisor_note'}"/>
+          <filter name="group_validator" string="Validado por"
+                  context="{'group_by': 'lira_validated_by'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ── ACCIONES ─────────────────────────────────────────────────────────── -->
+  <record id="action_lira_supervisor_panel" model="ir.actions.act_window">
+    <field name="name">Panel en tiempo real</field>
+    <field name="res_model">mrp.workorder</field>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_lira_supervisor_list"/>
+    <field name="search_view_id" ref="view_lira_supervisor_search"/>
+    <field name="domain">[
+      ('production_id.state', 'not in', ['done','cancel']),
+      ('state', 'not in', ['done','cancel']),
+      ('lira_validation_state', 'in', ['pending','working','idle'])
+    ]</field>
+    <field name="context">{'search_default_filter_pending': 1}</field>
+  </record>
+
+  <record id="action_lira_supervisor_history" model="ir.actions.act_window">
+    <field name="name">Historial del día</field>
+    <field name="res_model">mrp.workorder</field>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_lira_supervisor_history_list"/>
+    <field name="search_view_id" ref="view_lira_supervisor_history_search"/>
+    <field name="domain">['|',
+      ('lira_validated_date', '!=', False),
+      ('lira_rejection_date', '!=', False)
+    ]</field>
+    <field name="context">{'search_default_filter_today_all': 1}</field>
+  </record>
+
+</odoo>

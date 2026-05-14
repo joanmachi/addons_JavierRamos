@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Existencias y Aprovisionamientos ════════════════════════ -->
+  <record id="view_lira_stock_valuation_form" model="ir.ui.view">
+    <field name="name">lira.stock.valuation.form</field>
+    <field name="model">lira.stock.valuation</field>
+    <field name="arch" type="xml">
+      <form string="Valoración de existencias y aprovisionamientos" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Existencias y Aprovisionamientos <widget name="lira_print_button" title="Existencias y Aprovisionamientos" line_model="lira.stock.line"/></div>
+              <div class="ld_main_subtitle">Control de inventario en tiempo real: valor del stock, cobertura en meses y alertas de reposición.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-sliders ld_icon_muted"/>
+                <span class="ld_sep">Consumo (meses)</span>
+                <field name="meses_consumo" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Cobertura mín.</span>
+                <field name="meses_cobertura_min" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Alerta exceso</span>
+                <field name="meses_cobertura_max" nolabel="1" class="ld_date_input"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Valor inventario <i class="fa fa-info-circle text-muted ms-1" title="Valor total del stock: suma de (stock actual × coste unitario) de todos los productos."/></div>
+                <div class="ld_hkpi_value"><field name="valor_total_stock" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">OK <i class="fa fa-info-circle text-muted ms-1" title="Productos con cobertura de stock entre el mínimo y el máximo configurados. Es el estado deseable: ni roto ni exceso."/></div>
+                <div class="ld_hkpi_value"><field name="productos_ok" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Bajo <i class="fa fa-info-circle text-muted ms-1" title="Productos con cobertura por debajo del mínimo configurado. Hay stock pero dura poco al ritmo de consumo actual: hay que pedir."/></div>
+                <div class="ld_hkpi_value"><field name="productos_bajo" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Crítico <i class="fa fa-info-circle text-muted ms-1" title="Productos con stock ≤ 0 (rotura). No hay existencias y hay consumo previsto: riesgo de desabastecimiento inmediato."/></div>
+                <div class="ld_hkpi_value"><field name="productos_critico" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label"><span class="fa fa-archive me-1" style="color:#2563eb"/>Exceso <i class="fa fa-info-circle text-muted ms-1" title="Productos con cobertura por encima del máximo configurado. Stock excesivo: capital inmovilizado que podría invertirse mejor."/></div>
+                <div class="ld_hkpi_value"><field name="productos_exceso" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Pedidos urgentes <i class="fa fa-info-circle text-muted ms-1" title="Número de productos que necesitan pedido urgente: suma de los 'Bajo' + 'Crítico'. Es la lista de acciones de compra prioritarias."/></div>
+                <div class="ld_hkpi_value"><field name="pedidos_urgentes" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-cubes"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver valoración y cobertura por producto</strong>
+              <span>Abre la tabla con buscador nativo: filtra por producto, código de barras, referencia interna, categoría o estado de stock.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.stock.line ══════════════════════════════════════════════ -->
+  <record id="view_lira_stock_line_list" model="ir.ui.view">
+    <field name="name">lira.stock.line.list</field>
+    <field name="model">lira.stock.line</field>
+    <field name="arch" type="xml">
+      <list string="Existencias" create="0" delete="0" edit="0"
+            decoration-danger="estado == 'critico'"
+            decoration-warning="estado == 'bajo'"
+            decoration-success="estado == 'ok'"
+            decoration-info="estado == 'exceso'">
+        <field name="product_id" string="Producto"
+               help="Producto con stock o consumo en el período."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría interna del producto."/>
+        <field name="product_type" string="Tipo" optional="hide"
+               help="Tipo de producto: almacenable, consumible, servicio."/>
+        <field name="product_uom_name" string="U. medida" optional="hide"
+               help="Unidad de medida del producto."/>
+        <field name="qty_disponible" string="Stock actual" sum="Total stock"
+               help="Unidades actuales en almacenes internos."/>
+        <field name="coste_unitario" string="Coste unit. (€)" avg="Coste medio"
+               help="Precio de coste unitario configurado en la ficha del producto."/>
+        <field name="valor_total" string="Valor (€)" sum="Total valor"
+               help="Valor del stock = Stock actual × Coste unitario."/>
+        <field name="consumo_mensual" string="Consumo/mes" sum="Total consumo"
+               help="Consumo promedio mensual = ventas a cliente de los últimos N meses dividido entre N."/>
+        <field name="meses_cobertura" string="Cobertura (m)" avg="Cobertura media"
+               help="Meses que dura el stock al ritmo actual = Stock actual / Consumo mensual."/>
+        <field name="punto_reorden" string="Punto reorden" sum="Total reorden"
+               help="Stock mínimo recomendado = Consumo mensual × Cobertura mínima × 1.5."/>
+        <field name="estado" string="Estado" widget="badge"
+               decoration-success="estado == 'ok'"
+               decoration-warning="estado == 'bajo'"
+               decoration-danger="estado == 'critico'"
+               decoration-info="estado == 'exceso'"
+               help="Clasificación: crítico (stock≤0) · bajo (cobertura&lt;mín) · OK · exceso (cobertura&gt;máx)."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver ficha del producto"
+                title="Abrir la ficha del producto en Inventario"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.stock.line ══════════════════════════════════════════ -->
+  <record id="view_lira_stock_line_search" model="ir.ui.view">
+    <field name="name">lira.stock.line.search</field>
+    <field name="model">lira.stock.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en existencias">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="product_type" string="Tipo producto"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <separator/>
+        <filter name="critico" string="Stock crítico"   domain="[('estado','=','critico')]"/>
+        <filter name="bajo"    string="Stock bajo"      domain="[('estado','=','bajo')]"/>
+        <filter name="ok"      string="Stock OK"        domain="[('estado','=','ok')]"/>
+        <filter name="exceso"  string="Exceso de stock" domain="[('estado','=','exceso')]"/>
+        <separator/>
+        <filter name="sin_coste"  string="Sin precio de coste" domain="[('coste_unitario','=',0)]"/>
+        <filter name="sin_stock"  string="Sin stock (qty ≤ 0)" domain="[('qty_disponible','&lt;=',0)]"/>
+        <filter name="sin_consumo" string="Sin consumo"        domain="[('consumo_mensual','=',0)]"/>
+        <separator/>
+        <filter name="valor_1k"  string="Valor &gt; 1.000 €"  domain="[('valor_total','>',1000)]"/>
+        <filter name="valor_5k"  string="Valor &gt; 5.000 €"  domain="[('valor_total','>',5000)]"/>
+        <filter name="valor_50k" string="Valor &gt; 50.000 €" domain="[('valor_total','>',50000)]"/>
+        <separator/>
+        <filter name="cob_1m"  string="Cobertura &lt; 1 mes"  domain="[('meses_cobertura','&lt;',1)]"/>
+        <filter name="cob_6m"  string="Cobertura &gt; 6 meses" domain="[('meses_cobertura','>',6)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"   string="Categoría"      context="{'group_by': 'categ_id'}"/>
+          <filter name="group_estado"  string="Estado"         context="{'group_by': 'estado'}"/>
+          <filter name="group_product" string="Producto"       context="{'group_by': 'product_id'}"/>
+          <filter name="group_qty"     string="Stock actual"   context="{'group_by': 'qty_disponible'}"/>
+          <filter name="group_coste"   string="Coste unit."    context="{'group_by': 'coste_unitario'}"/>
+          <filter name="group_valor"   string="Valor stock"    context="{'group_by': 'valor_total'}"/>
+          <filter name="group_consumo" string="Consumo/mes"    context="{'group_by': 'consumo_mensual'}"/>
+          <filter name="group_cob"     string="Cobertura (m)"  context="{'group_by': 'meses_cobertura'}"/>
+          <filter name="group_reorden" string="Punto reorden"  context="{'group_by': 'punto_reorden'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════ -->
+  <record id="action_lira_stock_valuation" model="ir.actions.server">
+    <field name="name">Existencias y aprovisionamientos Lira</field>
+    <field name="model_id" ref="model_lira_stock_valuation"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

@@ -1,0 +1,1311 @@
+/* ── LIRA FINANCIAL SUITE — DESIGN SYSTEM ────────────────────────────────── */
+/* Palette: white/near-white backgrounds, semantic colors for status only    */
+
+:root {
+  --ld-green:   #16a34a;
+  --ld-yellow:  #ca8a04;
+  --ld-red:     #dc2626;
+  --ld-blue:    #2563eb;
+  --ld-ink:     #111827;
+  --ld-ink2:    #374151;
+  --ld-muted:   #6b7280;
+  --ld-border:  #e5e7eb;
+  --ld-bg:      #f9fafb;
+  --ld-white:   #ffffff;
+  --ld-radius:  8px;
+}
+
+/* ── FORM CONTAINER ──────────────────────────────────────────────────────── */
+/* Odoo 18 aplica max-width + margin:0 auto en .o_form_sheet — los anulamos */
+.ld_form .o_form_sheet_bg {
+  background: var(--ld-bg);
+  padding: 12px 20px !important;
+}
+.ld_form .o_form_sheet {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  background: var(--ld-bg);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── HEADER BAR ──────────────────────────────────────────────────────────── */
+.ld_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  padding: 20px 28px;
+  margin-bottom: 20px;
+}
+
+.ld_main_title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ld-ink);
+  letter-spacing: -0.3px;
+  margin-bottom: 10px;
+}
+
+.ld_main_subtitle {
+  font-size: 0.78rem;
+  color: var(--ld-muted);
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.ld_period_bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ld_icon_muted { color: var(--ld-muted); font-size: 0.85rem; }
+.ld_sep { color: var(--ld-muted); font-weight: 500; }
+
+.ld_date_input { min-width: 0; }
+.ld_date_input .o_field_widget { display: inline-block; }
+
+/* Filter fields in header — visual box so it's clear they're interactive */
+.ld_period_bar .o_field_widget input,
+.ld_period_bar .o_field_widget .o_input {
+  background: var(--ld-white);
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ld-ink);
+  min-width: 90px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.05);
+  transition: border-color .15s;
+}
+.ld_period_bar .o_field_widget input:focus,
+.ld_period_bar .o_field_widget .o_input:focus {
+  border-color: var(--ld-blue);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+.ld_period_bar .o_field_widget.o_field_many2one .o_form_uri,
+.ld_period_bar .o_field_widget.o_field_many2one input {
+  min-width: 140px;
+}
+.ld_period_bar .o_field_integer input,
+.ld_period_bar .o_field_float input {
+  min-width: 60px;
+  text-align: center;
+}
+
+.ld_btn_primary {
+  background: var(--ld-ink);
+  color: #fff !important;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ld_btn_primary:hover { background: var(--ld-ink2); }
+
+/* Header KPIs */
+.ld_header_kpis {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.ld_hkpi {
+  padding: 0 28px;
+  text-align: right;
+}
+.ld_hkpi_label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ld-muted);
+  margin-bottom: 3px;
+}
+.ld_hkpi_value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ld-ink);
+  line-height: 1.1;
+}
+.ld_hkpi_value .o_field_widget { display: inline; color: inherit; font-size: inherit; font-weight: inherit; }
+.ld_hkpi_unit { font-size: 0.9rem; font-weight: 400; color: var(--ld-muted); }
+.ld_hkpi_trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ld-muted);
+  margin-top: 2px;
+}
+.ld_hkpi_trend .o_field_widget { display: inline; color: inherit; font-size: inherit; }
+.ld_hkpi_sep {
+  width: 1px;
+  height: 40px;
+  background: var(--ld-border);
+  flex-shrink: 0;
+}
+
+/* ── ALERTAS ─────────────────────────────────────────────────────────────── */
+.ld_alerts_panel {
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.ld_alerts_title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ld-muted);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ld-border);
+}
+.ld_alert_row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ld-border);
+  font-size: 0.875rem;
+  color: var(--ld-ink2);
+}
+.ld_alert_row:last-child { border-bottom: none; }
+
+.ld_alert_strip {
+  width: 4px;
+  height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ld_astrip_red    { background: var(--ld-red); }
+.ld_astrip_yellow { background: var(--ld-yellow); }
+.ld_astrip_info   { background: var(--ld-green); }
+
+.ld_alert_icon_red    { color: var(--ld-red);    font-size: 1rem; flex-shrink: 0; }
+.ld_alert_icon_yellow { color: var(--ld-yellow); font-size: 1rem; flex-shrink: 0; }
+.ld_alert_icon_info   { color: var(--ld-green);  font-size: 1rem; flex-shrink: 0; }
+
+.ld_alert_text { flex: 1; }
+.ld_alert_text .o_field_widget { display: inline; color: inherit; font-size: inherit; }
+
+/* ── SECTION HEADER ──────────────────────────────────────────────────────── */
+.ld_section_header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0 8px;
+}
+.ld_section_line {
+  display: inline-block;
+  width: 3px;
+  height: 16px;
+  background: var(--ld-ink);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ld_section_title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--ld-ink2);
+}
+
+/* ── RATIO CARDS ─────────────────────────────────────────────────────────── */
+.ld_ratio_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ld_ratio_card {
+  flex: 1 1 128px;
+  min-width: 115px;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  display: flex;
+  overflow: hidden;
+}
+
+/* Left color strip — 4px, shows only one based on semaphore */
+.ld_strip {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+.ld_strip_green  { background: var(--ld-green); }
+.ld_strip_yellow { background: var(--ld-yellow); }
+.ld_strip_red    { background: var(--ld-red); }
+
+.ld_card_body {
+  padding: 9px 11px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ld_card_label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ld-ink2);
+  margin-bottom: 4px;
+}
+.ld_card_value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ld-ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.ld_card_value .o_field_widget { display: inline; color: inherit; font-size: inherit; font-weight: inherit; }
+.ld_unit { font-size: 0.82rem; font-weight: 400; color: var(--ld-muted); }
+.ld_card_ref {
+  font-size: 0.65rem;
+  color: var(--ld-muted);
+  margin-bottom: 2px;
+}
+.ld_card_trend {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ld-blue);
+  margin-bottom: 2px;
+}
+.ld_card_trend .o_field_widget { display: inline; color: inherit; font-size: inherit; font-weight: inherit; }
+.ld_card_formula {
+  font-size: 0.6rem;
+  color: #9ca3af;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+/* ── TWO-COLUMN LAYOUT ───────────────────────────────────────────────────── */
+.ld_two_col {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.ld_col {
+  flex: 1 1 340px;
+  min-width: 280px;
+}
+
+/* ── TABLES (PyG / Balance) ──────────────────────────────────────────────── */
+.ld_table {
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+}
+
+.ld_trow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: var(--ld-ink2);
+}
+.ld_trow:last-child { border-bottom: none; }
+.ld_trow .o_field_widget { display: inline; font-size: inherit; }
+
+.ld_tlabel { font-weight: 400; }
+
+.ld_trow_income { background: #f0fdf4; }
+.ld_trow_income .ld_tlabel { font-weight: 700; color: #166534; }
+
+.ld_trow_sub {
+  background: #f9fafb;
+  border-top: 1px solid var(--ld-border) !important;
+  border-bottom: 1px solid var(--ld-border) !important;
+}
+.ld_trow_sub .ld_tlabel { font-weight: 700; color: var(--ld-ink); }
+
+.ld_trow_total {
+  background: var(--ld-ink);
+  border-top: 2px solid #030712 !important;
+}
+.ld_trow_total .ld_tlabel { color: #fff; font-weight: 700; font-size: 0.9rem; }
+.ld_trow_total .o_field_widget { color: #fff; font-weight: 700; }
+
+/* ── BALANCE GRID ────────────────────────────────────────────────────────── */
+.ld_balance_cols {
+  display: flex;
+  gap: 10px;
+}
+.ld_balance_side {
+  flex: 1;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+}
+.ld_balance_header {
+  background: var(--ld-ink);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 8px 18px;
+}
+.ld_balance_side .ld_trow { font-size: 0.82rem; }
+
+/* ── COST DISTRIBUTION ───────────────────────────────────────────────────── */
+.ld_cost_table {
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.ld_cost_row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: var(--ld-ink2);
+}
+.ld_cost_row:last-child { border-bottom: none; }
+.ld_cost_result { background: #f9fafb; font-weight: 700; }
+
+.ld_cdot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ld_cdot_slate  { background: #475569; }
+.ld_cdot_indigo { background: #4338ca; }
+.ld_cdot_gray   { background: #9ca3af; }
+.ld_cdot_orange { background: #ea580c; }
+.ld_cdot_green  { background: var(--ld-green); }
+
+.ld_cost_label { flex: 1; }
+.ld_cost_pct {
+  font-weight: 700;
+  color: var(--ld-ink);
+  font-size: 0.9rem;
+  text-align: right;
+  min-width: 52px;
+}
+.ld_cost_pct .o_field_widget { display: inline; font-size: inherit; font-weight: inherit; color: inherit; }
+
+/* ── CICLO DE MADURACIÓN ─────────────────────────────────────────────────── */
+.ld_cycle_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.ld_cycle_card {
+  flex: 1 1 150px;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  padding: 11px 12px;
+  text-align: center;
+}
+
+.ld_cycle_result_card {
+  flex: 1 1 150px;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  display: flex;
+  overflow: hidden;
+}
+.ld_cycle_result_body {
+  flex: 1;
+  padding: 11px 12px;
+  text-align: center;
+}
+
+.ld_cycle_icon {
+  font-size: 1.1rem;
+  color: var(--ld-muted);
+  margin-bottom: 5px;
+  display: block;
+}
+.ld_cycle_label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ld-muted);
+  margin-bottom: 5px;
+}
+.ld_cycle_value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ld-ink);
+  margin-bottom: 3px;
+}
+.ld_cycle_value .o_field_widget { display: inline; font-size: inherit; font-weight: inherit; color: inherit; }
+.ld_cycle_value_big {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ld-ink);
+  margin-bottom: 3px;
+}
+.ld_cycle_value_big .o_field_widget { display: inline; font-size: inherit; font-weight: inherit; color: inherit; }
+.ld_cycle_formula {
+  font-size: 0.6rem;
+  color: #9ca3af;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+/* ── LIST VIEWS ──────────────────────────────────────────────────────────── */
+.ld_form .o_list_view {
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+  border: 1px solid var(--ld-border);
+}
+.ld_form .o_list_view thead th {
+  background: #f1f5f9;
+  color: #374151;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 9px 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.ld_form .o_list_view thead th:hover {
+  background: #e2e8f0;
+}
+.ld_form .o_list_view tbody tr:nth-child(even) { background: #f9fafb; }
+.ld_form .o_list_view tbody tr:hover { background: #f3f4f6 !important; }
+
+/* ── LEGACY SUPPORT (other dashboard views reuse some classes) ───────────── */
+.lira_dashboard_form .o_form_sheet_bg {
+  padding: 12px 20px !important;
+}
+.lira_dashboard_form .o_form_sheet {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 16px 12px;
+  background: var(--ld-bg);
+  box-sizing: border-box;
+}
+.lira_filter_bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  padding: 12px 20px;
+  margin-bottom: 24px;
+}
+.lira_filter_label  { font-weight: 600; color: var(--ld-ink2); font-size: 0.85rem; white-space: nowrap; }
+.lira_filter_sep    { font-weight: 500; color: var(--ld-muted); }
+.lira_section_header {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ld-ink2);
+  padding: 8px 0 12px 0;
+  border-bottom: 2px solid var(--ld-border);
+  margin-bottom: 18px;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.lira_section_icon { margin-right: 8px; color: var(--ld-muted); }
+
+/* KPI cards for non-dashboard views (Van/TIR, Stock, etc.) */
+.lira_kpi_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.lira_kpi_card {
+  flex: 1 1 155px;
+  min-width: 145px;
+  border-radius: var(--ld-radius);
+  padding: 16px 14px 13px;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.lira_kpi_blue   { background: #1e3a5f; }
+.lira_kpi_teal   { background: #1b4332; }
+.lira_kpi_orange { background: #7c4a1e; }
+.lira_kpi_purple { background: #3d2b5c; }
+.lira_kpi_green  { background: #1d6b4a; }
+.lira_kpi_indigo { background: #2d3766; }
+.lira_kpi_navy   { background: #1c2d40; }
+.lira_kpi_pink   { background: #6b2737; }
+.lira_kpi_cyan   { background: #1a4a5c; }
+.lira_kpi_gray   { background: #3d4d5c; }
+.lira_kpi_red    { background: #7f1d1d; }
+.lira_kpi_label  { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; opacity: 0.80; margin-bottom: 6px; }
+.lira_kpi_value  { font-size: 1.9rem; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.lira_kpi_value .o_field_widget, .lira_kpi_value span { display: inline; color: #fff; font-size: 1.9rem; font-weight: 700; }
+.lira_kpi_value_sm { font-size: 1.25rem; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }
+.lira_kpi_value_sm .o_field_widget, .lira_kpi_value_sm span { display: inline; color: #fff; font-size: 1.25rem; font-weight: 700; }
+.lira_kpi_unit   { font-size: 0.9rem; font-weight: 400; opacity: 0.80; }
+.lira_kpi_formula { font-size: 0.65rem; opacity: 0.72; margin-top: 5px; line-height: 1.3; }
+.lira_kpi_ref    { font-size: 0.68rem; opacity: 0.82; font-style: italic; }
+
+/* PyG grid for Van/TIR and others */
+.lira_pyg_grid {
+  background: var(--ld-white);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+  max-width: 640px;
+}
+.lira_pyg_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 18px;
+  border-bottom: 1px solid #f2f4f7;
+  font-size: 0.88rem;
+  color: var(--ld-ink2);
+}
+.lira_pyg_row:last-child { border-bottom: none; }
+.lira_pyg_label { font-weight: 500; }
+.lira_pyg_income { background: #f0fdf4; }
+.lira_pyg_income .lira_pyg_label { color: #166534; font-weight: 700; }
+.lira_pyg_subtotal { background: #f9fafb; border-top: 1px solid var(--ld-border) !important; border-bottom: 1px solid var(--ld-border) !important; }
+.lira_pyg_subtotal .lira_pyg_label { font-weight: 700; color: var(--ld-ink); }
+.lira_pyg_total { background: var(--ld-ink); border-top: 2px solid #030712 !important; }
+.lira_pyg_total .lira_pyg_label { color: #fff; font-weight: 700; font-size: 0.92rem; }
+.lira_pyg_total .o_field_widget { color: #fff; font-weight: 700; }
+
+/* Balance grid for other views */
+.lira_balance_grid { display: flex; gap: 14px; margin-bottom: 24px; }
+.lira_balance_col { flex: 1; background: var(--ld-white); border: 1px solid var(--ld-border); border-radius: var(--ld-radius); overflow: hidden; }
+.lira_balance_title { background: var(--ld-ink); color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 9px 16px; }
+.lira_balance_row { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; border-bottom: 1px solid #f2f4f7; font-size: 0.87rem; color: var(--ld-ink2); }
+.lira_balance_row:last-child { border-bottom: none; }
+.lira_balance_total { background: #f9fafb; border-top: 1px solid var(--ld-border) !important; font-weight: 700; color: var(--ld-ink); }
+.lira_balance_total .o_field_widget { font-weight: 700; }
+
+/* Cycle cards for other views */
+.lira_cycle_grid { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.lira_cycle_card { flex: 1 1 185px; background: var(--ld-white); border: 1px solid var(--ld-border); border-radius: var(--ld-radius); padding: 20px 16px; text-align: center; }
+.lira_cycle_result { border-left: 4px solid var(--ld-ink); }
+.lira_cycle_icon  { font-size: 1.5rem; color: var(--ld-muted); margin-bottom: 8px; }
+.lira_cycle_label { font-size: 0.72rem; font-weight: 700; color: var(--ld-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+.lira_cycle_value { font-size: 1.55rem; font-weight: 700; color: var(--ld-ink); margin-bottom: 3px; }
+.lira_cycle_value .o_field_widget { display: inline; font-size: 1.55rem; font-weight: 700; }
+.lira_cycle_big   { font-size: 2rem !important; }
+.lira_cycle_unit  { font-size: 0.82rem; font-weight: 400; color: var(--ld-muted); }
+.lira_cycle_formula { font-size: 0.68rem; color: #9ca3af; font-style: italic; margin-top: 5px; }
+
+/* Decision box (Van/TIR) */
+.lira_decision_box { background: var(--ld-ink); border-radius: var(--ld-radius); padding: 16px 22px; margin-bottom: 18px; }
+.lira_decision_text .o_field_widget, .lira_decision_text { color: #fff !important; font-size: 0.95rem; font-weight: 600; }
+
+/* List views (all dashboard modules) */
+.lira_dashboard_form .o_list_view { border-radius: var(--ld-radius); overflow: hidden; border: 1px solid var(--ld-border); }
+.lira_dashboard_form .o_list_view thead th { background: #f1f5f9; color: #374151; font-size: 0.73rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 9px 12px; border-bottom: 2px solid #e2e8f0; }
+.lira_dashboard_form .o_list_view thead th:hover { background: #e2e8f0; }
+.lira_dashboard_form .o_list_view tbody tr:nth-child(even) { background: #f9fafb; }
+.lira_dashboard_form .o_list_view tbody tr:hover { background: #f3f4f6 !important; }
+
+
+/* ── BOTÓN PDF ───────────────────────────────────────────────────────────── */
+
+.ld_title_row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ld_btn_pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.ld_btn_pdf:hover  { background: #b91c1c; }
+.ld_btn_pdf:active { transform: scale(0.97); }
+
+/* ── CABECERA DE IMPRESIÓN ───────────────────────────────────────────────── */
+
+#lira-print-hdr { display: none; }
+
+@media print {
+  /* Cabecera visible solo al imprimir */
+  #lira-print-hdr { display: block !important; }
+
+  .lira-print-hdr-inner {
+    border-bottom: 3px solid #7c3aed;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    font-family: Arial, sans-serif;
+  }
+  .lira-print-hdr-company {
+    font-size: 17px;
+    color: #1e1b4b;
+    font-weight: 700;
+    margin: 2px 0 4px;
+  }
+  .lira-print-hdr-title {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .lira-print-hdr-notice {
+    font-size: 11px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  /* Ocultar navegación Odoo */
+  .o_main_navbar,
+  .o_navbar,
+  .o_control_panel,
+  .o_cp_buttons,
+  .o_form_buttons_view,
+  .o_form_statusbar,
+  .o_form_renderer .o_statusbar_buttons,
+  .ld_btn_primary,
+  .ld_btn_pdf,
+  .ld_period_bar button,
+  .lira-chart-footer,
+  .lira-print-btn { display: none !important; }
+
+  /* Canvases ocultos (sustituidos por imágenes) */
+  .lira-canvas-hidden-print { display: none !important; }
+
+  /* Imágenes de canvas */
+  .lira-canvas-print-img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  /* Expandir contenido */
+  .ld_form .o_form_sheet {
+    max-width: 100% !important;
+    padding: 8px 16px !important;
+  }
+
+  /* Evitar cortes en tarjetas */
+  .lira-grafica-card,
+  .ld_hkpi,
+  .ld_header { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Mantener grid de 2 columnas */
+  .lira-graficas-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Fondo blanco para todo */
+  body, .o_form_sheet, .o_form_sheet_bg { background: #fff !important; }
+
+  /* Tabla de datos inyectada al imprimir */
+  #lira-print-table {
+    margin-top: 18px;
+    page-break-before: auto;
+  }
+  .lira-print-table-inner {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+  }
+  .lira-print-table-inner th,
+  .lira-print-table-inner td {
+    border: 1px solid #d1d5db;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .lira-print-table-inner th {
+    background: #7c3aed;
+    color: #fff;
+    font-weight: 600;
+  }
+  .lira-print-table-inner tbody tr:nth-child(even) td {
+    background: #f3f4f6;
+  }
+  .lira-print-table-inner tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Tabla impresa oculta en pantalla */
+#lira-print-table { display: none; }
+@media print {
+  #lira-print-table { display: block !important; }
+}
+
+/* ── MOCK SEARCH BAR (abre buscador real de Odoo al hacer clic) ──────────── */
+.ld_searchbar_mock {
+  margin: 10px 0 6px;
+}
+
+.ld_sb_btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 1.5px solid #7c3aed;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  text-align: left;
+}
+.ld_sb_btn:hover {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.ld_sb_ico_search {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.ld_sb_filter_area {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  background: #7c3aed;
+  border-radius: 3px;
+  margin: 4px;
+  flex-shrink: 0;
+}
+.ld_sb_filter_icon {
+  color: #fff;
+  font-size: 11px;
+}
+
+.ld_sb_placeholder {
+  flex: 1;
+  padding: 8px 6px;
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ld_sb_ico_caret {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  color: #374151;
+  font-size: 12px;
+  border-left: 1px solid #e5e7eb;
+}
+
+/* ── AVISO COMPACTO DE VALORES A CERO (encima de la tabla) ───────────────── */
+.ld_legend_strip {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 7px 12px;
+  margin: 4px 0 8px;
+  background: var(--ld-bg);
+  border: 1px solid var(--ld-border);
+  border-radius: 5px;
+  font-size: 11.5px;
+  color: var(--ld-muted);
+  line-height: 1.5;
+}
+.ld_ls_ico {
+  color: var(--ld-muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ld_ls_title {
+  color: #92400e;
+  flex-shrink: 0;
+}
+.ld_ls_item {
+  color: #78350f;
+}
+.ld_ls_item::before {
+  content: "·  ";
+  color: #d97706;
+  font-weight: 700;
+}
+
+/* ── COLUMNAS ORDENABLES EN LISTAS EMBEBIDAS ─────────────────────────────── */
+/* Odoo 18: las columnas de listas one2many son ordenables cuando no están en modo editable */
+.ld_form .o_list_table thead th {
+  cursor: pointer;
+  user-select: none;
+}
+.ld_form .o_list_table thead th:hover {
+  background: rgba(37, 99, 235, 0.05) !important;
+}
+/* Mostrar flecha de ordenación */
+.ld_form .o_list_table thead th.o_column_sortable {
+  cursor: pointer !important;
+}
+.ld_form .o_list_table thead th.o_column_sortable .o_sort_up,
+.ld_form .o_list_table thead th.o_column_sortable .o_sort_down,
+.ld_form .o_list_table thead th .o_column_info {
+  display: inline-flex !important;
+  opacity: 1 !important;
+}
+/* Info icon en cabecera de columna de lista */
+.ld_form .o_list_table thead .o_column_info {
+  color: #7c3aed !important;
+  font-size: 12px;
+  cursor: help;
+  margin-left: 3px;
+}
+/* Override: mostrar ? como i en cabeceras de lista también */
+.ld_form .o_list_table thead .o_column_info::before {
+  content: "\f05a" !important; /* fa-info-circle */
+}
+
+/* ── BOTÓN EXPLORAR TABLA ────────────────────────────────────────────────── */
+.ld_explore_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  margin-left: auto;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.ld_explore_btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+/* ── LEYENDA DE VALORES A CERO ───────────────────────────────────────────── */
+.ld_legend_ceros {
+  margin-top: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--ld-radius);
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.ld_legend_title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+}
+.ld_legend_title i { color: #6b7280; }
+
+.ld_legend_hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.ld_legend_body {
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.ld_legend_ceros.open .ld_legend_body {
+  max-height: 800px;
+}
+.ld_legend_ceros.open .ld_legend_hint {
+  display: none;
+}
+
+.ld_legend_table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ld_legend_table thead tr {
+  background: #f9fafb;
+}
+.ld_legend_table th {
+  padding: 8px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+.ld_legend_table td {
+  padding: 7px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+  color: #374151;
+  line-height: 1.4;
+}
+.ld_legend_table tr:last-child td { border-bottom: none; }
+.ld_leg_col { width: 22%; font-size: 12px; }
+.ld_leg_src { width: 35%; }
+.ld_leg_src code {
+  background: #e5e7eb;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  color: #1d4ed8;
+  word-break: break-all;
+}
+.ld_leg_why { width: 43%; color: #4b5563; }
+
+/* ── DRILLDOWN — filas navegables de cuenta de resultados ───────────────── */
+.ld_drillable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.ld_drillable:hover {
+  background: #eff6ff !important;
+}
+
+.ld_drill_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  vertical-align: middle;
+}
+.ld_drillable:hover .ld_drill_btn,
+.ld_cost_row.ld_drillable:hover .ld_drill_btn {
+  opacity: 1;
+}
+.ld_drill_btn:hover {
+  background: #bfdbfe;
+  color: #1e40af;
+}
+
+.ld_no_drill {
+  cursor: default;
+}
+
+.ld_nodrill_badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 5px;
+  vertical-align: middle;
+  cursor: help;
+}
+
+/* ── BUSCADOR INLINE (encima de tabla de análisis) ──────────────────────── */
+.ld_searchbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--ld-white);
+  border: 1.5px solid #c4b5fd;
+  border-radius: var(--ld-radius);
+  padding: 8px 14px;
+  margin: 10px 0 8px;
+}
+
+/* Caja de texto de búsqueda */
+.ld_sb_input_wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 220px;
+  min-width: 180px;
+  background: var(--ld-bg);
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.ld_sb_input_wrap:focus-within {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+}
+
+.ld_sb_search_ico {
+  color: #9ca3af;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.ld_sb_input_wrap .o_field_widget {
+  flex: 1;
+  min-width: 0;
+}
+.ld_sb_input_wrap .o_field_widget input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 6px 4px !important;
+  font-size: 0.85rem;
+  color: var(--ld-ink);
+  width: 100%;
+  outline: none !important;
+}
+.ld_sb_input_wrap .o_field_widget input::placeholder {
+  color: #b0b7c3;
+  font-style: italic;
+}
+
+/* Botón limpiar filtros */
+.ld_sb_clear_btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ld_sb_clear_btn:hover {
+  color: var(--ld-red);
+  background: #fee2e2;
+}
+
+/* Sección de filtros ABC */
+.ld_sb_filters_wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ld_sb_filter_label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ld-muted);
+  white-space: nowrap;
+}
+
+/* Pills de ABC — transformar radio buttons en pills */
+.ld_abc_radio.o_field_widget .o_field_radio {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.ld_abc_radio.o_field_widget .o_radio_item {
+  display: flex;
+  align-items: center;
+}
+.ld_abc_radio.o_field_widget .o_radio_item input[type="radio"] {
+  display: none;
+}
+.ld_abc_radio.o_field_widget .o_radio_item label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ld-muted);
+  background: var(--ld-white);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  user-select: none;
+}
+.ld_abc_radio.o_field_widget .o_radio_item label:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+  background: #f5f3ff;
+}
+/* Pill activo */
+.ld_abc_radio.o_field_widget .o_radio_item input[type="radio"]:checked + label {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #fff;
+}
+/* Color específico por clase ABC */
+.ld_abc_radio.o_field_widget .o_radio_item:has(input[value="A"]) input:checked + label {
+  background: var(--ld-green);
+  border-color: var(--ld-green);
+}
+.ld_abc_radio.o_field_widget .o_radio_item:has(input[value="B"]) input:checked + label {
+  background: var(--ld-yellow);
+  border-color: var(--ld-yellow);
+}
+.ld_abc_radio.o_field_widget .o_radio_item:has(input[value="C"]) input:checked + label {
+  background: var(--ld-muted);
+  border-color: var(--ld-muted);
+}
+
+/* Campo importe mínimo */
+.ld_sb_minamt_wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ld_sb_minamt.o_field_widget input {
+  width: 90px;
+  padding: 4px 8px !important;
+  font-size: 0.82rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  text-align: right;
+  background: var(--ld-bg);
+  transition: border-color .15s;
+}
+.ld_sb_minamt.o_field_widget input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+  outline: none;
+}
+
+/* Contador de resultados */
+.ld_sb_count {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0;
+  flex-shrink: 0;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+.ld_sb_count_num.o_field_widget {
+  display: inline;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7c3aed;
+}
+.ld_sb_count_num.o_field_widget span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7c3aed;
+}
+.ld_sb_count_label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #7c6aad;
+}
+
+/* ── ICONO DE INFORMACIÓN (help=) — estilo ld_form ──────────────────────── */
+/* Odoo renderiza el atributo help= como .o_field_info con fa-question-circle */
+/* Lo transformamos en fa-info-circle con color morado del design system       */
+
+.ld_form .o_field_info,
+.ld_form .o_form_label .o_field_info {
+  color: #7c3aed !important;
+  font-size: 13px !important;
+  margin-left: 4px;
+  cursor: help;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+.ld_form .o_field_info:hover {
+  opacity: 1;
+}
+/* Sustituir ? por i */
+.ld_form .o_field_info::before {
+  content: "\f05a" !important; /* fa-info-circle */
+}
+
+/* ── PANEL CTA "Ver ranking" ─────────────────────────────────────────────── */
+.ld_cta_panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: var(--ld-radius);
+  padding: 16px 20px;
+  margin-top: 8px;
+}
+.ld_cta_icon {
+  font-size: 2rem;
+  color: #7c3aed;
+  flex-shrink: 0;
+}
+.ld_cta_text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ld_cta_text strong {
+  font-size: 1rem;
+  color: var(--ld-ink);
+}
+.ld_cta_text span {
+  font-size: 0.85rem;
+  color: var(--ld-muted);
+}

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO Valoración Inventario Fijos/Variables ══════════════════ -->
+  <record id="view_lira_inventory_valuation_fv_form" model="ir.ui.view">
+    <field name="name">lira.inventory.valuation.fv.form</field>
+    <field name="model">lira.inventory.valuation.fv</field>
+    <field name="arch" type="xml">
+      <form string="Valoración Inventario (Fijos/Variables)" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Valoración Inventario (Fijos/Variables) <widget name="lira_print_button" title="Valoración Inventario Fijos Variables" line_model="lira.inventory.valuation.fv.line"/></div>
+              <div class="ld_main_subtitle">
+                Valora el stock actual aplicando dos criterios contables distintos (variable y absorción) a partir de los costes reales del periodo.
+                Permite ver qué parte del valor del inventario corresponde a costes fijos "escondidos" en el balance.
+              </div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <button name="action_refresh" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ AVISO si no hay producción ═══════════════════════════════════ -->
+          <div class="ld_legend_strip" invisible="not sin_produccion"
+               style="background:#fef3c7; border-left:4px solid #ca8a04; padding:10px 14px; margin:12px 0">
+            <i class="fa fa-exclamation-triangle ld_ls_ico" style="color:#ca8a04"/>
+            <strong class="ld_ls_title">Sin unidades producidas en el periodo</strong>
+            <span class="ld_ls_item">No hay órdenes de fabricación terminadas entre esas fechas, así que no se puede calcular el coste unitario (dividir entre 0 no tiene sentido). Amplía el rango de fechas para incluir un periodo con producción.</span>
+          </div>
+
+          <!-- ══ BLOQUE 1: DATOS DEL PERIODO ═══════════════════════════════════ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title"><span class="fa fa-database me-2"/>1. Datos del periodo</span>
+          </div>
+          <div class="ld_header_kpis">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Costes variables del periodo
+                <i class="fa fa-info-circle text-muted ms-1" title="Cómo lo calculamos: sumamos todos los apuntes contables contabilizados (publicados, no en borrador) de las 7 cuentas marcadas como variables por tu contable (60010005, 601007, 6070002, 6070003, 600017, 6000018, 62800001), con fecha dentro del periodo. Por cada apunte: Debe − Haber (convención de gastos). Estos costes se mueven con la actividad productiva: compras de materia prima, subcontratas y suministros."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_variables_periodo" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Costes fijos del periodo
+                <i class="fa fa-info-circle text-muted ms-1" title="Cómo lo calculamos: sumamos el resto de cuentas del grupo 6 (gastos) que NO están en la lista de variables. Incluye sueldos (64), alquileres y servicios (62), amortizaciones (68), gastos financieros no operativos, etc. Decisión tomada: incluimos TODAS las cuentas fijas del grupo 6. Alternativa (no aplicada): filtrar solo cuentas directamente ligadas a producción. Si tu contable quiere afinar puede excluir cuentas del grupo 6 comercial/administrativo."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_fijos_periodo" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Unidades producidas
+                <i class="fa fa-info-circle text-muted ms-1" title="Cómo lo calculamos: sumamos la cantidad producida de todas las órdenes de fabricación terminadas (estado 'Hecho') cuya fecha de finalización cae dentro del periodo. Por cada orden usamos el campo 'Cantidad en producción'; si es 0 usamos la 'Cantidad a producir' original. Decisión tomada: contamos unidades PRODUCIDAS (no vendidas ni en stock) porque refleja la actividad real de fabricación del periodo, que es lo que generó los costes."/>
+              </div>
+              <div class="ld_hkpi_value"><field name="uds_producidas_periodo" readonly="1"/></div>
+            </div>
+          </div>
+
+          <!-- ══ BLOQUE 2: COSTE UNITARIO ══════════════════════════════════════ -->
+          <div class="ld_section_header" style="margin-top:18px">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title"><span class="fa fa-calculator me-2"/>2. Coste unitario calculado</span>
+          </div>
+          <div class="ld_header_kpis">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Coste unit. variable (€/u)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Total costes variables del periodo ÷ Unidades producidas en el periodo. Representa el coste de materia prima y trabajos directos consumidos por cada unidad fabricada. Si no hay producción en el periodo se muestra 0."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#ca8a04"><field name="coste_unit_variable" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Coste unit. fijo (€/u)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Total costes fijos del periodo ÷ Unidades producidas en el periodo. Representa la parte proporcional de los costes estructurales (sueldos, alquiler, amortizaciones) que absorbe cada unidad fabricada. Si no hay producción se muestra 0."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="coste_unit_fijo" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Coste unit. absorción (€/u)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Coste unitario variable + Coste unitario fijo. Es el coste total por unidad producida según la norma contable española (NIC 2), que obliga a incluir los costes fijos de producción en la valoración del inventario en las cuentas anuales."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#7c3aed"><field name="coste_unit_absorcion" readonly="1"/></div>
+            </div>
+          </div>
+
+          <!-- ══ BLOQUE 3: STOCK ACTUAL ════════════════════════════════════════ -->
+          <div class="ld_section_header" style="margin-top:18px">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title"><span class="fa fa-cubes me-2"/>3. Stock actual en almacén</span>
+          </div>
+          <div class="ld_header_kpis">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Unidades en stock
+                <i class="fa fa-info-circle text-muted ms-1" title="Suma de las existencias actuales de todos los productos en ubicaciones internas (almacenes propios, excluyendo ubicaciones de clientes, proveedores y tránsito). Fuente: las cantidades registradas en los quants de stock con ubicación de tipo 'interna'."/>
+              </div>
+              <div class="ld_hkpi_value"><field name="uds_stock_total" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Productos distintos con stock
+                <i class="fa fa-info-circle text-muted ms-1" title="Número de productos diferentes con cantidad positiva en almacenes internos."/>
+              </div>
+              <div class="ld_hkpi_value"><field name="num_productos_stock" readonly="1"/></div>
+            </div>
+          </div>
+
+          <!-- ══ BLOQUE 4: VALORACIÓN — LAS 3 FORMAS ═══════════════════════════ -->
+          <div class="ld_section_header" style="margin-top:18px">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title"><span class="fa fa-balance-scale me-2"/>4. Tres formas de valorar el mismo stock</span>
+          </div>
+          <div class="ld_header_kpis">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Valor con precio coste actual (€)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: para cada producto, Unidades en stock × Precio de coste configurado en la ficha del producto. Suma total de todos los productos. Esto es lo que Odoo muestra hoy en las vistas de inventario. Puede estar desactualizado si los precios de coste no se revisan periódicamente."/>
+              </div>
+              <div class="ld_hkpi_value"><field name="valor_stock_actual" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Valor método VARIABLE (direct costing) (€)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Unidades totales en stock × Coste unitario variable calculado. Este método NO incluye costes fijos en la valoración del inventario — los fijos se llevan directamente al resultado del año como gasto. Útil para gestión interna y análisis de contribución. Decisión tomada: todos los productos reciben el mismo coste unitario (simplificación). Alternativa no aplicada: ponderar por lista de materiales o tiempo de fabricación de cada producto."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#ca8a04"><field name="valor_stock_variable" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Valor método ABSORCIÓN (NIC 2) (€)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Unidades totales en stock × Coste unitario absorción (variable + fijo). Este método SÍ incluye la parte proporcional de costes fijos en cada unidad almacenada. Es el método que exige la norma contable española para las cuentas anuales (obligatorio por NIC 2). Decisión tomada: todos los productos reciben el mismo coste unitario."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#7c3aed"><field name="valor_stock_absorcion" readonly="1"/></div>
+            </div>
+          </div>
+
+          <!-- ══ BLOQUE 5: INTERPRETACIÓN ═════════════════════════════════════ -->
+          <div class="ld_section_header" style="margin-top:18px">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title"><span class="fa fa-lightbulb-o me-2"/>5. Interpretación contable</span>
+          </div>
+          <div class="ld_header_kpis">
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Fijos retenidos en stock (€)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Valor método absorción − Valor método variable. Representa los costes fijos del periodo que 'se quedan' en el balance como parte del inventario en lugar de llevarse al resultado. Si valoras por absorción en lugar de variable, este importe MEJORA el resultado del año (pasa de ser gasto a ser activo en balance). Este es el punto clave: la decisión entre los dos métodos cambia el resultado contable del ejercicio en este importe."/>
+              </div>
+              <div class="ld_hkpi_value" style="color:#16a34a"><field name="diferencia_abs_var" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">
+                Δ entre precio coste actual y absorción (€)
+                <i class="fa fa-info-circle text-muted ms-1" title="Fórmula: Valor actual (precio coste en Odoo) − Valor método absorción. Positivo = el precio de coste en Odoo está por encima del coste real del periodo (posiblemente sobrevalorando stock). Negativo = el precio de coste está por debajo (infravalorando stock, el resultado real debería ser mayor al que muestran las cuentas). Útil para detectar si los precios de coste de las fichas de producto están desactualizados."/>
+              </div>
+              <div class="ld_hkpi_value"><field name="delta_stock_vs_abs" readonly="1"/></div>
+            </div>
+          </div>
+
+          <!-- ══ BLOQUE 6: METODOLOGÍA ═══════════════════════════════════════ -->
+          <div class="ld_legend_strip" style="background:#f3f4f6; border-left:4px solid #7c3aed; padding:12px 14px; margin-top:18px">
+            <i class="fa fa-book ld_ls_ico" style="color:#7c3aed"/>
+            <strong class="ld_ls_title">Metodología aplicada (resumen)</strong>
+            <span class="ld_ls_item"><strong>Denominador</strong>: unidades producidas en órdenes terminadas del periodo</span>
+            <span class="ld_ls_item"><strong>Variables</strong>: las 7 cuentas marcadas por el contable</span>
+            <span class="ld_ls_item"><strong>Fijos</strong>: todas las demás cuentas del grupo 6 (gastos)</span>
+            <span class="ld_ls_item"><strong>Distribución</strong>: mismo coste unitario para todos los productos (homogéneo)</span>
+            <span class="ld_ls_item"><strong>Ubicaciones</strong>: solo almacenes internos de la empresa</span>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ul"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver valoración producto a producto</strong>
+              <span>Abre la tabla con cada producto y sus tres valoraciones. Cada fila con acceso a la ficha del producto.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver detalle" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.inventory.valuation.fv.line ════════════════════════════ -->
+  <record id="view_lira_inventory_valuation_fv_line_list" model="ir.ui.view">
+    <field name="name">lira.inventory.valuation.fv.line.list</field>
+    <field name="model">lira.inventory.valuation.fv.line</field>
+    <field name="arch" type="xml">
+      <list string="Valoración inventario — detalle" create="0" delete="0" edit="0"
+            decoration-warning="fijos_en_stock &gt; 1000"
+            decoration-danger="delta_std_abs &lt; -500">
+        <field name="product_id" string="Producto"
+               help="Producto con stock positivo en almacenes internos."/>
+        <field name="default_code" string="Referencia interna" optional="hide"
+               help="Referencia interna del producto (código interno de Odoo)."/>
+        <field name="barcode" string="Código de barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría interna del producto."/>
+        <field name="product_type" string="Tipo producto" optional="hide"
+               help="Tipo de producto en Odoo: almacenable, consumible, servicio."/>
+        <field name="product_uom_name" string="Unidad de medida" optional="hide"
+               help="Unidad de medida del producto (uds, kg, L, etc.)."/>
+        <field name="qty_stock" string="Uds. en stock" sum="Total uds."
+               help="Unidades actuales en almacenes internos."/>
+        <field name="coste_std_actual" string="Precio coste actual (€/u)" avg="Coste medio"
+               help="Precio de coste que tiene el producto configurado en su ficha hoy. Es lo que Odoo usa por defecto para valorar el stock."/>
+        <field name="coste_unit_var" string="Coste unit. variable (€/u)" optional="show" avg="Medio"
+               help="Coste unitario variable del periodo = Total variables ÷ Unidades producidas. Mismo valor para todos los productos."/>
+        <field name="coste_unit_fijo" string="Coste unit. fijo (€/u)" optional="show" avg="Medio"
+               help="Coste unitario fijo del periodo = Total fijos ÷ Unidades producidas. Mismo valor para todos los productos."/>
+        <field name="coste_unit_abs" string="Coste unit. absorción (€/u)" avg="Medio"
+               help="Coste unitario total = variable + fijo. Criterio obligatorio para cuentas anuales (NIC 2)."/>
+        <field name="valor_std_actual" string="Valor actual (€)" sum="Total"
+               help="Uds. en stock × Precio coste actual. Lo que Odoo muestra hoy."/>
+        <field name="valor_variable" string="Valor variable (€)" sum="Total"
+               help="Uds. en stock × Coste unit. variable. Valoración sin fijos (direct costing)."/>
+        <field name="valor_absorcion" string="Valor absorción (€)" sum="Total"
+               help="Uds. en stock × Coste unit. absorción. Valoración contable oficial (NIC 2)."/>
+        <field name="fijos_en_stock" string="Fijos retenidos (€)" sum="Total fijos"
+               help="Valor absorción − Valor variable. Importe de costes fijos que se queda en balance como stock en lugar de ir a gasto del periodo."/>
+        <field name="delta_std_abs" string="Δ actual vs absorción (€)" optional="show" sum="Total Δ"
+               help="Valor actual − Valor absorción. Positivo = Odoo valora por encima del coste real del periodo. Negativo = Odoo valora por debajo."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver ficha del producto"
+                title="Abrir la ficha del producto en Inventario"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.inventory.valuation.fv.line ═════════════════════════ -->
+  <record id="view_lira_inventory_valuation_fv_line_search" model="ir.ui.view">
+    <field name="name">lira.inventory.valuation.fv.line.search</field>
+    <field name="model">lira.inventory.valuation.fv.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en valoración inventario">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="product_type" string="Tipo producto"/>
+        <separator/>
+        <filter name="abs_1k"   string="Valor absorción &gt; 1.000 €"  domain="[('valor_absorcion','>',1000)]"/>
+        <filter name="abs_10k"  string="Valor absorción &gt; 10.000 €" domain="[('valor_absorcion','>',10000)]"/>
+        <filter name="fijos_alto" string="Fijos retenidos &gt; 1.000 €" domain="[('fijos_en_stock','>',1000)]"/>
+        <filter name="delta_pos" string="Odoo sobrevalora (Δ &gt; 0)"   domain="[('delta_std_abs','>',0)]"/>
+        <filter name="delta_neg" string="Odoo infravalora (Δ &lt; 0)"   domain="[('delta_std_abs','&lt;',0)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_categ"   string="Categoría" context="{'group_by': 'categ_id'}"/>
+          <filter name="group_product" string="Producto"  context="{'group_by': 'product_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ═══════════════════════════════════════════════════ -->
+  <record id="action_lira_inventory_valuation_fv" model="ir.actions.server">
+    <field name="name">Valoración Inventario Fijos/Variables Lira</field>
+    <field name="model_id" ref="model_lira_inventory_valuation_fv"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

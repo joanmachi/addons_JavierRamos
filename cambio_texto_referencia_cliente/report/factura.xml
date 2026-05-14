@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="factura_cambio_referencia"
+        inherit_id="account.report_invoice_document"
+    >
+        <xpath expr="//div[@t-if='o.ref']" position="replace">
+            <div class="col" t-if="o.ref" name="reference">
+                <strong>Referencia del cliente</strong>
+                <div t-field="o.ref">INV/2023/00001</div>
+            </div>
+        </xpath>
+   
+    </template>
+
+   
+</odoo>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ VISTA LISTA DE PROYECTOS ═══════════════════════════════════════════ -->
+  <record id="view_lira_van_tir_list" model="ir.ui.view">
+    <field name="name">lira.van.tir.list</field>
+    <field name="model">lira.van.tir</field>
+    <field name="arch" type="xml">
+      <list string="Proyectos de inversión"
+            decoration-success="decision_color == 'green'"
+            decoration-warning="decision_color == 'yellow'"
+            decoration-danger="decision_color == 'red'">
+        <field name="nombre" string="Proyecto"/>
+        <field name="inversion_inicial" string="Inversión (€)"/>
+        <field name="tasa_descuento" string="Tasa (%)"/>
+        <field name="van" string="VAN (€)"/>
+        <field name="tir" string="TIR (%)"/>
+        <field name="payback_anos" string="Payback (años)"/>
+        <field name="indice_rentabilidad" string="Índice rent."/>
+        <field name="decision_color" column_invisible="1"/>
+        <button name="action_calcular" string="Recalcular" type="object"
+                icon="fa-refresh" class="btn-sm"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ VISTA FORMULARIO ════════════════════════════════════════════════════ -->
+  <record id="view_lira_van_tir_form" model="ir.ui.view">
+    <field name="name">lira.van.tir.form</field>
+    <field name="model">lira.van.tir</field>
+    <field name="arch" type="xml">
+      <form string="Calculadora VAN / TIR — Análisis de inversiones" class="ld_form">
+        <sheet>
+
+          <!-- ══ CABECERA ════════════════════════════════════════════════════ -->
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Calculadora VAN / TIR <widget name="lira_print_button" title="Calculadora VAN / TIR"/></div>
+              <div class="ld_main_subtitle">Análisis de viabilidad de inversiones. Rellena la inversión inicial, introduce los ingresos y gastos esperados por año y pulsa Calcular.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calculator ld_icon_muted"/>
+                <span class="ld_sep">Nombre:</span>
+                <field name="nombre" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Períodos en <i class="fa fa-info-circle text-muted ms-1" title="'Tipo de período': Elige si los flujos de caja son anuales o mensuales. Si eliges Meses, la tasa de descuento anual se divide automáticamente entre 12."/></span>
+                <field name="tipo_periodo" nolabel="1" widget="radio" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Inversión (€) <i class="fa fa-info-circle text-muted ms-1" title="'Inversión (€)': Desembolso inicial de la inversión en el período 0 (el dinero que se pone al inicio del proyecto)."/></span>
+                <field name="inversion_inicial" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep ms-2">Tasa anual <i class="fa fa-info-circle text-muted ms-1" title="'Tasa de descuento anual': Porcentaje mínimo de rentabilidad exigida a la inversión. Si los períodos son meses se aplicará tasa/12 por mes. Suele ser el WACC de la empresa (8% habitual en PYMES)."/></span>
+                <field name="tasa_descuento" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">% →</span>
+                <field name="tasa_periodo" readonly="1" nolabel="1" class="ld_date_input"/>
+                <span class="ld_sep">% / período</span>
+                <span class="ld_sep ms-2">Valor residual (€) <i class="fa fa-info-circle text-muted ms-1" title="'Valor residual (€)': Valor estimado del activo al final de la vida del proyecto (valor de venta o chatarra). Se suma al último flujo de caja."/></span>
+                <field name="valor_residual" nolabel="1" class="ld_date_input"/>
+                <button name="action_calcular" string="Calcular" type="object"
+                        class="ld_btn_primary" icon="fa-calculator"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">VAN <i class="fa fa-info-circle text-muted ms-1" title="'VAN': Valor Actual Neto: suma de todos los flujos de caja futuros descontados a la tasa de descuento, menos la inversión inicial. VAN positivo = la inversión es rentable."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="van" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">TIR <i class="fa fa-info-circle text-muted ms-1" title="'TIR': Tasa Interna de Retorno: rentabilidad real de la inversión (porcentaje anual). Si TIR &gt; tasa de descuento, la inversión es rentable."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="tir" readonly="1"/>
+                  <span class="ld_hkpi_unit">%</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Payback <i class="fa fa-info-circle text-muted ms-1" title="'Payback': Período de recuperación: número de períodos (años o meses según configuración) que tarda la inversión en recuperarse. Cuanto menor, menos riesgo."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="payback_anos" readonly="1"/>
+                  <span class="ld_hkpi_unit" invisible="tipo_periodo != 'anos'"> años</span>
+                  <span class="ld_hkpi_unit" invisible="tipo_periodo != 'meses'"> meses</span>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Índice rentabilidad <i class="fa fa-info-circle text-muted ms-1" title="'Índice rentabilidad': Valor Actual de los flujos positivos / Inversión inicial. Mayor de 1 = la inversión genera más valor del que cuesta. Útil para comparar proyectos con diferentes tamaños."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="indice_rentabilidad" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ DECISIÓN ════════════════════════════════════════════════════ -->
+          <div class="lira_decision_box" invisible="not decision">
+            <field name="decision" readonly="1" class="lira_decision_text"/>
+          </div>
+
+          <!-- ══ DESCRIPCIÓN ══════════════════════════════════════════════── -->
+          <group col="1" class="mt-2">
+            <field name="descripcion" nolabel="1"
+                   placeholder="Descripción opcional del proyecto de inversión..."/>
+          </group>
+
+          <!-- ══ FLUJOS DE CAJA ══════════════════════════════════════════════ -->
+          <div class="ld_section_header mt-3">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-list-ol me-2"/>
+              Flujos de caja esperados por período
+            </span>
+          </div>
+
+          <div class="mb-2">
+            <button name="action_add_years" string="+ Añadir 3 períodos" type="object"
+                    class="btn btn-sm btn-secondary"/>
+          </div>
+
+          <field name="cash_flow_ids">
+            <list editable="bottom" create="0" delete="0">
+              <field name="periodo" string="Período" width="70"
+                     help="Número de período (Año 1, 2, 3... o Mes 1, 2, 3... según la configuración)."/>
+              <field name="descripcion" string="Descripción"
+                     help="Descripción opcional de los ingresos o gastos esperados en este período."/>
+              <field name="ingresos" string="Ingresos esperados (€)"
+                     help="Ingresos que se prevé obtener en este período del proyecto."/>
+              <field name="gastos" string="Gastos / costes (€)"
+                     help="Gastos operativos y costes previstos para este período del proyecto."/>
+              <field name="flujo_neto" string="Flujo neto (€)"
+                     help="Ingresos esperados menos gastos: es el dinero que generará el proyecto en este período. Se calcula automáticamente."/>
+            </list>
+          </field>
+
+          <!-- ══ RESULTADOS ══════════════════════════════════════════════════ -->
+          <div class="ld_section_header mt-3">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">
+              <span class="fa fa-check-circle me-2"/>
+              Resultados del análisis
+            </span>
+          </div>
+
+          <div class="ld_ratio_row mt-2">
+            <div class="ld_ratio_card">
+              <div class="ld_card_body">
+                <div class="ld_card_label">VAN (Valor Actual Neto) <i class="fa fa-info-circle text-muted ms-1" title="'VAN (Valor Actual Neto)': Suma de todos los flujos de caja futuros descontados a la tasa exigida, menos la inversión inicial. Positivo = la inversión aporta valor; negativo = destruye valor."/></div>
+                <div class="ld_card_value">
+                  <field name="van" readonly="1"/>
+                </div>
+                <div class="ld_card_formula">Flujos descontados – Inversión inicial</div>
+              </div>
+            </div>
+            <div class="ld_ratio_card">
+              <div class="ld_card_body">
+                <div class="ld_card_label">TIR (Tasa Interna de Retorno) <i class="fa fa-info-circle text-muted ms-1" title="'TIR (Tasa Interna de Retorno)': Rentabilidad anual real del proyecto. Si la TIR supera la tasa de descuento (el mínimo exigido), la inversión es rentable. Cuanto mayor la TIR, mejor el proyecto."/></div>
+                <div class="ld_card_value">
+                  <field name="tir" readonly="1"/>
+                  <span class="ld_unit">%</span>
+                </div>
+                <div class="ld_card_formula">Tasa que hace VAN = 0</div>
+              </div>
+            </div>
+            <div class="ld_ratio_card">
+              <div class="ld_card_body">
+                <div class="ld_card_label">Payback <i class="fa fa-info-circle text-muted ms-1" title="'Payback': Períodos que tarda la inversión en recuperarse. En modo años = años; en modo meses = meses. Cuanto menor el payback, antes recuperas el dinero invertido y menor el riesgo."/></div>
+                <div class="ld_card_value">
+                  <field name="payback_anos" readonly="1"/>
+                  <span class="ld_unit" invisible="tipo_periodo != 'anos'"> años</span>
+                  <span class="ld_unit" invisible="tipo_periodo != 'meses'"> meses</span>
+                </div>
+                <div class="ld_card_formula" invisible="tipo_periodo != 'anos'">Años para recuperar la inversión</div>
+                <div class="ld_card_formula" invisible="tipo_periodo != 'meses'">Meses para recuperar la inversión</div>
+              </div>
+            </div>
+            <div class="ld_ratio_card">
+              <div class="ld_card_body">
+                <div class="ld_card_label">Índice de rentabilidad <i class="fa fa-info-circle text-muted ms-1" title="'Índice de rentabilidad': Valor Actual de flujos positivos / Inversión inicial. Mayor que 1 = la inversión genera más valor del que cuesta. Útil para comparar proyectos de diferente tamaño."/></div>
+                <div class="ld_card_value">
+                  <field name="indice_rentabilidad" readonly="1"/>
+                </div>
+                <div class="ld_card_formula">VAN positivo / Inversión (› 1 = viable)</div>
+              </div>
+            </div>
+            <div class="ld_ratio_card">
+              <div class="ld_card_body">
+                <div class="ld_card_label">Beneficio total acumulado <i class="fa fa-info-circle text-muted ms-1" title="'Beneficio total acumulado': Suma aritmética de todos los flujos netos del proyecto (sin descontar). Indica el beneficio total en euros si el proyecto se lleva a cabo."/></div>
+                <div class="ld_card_value">
+                  <field name="beneficio_total" readonly="1"/>
+                </div>
+                <div class="ld_card_formula">Suma neta de todos los flujos</div>
+              </div>
+            </div>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DE VENTANA ═══════════════════════════════════════════════════ -->
+  <record id="action_lira_van_tir_window" model="ir.actions.act_window">
+    <field name="name">Calculadora VAN / TIR</field>
+    <field name="res_model">lira.van.tir</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+  <!-- ══ ACCIÓN SERVIDOR (llamada desde menú) ═══════════════════════════════ -->
+  <record id="action_lira_van_tir" model="ir.actions.server">
+    <field name="name">Calculadora VAN/TIR Lira</field>
+    <field name="model_id" ref="model_lira_van_tir"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

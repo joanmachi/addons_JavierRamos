@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_variable_account_list" model="ir.ui.view">
+    <field name="name">lira.variable.account.list</field>
+    <field name="model">lira.variable.account</field>
+    <field name="arch" type="xml">
+      <list string="Cuentas Variables — configuración"
+            decoration-muted="not active">
+        <field name="code" string="Código"
+               help="Código contable (ej. 60010005)."/>
+        <field name="name" string="Nombre cuenta"
+               help="Nombre resuelto automáticamente si existe en el plan contable."/>
+        <field name="account_type" string="Tipo" optional="show"
+               help="Tipo de cuenta según el plan contable (gasto, ingreso, etc.)."/>
+        <field name="descripcion" string="Por qué es variable" optional="show"
+               help="Justificación del contable."/>
+        <field name="active" string="Activa" widget="boolean_toggle"
+               help="Si está desactivada, NO se cuenta como variable en los cálculos."/>
+        <button name="action_open_account" type="object" icon="fa-external-link"
+                string="Abrir cuenta"
+                title="Abrir ficha de la cuenta contable en Contabilidad"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_variable_account_form" model="ir.ui.view">
+    <field name="name">lira.variable.account.form</field>
+    <field name="model">lira.variable.account</field>
+    <field name="arch" type="xml">
+      <form string="Cuenta Variable">
+        <sheet>
+          <group>
+            <group>
+              <field name="code"/>
+              <field name="name" readonly="1"/>
+              <field name="active"/>
+            </group>
+            <group>
+              <field name="account_id" readonly="1"/>
+              <field name="account_type" readonly="1"/>
+              <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+            </group>
+          </group>
+          <group string="Justificación">
+            <field name="descripcion" nolabel="1" placeholder="Explica por qué esta cuenta se considera coste variable (ej: Compras de materia prima que escalan directamente con la producción)"/>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_lira_variable_account" model="ir.actions.act_window">
+    <field name="name">Cuentas marcadas como Variables (P&amp;G)</field>
+    <field name="res_model">lira.variable.account</field>
+    <field name="view_mode">list,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Configura qué cuentas contables se consideran COSTES VARIABLES</p>
+      <p>Estas cuentas se tratan como costes que escalan con la producción. El resto de cuentas del grupo 6 se consideran FIJAS.</p>
+      <p>Se usan en:</p>
+      <ul>
+        <li>P&amp;G por Periodos (Fijos/Variables)</li>
+        <li>Valoración Inventario (Fijos/Variables)</li>
+      </ul>
+    </field>
+  </record>
+
+</odoo>

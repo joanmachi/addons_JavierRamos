@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="albaran_cambio_referencia"
+        inherit_id="stock.report_delivery_document"
+    >
+        <xpath expr="//div[@t-if='o.sudo().sale_id.client_order_ref']" position="replace">
+            <div class="col col-3 mw-100 mb-2" t-if="o.sudo().sale_id.client_order_ref">
+                <strong>Referencia del cliente</strong>
+                <div t-field="o.sudo().sale_id.client_order_ref" class="m-0">Customer reference</div>
+            </div>
+           
+        </xpath>
+   
+    </template>
+
+   
+</odoo>

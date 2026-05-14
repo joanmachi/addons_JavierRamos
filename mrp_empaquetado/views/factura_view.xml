@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sh_customer_account_invoice_view_custom" model="ir.ui.view">
+        <field name="name">sh.customer.account.invoice.view.custom</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+          
+
+            <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='quantity']" position="after">
+                <field name="cantidad_en_caja" />
+                <field name="cantidad_caja" />
+            </xpath>
+        
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <menuitem id="menu_lira_root"
+            name="ANÁLISIS DE SITUACIÓN"
+            parent="accountant.menu_accounting"
+            sequence="30"/>
+
+  <!-- ── Visión general ────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_general"   name="Visión General"  parent="menu_lira_root" sequence="1"/>
+  <menuitem id="menu_lira_dashboard" name="Dashboard KPIs"  parent="menu_lira_general" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_dashboard"/>
+  <menuitem id="menu_lira_graficas"  name="Gráficas financieras" parent="menu_lira_general" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_graficas"/>
+  <menuitem id="menu_lira_van_tir"   name="Calculadora VAN / TIR" parent="menu_lira_general" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_van_tir"/>
+
+  <!-- ── Ventas ─────────────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_ventas_cat"       name="Ventas"             parent="menu_lira_root" sequence="2"/>
+  <menuitem id="menu_lira_ventas"           name="Análisis de ventas" parent="menu_lira_ventas_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_sales_analysis"/>
+  <menuitem id="menu_lira_sales_monthly"    name="Evolución mensual"  parent="menu_lira_ventas_cat" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_sales_monthly"/>
+  <menuitem id="menu_lira_pending_delivery" name="Pedidos pendientes de entrega" parent="menu_lira_ventas_cat" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_pending_delivery"/>
+
+  <!-- ── Compras ─────────────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_compras_cat"      name="Compras"                    parent="menu_lira_root" sequence="3"/>
+  <menuitem id="menu_lira_compras"          name="Análisis de compras"        parent="menu_lira_compras_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_purchase_analysis"/>
+  <menuitem id="menu_lira_purchase_received" name="Compras sin facturar"      parent="menu_lira_compras_cat" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_purchase_received"/>
+  <menuitem id="menu_lira_purchase_pending" name="Compras pendientes de recibir" parent="menu_lira_compras_cat" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_purchase_pending"/>
+
+  <!-- ── Clientes y Márgenes ───────────────────────────────────────────── -->
+  <menuitem id="menu_lira_margenes_cat" name="Clientes y Márgenes" parent="menu_lira_root" sequence="4"/>
+  <menuitem id="menu_lira_clientes"     name="Margen por cliente"  parent="menu_lira_margenes_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_customer_margin"/>
+  <menuitem id="menu_lira_escandallo"   name="Escandallo de costes" parent="menu_lira_margenes_cat" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_product_costing"/>
+
+  <!-- ── Contabilidad / Tesorería ─────────────────────────────────────── -->
+  <menuitem id="menu_lira_contabilidad_cat" name="Contabilidad / Tesorería"  parent="menu_lira_root" sequence="5"/>
+  <menuitem id="menu_lira_pnl_period"       name="P&amp;G por Periodos (Fijos/Variables)" parent="menu_lira_contabilidad_cat" sequence="0"
+            action="lira_dashboard_contabilidad.action_lira_pnl_period"/>
+  <menuitem id="menu_lira_variable_account" name="⚙ Cuentas marcadas como Variables" parent="menu_lira_contabilidad_cat" sequence="99"
+            action="lira_dashboard_contabilidad.action_lira_variable_account"/>
+  <menuitem id="menu_lira_aging"            name="Antigüedad de saldos (Clientes)" parent="menu_lira_contabilidad_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_aging"/>
+  <menuitem id="menu_lira_aging_supplier"   name="Antigüedad de saldos (Proveedores)" parent="menu_lira_contabilidad_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_aging_supplier"/>
+  <menuitem id="menu_lira_collections"      name="Cobros y pagos pendientes" parent="menu_lira_contabilidad_cat" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_collections"/>
+  <menuitem id="menu_lira_prevision"        name="Previsión de liquidez"     parent="menu_lira_contabilidad_cat" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_forecast_open"/>
+  <menuitem id="menu_lira_salarios"         name="Previsión de salarios"     parent="menu_lira_contabilidad_cat" sequence="4"
+            action="lira_dashboard_contabilidad.action_lira_salary_forecast"/>
+
+  <!-- ── Existencias ───────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_existencias_cat" name="Existencias"                    parent="menu_lira_root" sequence="6"/>
+  <menuitem id="menu_lira_stock"           name="Existencias y aprovisionamientos" parent="menu_lira_existencias_cat" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_stock_valuation"/>
+  <menuitem id="menu_lira_inventory_fv"    name="Valoración Inventario (Fijos/Variables)" parent="menu_lira_existencias_cat" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_inventory_valuation_fv"/>
+  <menuitem id="menu_lira_mercaderia"      name="Mercadería (Compra-Reventa)" parent="menu_lira_existencias_cat" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_mercaderia"/>
+
+  <!-- ── Fabricación ───────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_fabricacion"     name="Fabricación"               parent="menu_lira_root" sequence="7"/>
+  <menuitem id="menu_lira_mrp_wip"         name="En curso (WIP)"            parent="menu_lira_fabricacion" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_mrp_wip"/>
+  <menuitem id="menu_lira_mrp_in_progress" name="Fabricándose no terminados" parent="menu_lira_fabricacion" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_mrp_in_progress"/>
+  <menuitem id="menu_lira_mrp_to_produce"  name="Pendientes de fabricar"    parent="menu_lira_fabricacion" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_mrp_to_produce"/>
+  <menuitem id="menu_lira_wip_valuation"   name="Valoración de producto en curso" parent="menu_lira_fabricacion" sequence="4"
+            action="lira_dashboard_contabilidad.action_lira_wip_valuation"/>
+
+  <!-- ── Hacienda ──────────────────────────────────────────────────────── -->
+  <menuitem id="menu_lira_hacienda"        name="Hacienda"                  parent="menu_lira_root" sequence="8"/>
+  <menuitem id="menu_lira_vat_settlement"  name="Liquidación IVA (Mod. 303)" parent="menu_lira_hacienda" sequence="1"
+            action="lira_dashboard_contabilidad.action_lira_vat_settlement"/>
+  <menuitem id="menu_lira_irpf"            name="IRPF a ingresar (cta. 4751)" parent="menu_lira_hacienda" sequence="2"
+            action="lira_dashboard_contabilidad.action_lira_irpf"/>
+  <menuitem id="menu_lira_modelo_111"      name="Mod. 111/115 — Retenciones IRPF" parent="menu_lira_hacienda" sequence="3"
+            action="lira_dashboard_contabilidad.action_lira_modelo_111"/>
+  <menuitem id="menu_lira_modelo_347"      name="Mod. 347 — Operaciones con terceros" parent="menu_lira_hacienda" sequence="4"
+            action="lira_dashboard_contabilidad.action_lira_modelo_347"/>
+
+</odoo>

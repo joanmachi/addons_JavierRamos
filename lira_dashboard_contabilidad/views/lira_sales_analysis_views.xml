@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ FORMULARIO: Parámetros + KPIs ═══════════════════════════════════════ -->
+  <record id="view_lira_sales_analysis_form" model="ir.ui.view">
+    <field name="name">lira.sales.analysis.form</field>
+    <field name="model">lira.sales.analysis</field>
+    <field name="arch" type="xml">
+      <form string="Análisis exhaustivo de ventas" class="ld_form">
+        <sheet>
+
+          <!-- ══ CABECERA ═══════════════════════════════════════════════════════ -->
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Análisis de Ventas <widget name="lira_print_button" title="Análisis de Ventas" line_model="lira.sales.line"/></div>
+              <div class="ld_main_subtitle">Ranking de productos, clientes o familias por volumen de ventas y margen. Los datos provienen de los pedidos de venta confirmados en el periodo seleccionado.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-calendar-o ld_icon_muted"/>
+                <field name="date_from" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep">→</span>
+                <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-2">Agrupar por</span>
+                <field name="agrupar_por" nolabel="1" class="ld_date_input"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total ventas <i class="fa fa-info-circle text-muted ms-1" title="Suma de pedidos confirmados del período en base imponible (sin IVA)."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="total_ventas" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Clientes activos <i class="fa fa-info-circle text-muted ms-1" title="Número de clientes distintos con al menos una factura en el período."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="num_clientes" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Productos vendidos <i class="fa fa-info-circle text-muted ms-1" title="Número de productos o servicios distintos en las facturas del período."/></div>
+                <div class="ld_hkpi_value">
+                  <field name="num_productos" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top producto</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem">
+                  <field name="top_producto" readonly="1"/>
+                </div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Top cliente</div>
+                <div class="ld_hkpi_value" style="font-size:0.9rem">
+                  <field name="top_cliente" readonly="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-list-ol"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver el ranking completo</strong>
+              <span>Abre la tabla con el buscador nativo de Odoo: busca por nombre, filtra por categoría ABC o por importe mínimo, agrupa y ordena.</span>
+            </div>
+            <button name="action_ver_ranking" string="Ver ranking" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA del RANKING (lira.sales.line) ─ aquí vive el buscador nativo ══ -->
+  <record id="view_lira_sales_line_list2" model="ir.ui.view">
+    <field name="name">lira.sales.line.list2</field>
+    <field name="model">lira.sales.line</field>
+    <field name="arch" type="xml">
+      <list string="Ranking de ventas" create="0" delete="0" edit="0"
+            decoration-success="abc == 'A'"
+            decoration-warning="abc == 'B'"
+            decoration-muted="abc == 'C'">
+        <field name="rank" string="#" width="44" readonly="1"
+               help="Posición en el ranking de mayor a menor importe de ventas."/>
+        <field name="label" string="Nombre" readonly="1"
+               help="Nombre del grupo según agrupación elegida (producto, cliente, categoría o mes)."/>
+        <field name="qty" string="Unidades" sum="Total uds" readonly="1"
+               help="Total unidades vendidas en el periodo."/>
+        <field name="importe" string="Ventas (€ s/IVA)" sum="Total ventas" readonly="1"
+               help="Importe total de ventas sin IVA en el periodo."/>
+        <field name="num_facturas" string="Pedidos" sum="Total pedidos" readonly="1"
+               help="Número de pedidos de venta distintos."/>
+        <field name="ticket_medio" string="Ticket medio (€)" avg="Ticket medio" readonly="1"
+               help="Importe medio por pedido = Ventas / Nº pedidos."/>
+        <field name="pct_ventas" string="% s/total" avg="% medio" readonly="1"
+               help="Porcentaje sobre el total de ventas del periodo."/>
+        <field name="ultima_fecha" string="Último pedido" readonly="1"
+               help="Fecha del pedido más reciente. Fuente: max(sale.order.date_order)."/>
+        <field name="abc" string="ABC" widget="badge"
+               decoration-success="abc == 'A'"
+               decoration-warning="abc == 'B'"
+               decoration-muted="abc == 'C'" readonly="1"
+               help="Clasificación ABC según volumen: A = top 20% del total acumulado, B = siguiente 30%, C = resto. Principio de Pareto."/>
+        <field name="user_id" column_invisible="1"/>
+        <field name="kpi_date_from" column_invisible="1"/>
+        <field name="kpi_date_to" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedidos en Ventas"
+                title="Abrir los pedidos de venta filtrados según la agrupación y periodo"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR NATIVO para lira.sales.line ════════════════════════════════ -->
+  <record id="view_lira_sales_line_search" model="ir.ui.view">
+    <field name="name">lira.sales.line.search</field>
+    <field name="model">lira.sales.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en el ranking">
+        <field name="label" string="Nombre"/>
+        <field name="abc" string="ABC"/>
+        <separator/>
+        <filter name="abc_a" string="Categoría A" domain="[('abc','=','A')]"/>
+        <filter name="abc_b" string="Categoría B" domain="[('abc','=','B')]"/>
+        <filter name="abc_c" string="Categoría C" domain="[('abc','=','C')]"/>
+        <separator/>
+        <filter name="importe_gt_1000"  string="Ventas &gt; 1.000 €"   domain="[('importe','&gt;',1000)]"/>
+        <filter name="importe_gt_5000"  string="Ventas &gt; 5.000 €"   domain="[('importe','&gt;',5000)]"/>
+        <filter name="importe_gt_10000" string="Ventas &gt; 10.000 €"  domain="[('importe','&gt;',10000)]"/>
+        <filter name="mas_3_ped"        string="≥ 3 pedidos"           domain="[('num_facturas','>=',3)]"/>
+        <filter name="mas_10_ped"       string="≥ 10 pedidos"          domain="[('num_facturas','>=',10)]"/>
+        <separator/>
+        <filter name="ultimo_mes" string="Último pedido este mes"
+                date="ultima_fecha"/>
+        <separator/>
+        <filter name="top10" string="Top 10" domain="[('rank','&lt;=',10)]"/>
+        <filter name="top20" string="Top 20" domain="[('rank','&lt;=',20)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_abc"          string="Clasificación ABC" context="{'group_by': 'abc'}"/>
+          <filter name="group_label"        string="Nombre"            context="{'group_by': 'label'}"/>
+          <filter name="group_rank"         string="Ranking"           context="{'group_by': 'rank'}"/>
+          <filter name="group_qty"          string="Unidades"          context="{'group_by': 'qty'}"/>
+          <filter name="group_importe"      string="Ventas"            context="{'group_by': 'importe'}"/>
+          <filter name="group_num_facturas" string="Pedidos"           context="{'group_by': 'num_facturas'}"/>
+          <filter name="group_ticket"       string="Ticket medio"      context="{'group_by': 'ticket_medio'}"/>
+          <filter name="group_pct"          string="% s/total"         context="{'group_by': 'pct_ventas'}"/>
+          <filter name="group_fecha"        string="Último pedido"     context="{'group_by': 'ultima_fecha'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ══ ACCIÓN DEL MENÚ ════════════════════════════════════════════════════════ -->
+  <record id="action_lira_sales_analysis" model="ir.actions.server">
+    <field name="name">Análisis de ventas Lira</field>
+    <field name="model_id" ref="model_lira_sales_analysis"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+
+</odoo>

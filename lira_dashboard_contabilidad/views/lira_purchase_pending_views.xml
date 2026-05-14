@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       COMPRAS RECIBIDAS — PENDIENTES DE FACTURA
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_purchase_received_form" model="ir.ui.view">
+    <field name="name">lira.purchase.received.form</field>
+    <field name="model">lira.purchase.received</field>
+    <field name="arch" type="xml">
+      <form string="Compras Recibidas — Pendientes de Factura" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Compras Recibidas — Pendientes de Factura <widget name="lira_print_button" title="Compras Recibidas — Pendientes de Factura" line_model="lira.purchase.received.line"/></div>
+              <div class="ld_main_subtitle">Mercancía recibida en almacén para la que aún no se ha registrado factura de proveedor. Representa una deuda devengada que hay que provisionar o facturar.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total pendiente de facturar <i class="fa fa-info-circle text-muted ms-1" title="Importe total de mercancía recibida sin factura de proveedor."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_pendiente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Líneas pendientes <i class="fa fa-info-circle text-muted ms-1" title="Número de líneas de pedido con cantidad recibida superior a la facturada."/></div>
+                <div class="ld_hkpi_value"><field name="num_lineas" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Proveedores distintos <i class="fa fa-info-circle text-muted ms-1" title="Número de proveedores con entregas recibidas pendientes de facturación."/></div>
+                <div class="ld_hkpi_value"><field name="num_proveedores" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-truck"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle de recibidos sin factura</strong>
+              <span>Abre la tabla con buscador nativo: filtra por proveedor, NIF, ciudad, producto, código de barras o referencia interna del artículo.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.purchase.received.line ══════════════════════════════════ -->
+  <record id="view_lira_purchase_received_line_list" model="ir.ui.view">
+    <field name="name">lira.purchase.received.line.list</field>
+    <field name="model">lira.purchase.received.line</field>
+    <field name="arch" type="xml">
+      <list string="Recibidos sin factura" create="0" delete="0" edit="0">
+        <field name="partner_id" string="Proveedor"
+               help="Proveedor del pedido."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="NIF del proveedor."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del proveedor."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del proveedor."/>
+        <field name="pedido" string="Pedido"
+               help="Número del pedido de compra."/>
+        <field name="product_id" string="Producto"
+               help="Producto de la línea."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="qty_recibida" string="Recibida" sum="Total recibida"
+               help="Cantidad recibida en albaranes validados."/>
+        <field name="qty_facturada" string="Facturada" sum="Total facturada"
+               help="Cantidad ya facturada por el proveedor."/>
+        <field name="qty_pendiente" string="Pendiente" sum="Total pendiente"
+               help="Recibida − Facturada."/>
+        <field name="precio_unitario" string="Precio unit. (€)" avg="Precio medio"
+               help="Precio unitario acordado en el pedido."/>
+        <field name="importe" string="Importe pdte. (€)" sum="Total importe"
+               help="Valor recibido sin factura = Pendiente × Precio unitario."/>
+        <field name="fecha_pedido" string="Fecha pedido"
+               help="Fecha de confirmación del pedido."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedido de compra"
+                title="Abrir el pedido de compra original"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.purchase.received.line ══════════════════════════════ -->
+  <record id="view_lira_purchase_received_line_search" model="ir.ui.view">
+    <field name="name">lira.purchase.received.line.search</field>
+    <field name="model">lira.purchase.received.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar recibidos sin factura">
+        <field name="partner_id" string="Proveedor / NIF / Ciudad"
+               filter_domain="['|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="pedido" string="Nº pedido"/>
+        <separator/>
+        <filter name="imp_1k"   string="Importe &gt; 1.000 €"  domain="[('importe','>',1000)]"/>
+        <filter name="imp_5k"   string="Importe &gt; 5.000 €"  domain="[('importe','>',5000)]"/>
+        <filter name="imp_10k"  string="Importe &gt; 10.000 €" domain="[('importe','>',10000)]"/>
+        <filter name="ped_mes"  string="Pedido este mes"
+                date="fecha_pedido"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner"  string="Proveedor"     context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"  string="Producto"      context="{'group_by': 'product_id'}"/>
+          <filter name="group_categ"    string="Categoría"     context="{'group_by': 'categ_id'}"/>
+          <filter name="group_pedido"   string="Pedido"        context="{'group_by': 'pedido'}"/>
+          <filter name="group_fecha"    string="Fecha pedido"  context="{'group_by': 'fecha_pedido'}"/>
+          <filter name="group_recibida" string="Cant. recibida" context="{'group_by': 'qty_recibida'}"/>
+          <filter name="group_facturada" string="Cant. facturada" context="{'group_by': 'qty_facturada'}"/>
+          <filter name="group_pdte"     string="Cant. pendiente" context="{'group_by': 'qty_pendiente'}"/>
+          <filter name="group_precio"   string="Precio unit."  context="{'group_by': 'precio_unitario'}"/>
+          <filter name="group_importe"  string="Importe pdte." context="{'group_by': 'importe'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_purchase_received" model="ir.actions.server">
+    <field name="name">Compras Recibidas Pendientes de Factura Lira</field>
+    <field name="model_id" ref="model_lira_purchase_received"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       COMPRAS CONFIRMADAS — PENDIENTES DE RECIBIR
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <record id="view_lira_purchase_pending_form" model="ir.ui.view">
+    <field name="name">lira.purchase.pending.form</field>
+    <field name="model">lira.purchase.pending</field>
+    <field name="arch" type="xml">
+      <form string="Compras Confirmadas — Pendientes de Recibir" class="ld_form">
+        <sheet>
+
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Compras Pendientes de Recibir <widget name="lira_print_button" title="Compras Pendientes de Recibir" line_model="lira.purchase.pending.line"/></div>
+              <div class="ld_main_subtitle">Pedidos de compra confirmados cuya mercancía aún no ha llegado al almacén. Muestra el importe comprometido pendiente de entrega por proveedor.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Total pendiente de recibir <i class="fa fa-info-circle text-muted ms-1" title="Importe total comprometido en pedidos confirmados cuya mercancía aún no ha llegado."/></div>
+                <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_pendiente" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Líneas pendientes <i class="fa fa-info-circle text-muted ms-1" title="Número de líneas de pedido con cantidad pedida superior a la recibida."/></div>
+                <div class="ld_hkpi_value"><field name="num_lineas" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Proveedores distintos <i class="fa fa-info-circle text-muted ms-1" title="Número de proveedores con entregas pendientes de recepción."/></div>
+                <div class="ld_hkpi_value"><field name="num_proveedores" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-shopping-cart"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver detalle de pedidos pendientes de recibir</strong>
+              <span>Abre la tabla con buscador nativo: filtra por proveedor, NIF, ciudad, producto, código de barras o referencia interna.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ══ LISTA lira.purchase.pending.line ══════════════════════════════════ -->
+  <record id="view_lira_purchase_pending_line_list" model="ir.ui.view">
+    <field name="name">lira.purchase.pending.line.list</field>
+    <field name="model">lira.purchase.pending.line</field>
+    <field name="arch" type="xml">
+      <list string="Pendientes de recibir" create="0" delete="0" edit="0">
+        <field name="partner_id" string="Proveedor"
+               help="Proveedor del pedido."/>
+        <field name="partner_vat" string="NIF/CIF" optional="hide"
+               help="NIF del proveedor."/>
+        <field name="partner_city" string="Ciudad" optional="hide"
+               help="Ciudad del proveedor."/>
+        <field name="partner_country_id" string="País" optional="hide"
+               help="País del proveedor."/>
+        <field name="pedido" string="Pedido"
+               help="Número del pedido de compra."/>
+        <field name="product_id" string="Producto"
+               help="Producto de la línea."/>
+        <field name="default_code" string="Ref. interna" optional="hide"
+               help="Referencia interna del producto."/>
+        <field name="barcode" string="Cód. barras" optional="hide"
+               help="Código de barras del producto."/>
+        <field name="categ_id" string="Categoría" optional="show"
+               help="Categoría del producto."/>
+        <field name="qty_pedida" string="Cant. pedida" sum="Total pedida"
+               help="Cantidad total pedida."/>
+        <field name="qty_recibida" string="Cant. recibida" sum="Total recibida"
+               help="Cantidad ya recibida en albarán."/>
+        <field name="qty_pendiente" string="Cant. pendiente" sum="Total pendiente"
+               help="Pedida − Recibida."/>
+        <field name="precio_unitario" string="Precio unit. (€)" avg="Precio medio"
+               help="Precio unitario del pedido."/>
+        <field name="importe" string="Importe pdte. (€)" sum="Total importe"
+               help="Importe comprometido sin entregar = Pendiente × Precio unitario."/>
+        <field name="fecha_prevista" string="Entrega prevista"
+               help="Fecha prevista de entrega configurada en la línea."/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver pedido de compra"
+                title="Abrir el pedido de compra original"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ══ BUSCADOR lira.purchase.pending.line ═══════════════════════════════ -->
+  <record id="view_lira_purchase_pending_line_search" model="ir.ui.view">
+    <field name="name">lira.purchase.pending.line.search</field>
+    <field name="model">lira.purchase.pending.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar pendientes de recibir">
+        <field name="partner_id" string="Proveedor / NIF / Ciudad"
+               filter_domain="['|','|','|',
+                               ('partner_id.name','ilike',self),
+                               ('partner_id.vat','ilike',self),
+                               ('partner_id.city','ilike',self),
+                               ('partner_id.ref','ilike',self)]"/>
+        <field name="partner_vat" string="NIF/CIF"/>
+        <field name="partner_city" string="Ciudad"/>
+        <field name="partner_country_id" string="País"/>
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="barcode" string="Código de barras"/>
+        <field name="default_code" string="Referencia interna"/>
+        <field name="categ_id" string="Categoría"
+               filter_domain="[('categ_id.name','ilike',self)]"/>
+        <field name="pedido" string="Nº pedido"/>
+        <separator/>
+        <filter name="imp_1k"   string="Importe &gt; 1.000 €"  domain="[('importe','>',1000)]"/>
+        <filter name="imp_5k"   string="Importe &gt; 5.000 €"  domain="[('importe','>',5000)]"/>
+        <filter name="imp_10k"  string="Importe &gt; 10.000 €" domain="[('importe','>',10000)]"/>
+        <filter name="entrega_mes" string="Entrega este mes"
+                date="fecha_prevista"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner"  string="Proveedor"      context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"  string="Producto"       context="{'group_by': 'product_id'}"/>
+          <filter name="group_categ"    string="Categoría"      context="{'group_by': 'categ_id'}"/>
+          <filter name="group_pedido"   string="Pedido"         context="{'group_by': 'pedido'}"/>
+          <filter name="group_fecha"    string="Entrega prevista" context="{'group_by': 'fecha_prevista'}"/>
+          <filter name="group_pedida"   string="Cant. pedida"   context="{'group_by': 'qty_pedida'}"/>
+          <filter name="group_recibida" string="Cant. recibida" context="{'group_by': 'qty_recibida'}"/>
+          <filter name="group_pdte"     string="Cant. pendiente" context="{'group_by': 'qty_pendiente'}"/>
+          <filter name="group_precio"   string="Precio unit."   context="{'group_by': 'precio_unitario'}"/>
+          <filter name="group_importe"  string="Importe pdte."  context="{'group_by': 'importe'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_purchase_pending" model="ir.actions.server">
+    <field name="name">Compras Pendientes de Recibir Lira</field>
+    <field name="model_id" ref="model_lira_purchase_pending"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

@@ -1,0 +1,482 @@
+/* ================================================================ */
+/* Apunts - Costes OF: estilo coherente con lira_mfg_dashboard      */
+/* ================================================================ */
+
+/* Smart button: contenido compacto sin overflow.
+   Odoo limita el ancho del oe_stat_button a ~120px; por eso forzamos truncado por elipsis y reducimos tamano del label. */
+.apunts_costes_smart_button {
+    overflow: hidden;
+    max-width: 100%;
+}
+.apunts_costes_smart_button .o_stat_info {
+    overflow: hidden;
+    text-align: center;
+    line-height: 1.15;
+}
+.apunts_costes_smart_button .apunts_costes_value {
+    font-weight: 700;
+    font-size: 0.95em;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.apunts_costes_smart_button .o_stat_text {
+    display: block;
+    font-size: 0.78em;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.apunts_costes_smart_button .apunts_costes_subtext {
+    display: block;
+    font-size: 0.7em;
+    color: #6c757d;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.apunts_costes_smart_button .apunts_costes_traffic {
+    margin-top: 2px;
+    font-size: 0.7em;
+}
+/* v18.0.10 Bug 4: smart button SIN cifra ni badge — solo label COSTE OF centrado */
+.apunts_costes_smart_button .apunts_costes_label_only {
+    font-size: 0.95em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.2;
+    color: #2c3e50;
+}
+
+/* ============================================================ */
+/* Vista form Costes OF                                         */
+/* ============================================================ */
+.apunts_costes_form .oe_title h1 {
+    color: #2c3e50;
+}
+
+/* KPI cards row: 2 columnas (Coste actual + Coste estimado) */
+.apunts_kpi_row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+}
+/* Clase legacy para compatibilidad — por si algún JS referencia apunts_kpi_row_2col */
+.apunts_kpi_row.apunts_kpi_row_2col {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.apunts_kpi_card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    padding: 0;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.apunts_kpi_card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    transform: translateY(-1px);
+}
+
+.apunts_kpi_card .apunts_kpi_button {
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+    text-decoration: none !important;
+}
+.apunts_kpi_card .apunts_kpi_button:hover,
+.apunts_kpi_card .apunts_kpi_button:focus {
+    background: #f8f9fa;
+    text-decoration: none !important;
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
+}
+
+.apunts_kpi_label {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #6c757d;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.apunts_kpi_value {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 6px 0 4px;
+}
+.apunts_kpi_meta {
+    font-size: 0.82em;
+    color: #6c757d;
+}
+.apunts_kpi_dev {
+    font-size: 0.85em;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+/* Franjas laterales — nuevas 2 cards */
+.apunts_kpi_actual   { border-left: 4px solid #2c3e50; }
+.apunts_kpi_estimado { border-left: 4px solid #5e35b1; }
+
+/* Franjas laterales legacy (por si algún residuo las usa) */
+.apunts_kpi_material  { border-left: 4px solid #17a2b8; }
+.apunts_kpi_labor     { border-left: 4px solid #28a745; }
+.apunts_kpi_operation { border-left: 4px solid #ffc107; }
+.apunts_kpi_total     { border-left: 4px solid #007bff; }
+
+/* Breakdown sub-totales dentro de la card */
+.apunts_kpi_breakdown {
+    padding: 6px 0 2px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+}
+.apunts_kpi_breakdown_item {
+    display: block;
+    font-size: 0.82em;
+    color: #6c757d;
+    line-height: 1.5;
+}
+.apunts_kpi_breakdown_label {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+/* Tabla plan vs real */
+.apunts_plan_real_table {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+/* Indicadores secundarios */
+.apunts_secondary_kpis {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 8px 0;
+}
+
+/* Responsive: en pantallas estrechas, 1 columna */
+@media (max-width: 768px) {
+    .apunts_kpi_row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================ */
+/* Hito 4: franja resumen comercial (margen)                    */
+/* ============================================================ */
+.apunts_margin_strip {
+    background: linear-gradient(90deg, #fff8e1 0%, #fff 100%);
+    border-left: 4px solid #ff9800;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 8px 0;
+}
+
+/* ============================================================ */
+/* Pestanya helper text encima de tablas                         */
+/* ============================================================ */
+.apunts_section_help {
+    background: #f1f8ff;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 0.92em;
+}
+.apunts_section_help p {
+    margin-bottom: 4px;
+}
+.apunts_section_help .btn-link {
+    padding-left: 0;
+    padding-right: 12px;
+}
+
+/* ============================================================ */
+/* Hito 8: bloque destacado Margen comercial (verde/ambar/rojo) */
+/* ============================================================ */
+.apunts_margin_block {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    border-left: 6px solid #6c757d;
+    background: #f8f9fa;
+}
+.apunts_margin_block.apunts_margin_green {
+    background: linear-gradient(90deg, #e6f7eb 0%, #ffffff 100%);
+    border-left-color: #28a745;
+}
+.apunts_margin_block.apunts_margin_amber {
+    background: linear-gradient(90deg, #fff8e1 0%, #ffffff 100%);
+    border-left-color: #ff9800;
+}
+.apunts_margin_block.apunts_margin_red {
+    background: linear-gradient(90deg, #fdecea 0%, #ffffff 100%);
+    border-left-color: #d9534f;
+}
+.apunts_margin_block.apunts_margin_blue {
+    background: linear-gradient(90deg, #e7f1ff 0%, #ffffff 100%);
+    border-left-color: #007bff;
+}
+.apunts_margin_block_title {
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #495057;
+    margin-bottom: 6px;
+}
+.apunts_margin_block_quote {
+    font-style: italic;
+    font-size: 1.05em;
+    color: #2c3e50;
+    margin: 4px 0 8px;
+    padding-left: 10px;
+    border-left: 2px solid #ced4da;
+}
+.apunts_margin_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+}
+.apunts_margin_cell {
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 6px 10px;
+    border: 1px solid #e0e0e0;
+}
+.apunts_margin_cell .apunts_margin_cell_label {
+    font-size: 0.72em;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+.apunts_margin_cell .apunts_margin_cell_value {
+    font-size: 1.15em;
+    font-weight: 700;
+}
+@media (max-width: 992px) {
+    .apunts_margin_grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================================ */
+/* Hito 12: pill de actividad cabecera + display "Pendiente"     */
+/* ============================================================ */
+.apunts_activity_pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-top: 6px;
+    border: 1px solid transparent;
+}
+.apunts_activity_pill_amber {
+    background: #fff8e1;
+    color: #b06f00;
+    border-color: #ffd779;
+}
+.apunts_activity_pill_green {
+    background: #e6f7eb;
+    color: #1d7a36;
+    border-color: #8fd6a3;
+}
+.apunts_activity_pill_blue {
+    background: #e7f1ff;
+    color: #155bb8;
+    border-color: #95bfff;
+}
+.apunts_activity_pill_gray {
+    background: #f1f3f5;
+    color: #6c757d;
+    border-color: #ced4da;
+}
+
+/* "Pendiente" en KPI cards: en lugar de "0,00 €" feo cuando real=0 y plan>0 */
+.apunts_kpi_pending {
+    color: #b06f00;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.4em;
+}
+
+/* ============================================================ */
+/* v18.0.10 Bug 2: KPI cards "Va a costar / Esta costando"      */
+/* SIEMPRE 2 cifras visibles + Delta abajo                       */
+/* ============================================================ */
+.apunts_kpi_top {
+    margin: 8px 0 2px;
+    line-height: 1.2;
+}
+.apunts_kpi_top_label {
+    display: block;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #6c757d;
+    letter-spacing: 0.02em;
+}
+.apunts_kpi_top_value {
+    display: block;
+    font-size: 1.55em;
+    font-weight: 700;
+    color: #5e35b1; /* azul/morado para "Va a costar" (plan) */
+}
+.apunts_kpi_top_real {
+    color: #2c3e50; /* neutro cuando es la cifra real (OF done) */
+}
+.apunts_kpi_bottom {
+    margin: 4px 0 4px;
+    line-height: 1.2;
+}
+.apunts_kpi_bottom_label {
+    display: block;
+    font-size: 0.74em;
+    font-weight: 500;
+    color: #6c757d;
+}
+.apunts_kpi_bottom_value {
+    display: block;
+    font-size: 1.18em;
+    font-weight: 700;
+}
+.apunts_kpi_bottom_value .o_field_monetary {
+    display: inline;
+}
+/* Color condicional segun ratio real/plan */
+.apunts_real_green  { color: #1d7a36; }
+.apunts_real_amber  { color: #b06f00; }
+.apunts_real_red    { color: #b71c1c; }
+.apunts_real_gray   { color: #6c757d; font-style: italic; }
+
+/* ============================================================ */
+/* Hito 9: iconos info inline                                    */
+/* ============================================================ */
+.apunts_info_icon {
+    color: #6c757d;
+    font-size: 0.85em;
+    cursor: help;
+    margin-left: 4px;
+    vertical-align: middle;
+    transition: color 0.1s;
+}
+.apunts_info_icon:hover {
+    color: #007bff;
+}
+
+/* ============================================================ */
+/* Hito 7: vista Master Data Costes (hub)                       */
+/* ============================================================ */
+.apunts_md_form .oe_title h1 {
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+}
+.apunts_md_summary {
+    margin: 12px 0;
+}
+.apunts_md_cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 18px 0;
+}
+.apunts_md_card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.apunts_md_card.apunts_md_employee   { border-top: 4px solid #28a745; }
+.apunts_md_card.apunts_md_workcenter { border-top: 4px solid #ffc107; }
+.apunts_md_card.apunts_md_product    { border-top: 4px solid #17a2b8; }
+
+.apunts_md_card_header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+.apunts_md_card_header .fa { color: #6c757d; }
+.apunts_md_card_title {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #2c3e50;
+}
+.apunts_md_card_sub {
+    font-size: 0.8em;
+    color: #6c757d;
+    font-family: monospace;
+}
+.apunts_md_card_body {
+    padding: 12px 16px;
+    flex: 1;
+}
+.apunts_md_metric {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.apunts_md_metric .apunts_md_metric_value {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #2c3e50;
+}
+.apunts_md_metric .apunts_md_metric_label {
+    font-size: 0.88em;
+    color: #495057;
+}
+.apunts_md_metric.apunts_md_alert {
+    padding: 4px 8px;
+    background: #fff8e1;
+    border-radius: 4px;
+}
+.apunts_md_card_footer {
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+.apunts_md_card_footer .btn-primary {
+    width: 100%;
+}
+.apunts_md_recalc {
+    background: #fffaf0;
+    border: 1px dashed #ff9800;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 18px 0 4px;
+}
+.apunts_md_recalc p {
+    margin-bottom: 10px;
+}
+@media (max-width: 992px) {
+    .apunts_md_cards {
+        grid-template-columns: 1fr;
+    }
+}

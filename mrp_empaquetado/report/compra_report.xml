@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+    <template id="purchase_quotation_report_document_custom" inherit_id="purchase.report_purchasequotation_document">
+        <xpath expr="//table/thead/tr[1]/th[3]" position="after">
+            <th class="text-right">Cajas</th>
+        </xpath>
+        <xpath expr="//table//tbody//tr[1]//td[3]" position="after">
+            <td class="text-right">
+                <span t-field="order_line.cantidad_caja" />
+            </td>
+        </xpath>
+
+        <xpath expr="//table/thead/tr[1]/th[3]" position="after">
+            <th class="text-right" >Cantidad en cajas</th>
+        </xpath>
+        <xpath expr="//table//tbody//tr[1]//td[3]" position="after">
+            <td class="text-right"  >
+                <span t-field="order_line.cantidad_en_caja" />
+            </td>
+        </xpath>
+
+
+    </template>
+    <template id="purchase_order_report_document_custom" inherit_id="purchase.report_purchaseorder_document">
+        <xpath expr="//table/thead/tr[1]/th[4]" position="after">
+            <th class="text-right">Cajas</th>
+        </xpath>
+        <xpath expr="//table//tbody//tr[1]//td[4]" position="after">
+            <td class="text-right">
+                <span t-field="line.cantidad_caja" />
+            </td>
+        </xpath>
+
+        <xpath expr="//table/thead/tr[1]/th[4]" position="after">
+            <th class="text-right" >Cantidad en cajas</th>
+        </xpath>
+        <xpath expr="//table//tbody//tr[1]//td[4]" position="after">
+            <td class="text-right" >
+                <span t-field="line.cantidad_en_caja" />
+            </td>
+        </xpath>
+
+
+    </template>
+
+</odoo>

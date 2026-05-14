@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_apunts_wip_valuation_form" model="ir.ui.view">
+    <field name="name">apunts.wip.valuation.form</field>
+    <field name="model">apunts.wip.valuation</field>
+    <field name="arch" type="xml">
+      <form string="Valoración de Producto en Curso" class="ld_form">
+        <sheet>
+          <div class="ld_header">
+            <div class="ld_header_left">
+              <div class="ld_main_title ld_title_row">Valoración de Producto en Curso</div>
+              <div class="ld_main_subtitle">Valor del producto en curso por línea de pedido: aplica las 7 reglas del contable según estado OF / MP / entrega / factura.</div>
+              <div class="ld_period_bar">
+                <span class="fa fa-clock-o ld_icon_muted"/>
+                <button name="action_refresh" string="Actualizar" type="object"
+                        class="ld_btn_primary" icon="fa-refresh"/>
+              </div>
+            </div>
+            <div class="ld_header_kpis">
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Valoración total <i class="fa fa-info-circle text-muted ms-1" title="Suma de la valoración de todas las líneas según las 7 reglas."/></div>
+                <div class="ld_hkpi_value"><field name="valor_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Coste MP acumulado</div>
+                <div class="ld_hkpi_value"><field name="coste_total_mp" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Coste M.O. acumulado</div>
+                <div class="ld_hkpi_value"><field name="coste_total_fab" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Precio venta (fabricados/entregados)</div>
+                <div class="ld_hkpi_value"><field name="precio_total" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Líneas totales</div>
+                <div class="ld_hkpi_value" style="color:#2563eb"><field name="num_lineas" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Líneas con OF</div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="num_con_of" readonly="1"/></div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Líneas con valor 0</div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="num_sin_valor" readonly="1"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-cube"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver líneas de pedido en curso</strong>
+              <span>Tabla con todas las líneas de pedido de venta confirmadas, con estado OF/MP/entrega/factura y valoración aplicando las 7 reglas.</span>
+            </div>
+            <button name="action_ver_tabla" string="Ver tabla" type="object"
+                    class="ld_btn_primary" icon="fa-search"/>
+          </div>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_apunts_wip_valuation_line_list" model="ir.ui.view">
+    <field name="name">apunts.wip.valuation.line.list</field>
+    <field name="model">apunts.wip.valuation.line</field>
+    <field name="arch" type="xml">
+      <list string="Valoración WIP — detalle" create="0" delete="0" edit="0"
+            decoration-muted="valor == 0"
+            decoration-success="invoice_state == 'facturado'"
+            decoration-info="delivery_state == 'entregado' and invoice_state != 'facturado'">
+        <field name="sale_order_id" string="Pedido"/>
+        <field name="partner_id" string="Cliente"/>
+        <field name="partner_vat" string="NIF" optional="hide"/>
+        <field name="product_id" string="Producto"/>
+        <field name="default_code" string="Ref." optional="hide"/>
+        <field name="categ_id" string="Categoría" optional="hide"/>
+        <field name="production_id" string="OF" optional="show"/>
+        <field name="production_state" string="Estado OF" widget="badge"/>
+        <field name="mp_state" string="Estado MP" widget="badge" optional="show"/>
+        <field name="delivery_state" string="Entrega" widget="badge"/>
+        <field name="invoice_state" string="Factura" widget="badge"/>
+        <field name="qty_pedida" string="Pedido" sum="Total pedido"/>
+        <field name="qty_entregada" string="Entregado" sum="Total entregado" optional="show"/>
+        <field name="qty_facturada" string="Facturado" sum="Total facturado" optional="show"/>
+        <field name="coste_mp" string="Coste MP (€)" sum="Total MP" optional="show"/>
+        <field name="coste_fab" string="Coste M.O. (€)" sum="Total M.O." optional="show"/>
+        <field name="precio_venta" string="Precio venta (€)" sum="Total precio"/>
+        <field name="valor" string="Valoración (€)" sum="Total valoración"/>
+        <field name="fecha_pedido" string="Fecha pedido" optional="hide"/>
+        <field name="fecha_entrega" string="Entrega prevista" optional="hide"/>
+        <field name="user_id" column_invisible="1"/>
+        <button name="action_open_source" type="object" icon="fa-external-link"
+                string="Ver origen" title="Abrir OF o Pedido"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_apunts_wip_valuation_line_search" model="ir.ui.view">
+    <field name="name">apunts.wip.valuation.line.search</field>
+    <field name="model">apunts.wip.valuation.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar en Valoración WIP">
+        <field name="product_id" string="Producto / Cód. barras / Ref."
+               filter_domain="['|','|',
+                               ('product_id.name','ilike',self),
+                               ('product_id.barcode','ilike',self),
+                               ('product_id.default_code','ilike',self)]"/>
+        <field name="partner_id" string="Cliente"/>
+        <field name="sale_order_id" string="Pedido"/>
+        <field name="categ_id" string="Categoría"/>
+        <separator/>
+        <filter name="con_of" string="Con OF" domain="[('production_id','!=',False)]"/>
+        <filter name="sin_of" string="Sin OF" domain="[('production_state','=','no_of')]"/>
+        <separator/>
+        <filter name="of_progress" string="OF en curso" domain="[('production_state','=','progress')]"/>
+        <filter name="of_to_close" string="OF pdte. cerrar" domain="[('production_state','=','to_close')]"/>
+        <filter name="of_done" string="OF terminada" domain="[('production_state','=','done')]"/>
+        <separator/>
+        <filter name="sin_facturar" string="Sin facturar" domain="[('invoice_state','=','no_facturado')]"/>
+        <filter name="sin_entregar" string="Sin entregar" domain="[('delivery_state','=','no_entregado')]"/>
+        <filter name="entregado_completo" string="Entregado completo" domain="[('delivery_state','=','entregado')]"/>
+        <separator/>
+        <filter name="con_valor" string="Con valoración &gt; 0" domain="[('valor','>',0)]"/>
+        <filter name="sin_valor" string="Valoración 0" domain="[('valor','=',0)]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="group_of_state" string="Estado OF" context="{'group_by': 'production_state'}"/>
+          <filter name="group_mp_state" string="Estado MP" context="{'group_by': 'mp_state'}"/>
+          <filter name="group_delivery" string="Estado entrega" context="{'group_by': 'delivery_state'}"/>
+          <filter name="group_invoice"  string="Estado factura" context="{'group_by': 'invoice_state'}"/>
+          <filter name="group_partner"  string="Cliente"  context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product"  string="Producto" context="{'group_by': 'product_id'}"/>
+          <filter name="group_categ"    string="Categoría" context="{'group_by': 'categ_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_apunts_wip_valuation" model="ir.actions.server">
+    <field name="name">Valoración de Producto en Curso</field>
+    <field name="model_id" ref="model_apunts_wip_valuation"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

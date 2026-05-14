@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree view SIMPLE de material para el wizard de desglose -->
+    <record id="view_apunts_material_line_tree_simple" model="ir.ui.view">
+        <field name="name">apunts.costes.of.material.line.tree.simple</field>
+        <field name="model">apunts.costes.of.material.line</field>
+        <field name="arch" type="xml">
+            <list string="Componentes" create="false" delete="false" edit="false">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="product_name" string="Componente"/>
+                <field name="qty_needed" string="Necesario"/>
+                <field name="qty_consumed" string="Consumido"/>
+                <field name="cost_total" string="Coste real (€)" widget="monetary" sum="Total"/>
+                <field name="seller_partner_name" string="Proveedor"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view SIMPLE de operaciones para el wizard de desglose -->
+    <record id="view_apunts_labor_line_tree_simple" model="ir.ui.view">
+        <field name="name">apunts.costes.of.labor.line.tree.simple</field>
+        <field name="model">apunts.costes.of.labor.line</field>
+        <field name="arch" type="xml">
+            <list string="Operaciones" create="false" delete="false" edit="false">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="workorder_name" string="OT"/>
+                <field name="workcenter_name" string="Centro"/>
+                <field name="hours_planned" string="H. plan" sum="Plan"/>
+                <field name="hours_real" string="H. real" sum="Real"/>
+                <field name="cost_total" string="Coste (€)" widget="monetary" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view de lineas de material en vista Costes OF -->
+    <record id="view_apunts_material_line_tree" model="ir.ui.view">
+        <field name="name">apunts.costes.of.material.line.tree</field>
+        <field name="model">apunts.costes.of.material.line</field>
+        <field name="arch" type="xml">
+            <list string="Material" create="false" delete="false" edit="false"
+                  decoration-success="state == 'green'"
+                  decoration-warning="state == 'amber'"
+                  decoration-danger="state == 'red'">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="product_name" string="Componente"/>
+                <field name="qty_needed" string="Necesario" sum="Total"/>
+                <field name="qty_consumed" string="Consumido"/>
+                <field name="qty_reserved" string="Reservado"/>
+                <field name="qty_in_transit" string="De camino"/>
+                <field name="qty_missing" string="Falta sin PO"/>
+                <field name="cost_total_needed" string="Coste (€)" widget="monetary" sum="Total esperado"/>
+                <field name="standard_price" string="Coste estandar (€/u)" widget="monetary" optional="show"/>
+                <field name="avg_purchase_price" string="Coste real compra (€/u)" widget="monetary" optional="show"/>
+                <field name="seller_partner_name" string="Proveedor preferido" optional="show"/>
+                <field name="lot_ids_summary" string="Lotes" optional="hide"/>
+                <field name="cost_total" string="Coste consumido (€)" widget="monetary" sum="Total consumido" optional="show"/>
+                <field name="cost_pending" string="Coste pendiente (€)" widget="monetary" sum="Total pendiente" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'green'"
+                       decoration-warning="state == 'amber'"
+                       decoration-danger="state == 'red'"/>
+                <button name="action_open_move" type="object" icon="fa-arrow-right"
+                        string="Ver movimiento" invisible="not move_id"/>
+                <button name="action_open_purchase" type="object" icon="fa-shopping-cart"
+                        string="Ver PO" invisible="not purchase_order_id"/>
+                <button name="action_open_seller" type="object" icon="fa-truck"
+                        string="Ver proveedor" invisible="not seller_partner_id"/>
+                <button name="action_open_lot" type="object" icon="fa-tag"
+                        string="Ver lote" invisible="not lot_id"/>
+                <button name="action_create_po_for_missing" type="object"
+                        string="Crear PO faltante" class="btn-warning"
+                        invisible="qty_missing &lt;= 0"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view de lineas de mano de obra en vista Costes OF -->
+    <record id="view_apunts_labor_line_tree" model="ir.ui.view">
+        <field name="name">apunts.costes.of.labor.line.tree</field>
+        <field name="model">apunts.costes.of.labor.line</field>
+        <field name="arch" type="xml">
+            <list string="Mano de obra y operaciones" create="false" delete="false" edit="false"
+                  decoration-success="state == 'green'"
+                  decoration-warning="state == 'amber'"
+                  decoration-danger="state == 'red'"
+                  decoration-muted="state == 'pending'">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="workorder_name" string="OT"/>
+                <field name="workcenter_name" string="Centro de trabajo"/>
+                <field name="employees_summary" string="Empleados"/>
+                <field name="hours_planned" string="Horas plan" sum="Plan"/>
+                <field name="hours_real" string="Horas real" sum="Real"/>
+                <field name="progress_pct" string="% avance"/>
+                <field name="cost_employee" string="Coste empleado (€)" widget="monetary" sum="Total empleado"/>
+                <field name="cost_workcenter" string="Coste centro (€)" widget="monetary" sum="Total centro"/>
+                <field name="cost_total" string="Coste (€)" widget="monetary" sum="Total"/>
+                <field name="workorder_state" widget="badge"
+                       decoration-success="workorder_state == 'done'"
+                       decoration-info="workorder_state == 'progress'"
+                       decoration-muted="workorder_state in ('pending', 'waiting')"/>
+                <button name="action_open_workorder" type="object" icon="fa-external-link"
+                        string="Abrir OT" invisible="not workorder_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view de asistencias (Hito 3) en vista Costes OF -->
+    <record id="view_apunts_attendance_line_tree" model="ir.ui.view">
+        <field name="name">apunts.costes.of.attendance.line.tree</field>
+        <field name="model">apunts.costes.of.attendance.line</field>
+        <field name="arch" type="xml">
+            <list string="Asistencias por empleado y dia" create="false" delete="false" edit="false"
+                  decoration-success="state == 'green'"
+                  decoration-warning="state == 'amber'"
+                  decoration-info="state == 'blue'">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="day_label" string="Dia"/>
+                <field name="employee_name" string="Empleado"/>
+                <field name="workorder_name" string="OT"/>
+                <field name="workcenter_name" string="Centro"/>
+                <field name="hours" string="Horas" sum="Total horas"/>
+                <field name="hourly_cost" string="Coste/h (€)" widget="monetary"/>
+                <field name="cost_total" string="Coste empleado (€)" widget="monetary" sum="Total coste empleado"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'green'"
+                       decoration-warning="state == 'amber'"
+                       decoration-info="state == 'blue'"/>
+                <button name="action_open_employee" type="object" icon="fa-user"
+                        string="Empleado" invisible="not employee_id"/>
+                <button name="action_open_workorder" type="object" icon="fa-cog"
+                        string="OT" invisible="not workorder_id"/>
+                <button name="action_open_day_productivity" type="object" icon="fa-calendar"
+                        string="Dia" invisible="not employee_id or not day_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view de producto terminado (Hito 4 + Hito 8) en vista Costes OF -->
+    <record id="view_apunts_finished_line_tree" model="ir.ui.view">
+        <field name="name">apunts.costes.of.finished.line.tree</field>
+        <field name="model">apunts.costes.of.finished.line</field>
+        <field name="arch" type="xml">
+            <list string="Producto terminado y trazabilidad" create="false" delete="false" edit="false"
+                  decoration-success="state == 'green'"
+                  decoration-warning="state == 'amber'"
+                  decoration-danger="state == 'red'"
+                  decoration-info="state == 'blue'">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="product_name" string="Producto"/>
+                <field name="qty_produced" string="Producido"/>
+                <field name="lot_name" string="Lote"/>
+                <field name="picking_name" string="Albaran salida"/>
+                <field name="picking_state" string="Estado picking" optional="hide"/>
+                <field name="delivery_date" string="Entrega" optional="show"/>
+                <field name="sale_order_name" string="Pedido cliente"/>
+                <field name="sale_partner_name" string="Cliente"/>
+                <field name="sale_price_unit" string="Precio venta (€/u)" widget="monetary"/>
+                <field name="sale_revenue" string="Ingreso (€)" widget="monetary" sum="Total ingreso"/>
+                <field name="cost_real_total" string="Coste real (€)" widget="monetary"/>
+                <field name="margin" string="Margen (€)" widget="monetary" sum="Margen total"
+                       decoration-danger="margin &lt; 0" decoration-success="margin &gt; 0"/>
+                <field name="margin_pct" string="Margen %"
+                       decoration-danger="margin_pct &lt; 0"
+                       decoration-warning="margin_pct &gt;= 0 and margin_pct &lt; 20"
+                       decoration-success="margin_pct &gt;= 20"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'green'"
+                       decoration-warning="state == 'amber'"
+                       decoration-danger="state == 'red'"
+                       decoration-info="state == 'blue'"/>
+                <field name="margin_explanation" string="Lectura comercial" optional="show"/>
+                <button name="action_open_lot" type="object" icon="fa-tag"
+                        string="Lote" invisible="not lot_id"/>
+                <button name="action_open_picking" type="object" icon="fa-truck"
+                        string="Albaran" invisible="not picking_id"/>
+                <button name="action_open_sale_order" type="object" icon="fa-shopping-cart"
+                        string="Pedido" invisible="not sale_order_id"/>
+                <button name="action_open_partner" type="object" icon="fa-user"
+                        string="Cliente" invisible="not sale_partner_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tree view de alertas en vista Costes OF -->
+    <record id="view_apunts_alert_tree" model="ir.ui.view">
+        <field name="name">apunts.costes.of.alert.tree</field>
+        <field name="model">apunts.costes.of.alert</field>
+        <field name="arch" type="xml">
+            <list string="Alertas" create="false" delete="false" edit="false"
+                  decoration-danger="severity == 'red'"
+                  decoration-warning="severity == 'amber'"
+                  decoration-info="severity == 'blue'">
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'red'"
+                       decoration-warning="severity == 'amber'"
+                       decoration-info="severity == 'blue'"/>
+                <field name="message" string="Mensaje"/>
+                <field name="related_workorder_id" optional="show"/>
+                <field name="related_product_id" optional="show"/>
+                <button name="action_open_related" type="object" icon="fa-external-link"
+                        string="Ir al origen"
+                        invisible="not related_workorder_id and not related_product_id"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>
