@@ -107,3 +107,35 @@ El panel del supervisor muestra filas de `mrp.workorder`. Al hacer clic, Odoo ab
 `TypeError: Cannot read properties of undefined (reading 'call')` — `this.orm` era `undefined` al sobreescribir `openRecord` sin definir `setup()`. En OWL 2, los hooks de `useService` deben llamarse explícitamente en el `setup()` del componente que los usa. La solución fue definir `setup()` en el subcomponente, llamar a `super.setup()` y registrar los servicios propios (`this._orm`, `this._action`) con `useService`, en lugar de depender de los heredados del padre.
 
 ---
+
+## [006] Etiquetas albarán — corrección formato y maquetación
+
+**Fecha:** 2026-05-15  
+**Módulo:** `javier_ramos_taller_simple`  
+**Ficheros modificados:**
+- `javier_ramos_taller_simple/report/paper_format.xml` — definidas dimensiones reales de la etiqueta (150 × 105 mm)
+- `javier_ramos_taller_simple/report/labels.xml` — reescritura completa de las plantillas de etiqueta
+- `javier_ramos_taller_simple/views/pedidos.xml` — comentado xpath que referenciaba campo Studio eliminado
+
+**Vista afectada:** Inventario > Traslados > imprimir etiquetas de albarán (recepción y expedición)
+
+**Qué hace:**
+Corrige dos problemas en las etiquetas de albarán:
+
+1. **Logo flotante a mitad de la etiqueta**: causado por `web.internal_layout`, que inserta un header con posición fija y el logo de empresa. En etiquetas pequeñas (150 × 105 mm) ese header se superpone al contenido. Se eliminó el `t-call="web.internal_layout"` y el template `internal_layout_inherit`. Las plantillas ahora usan directamente `<div class="page">` con tabla CSS en línea.
+
+2. **Contenido desbordando la página**: causado por `font-size: 3rem` (demasiado grande) + 7 `<br/>` de margen superior + dimensiones de papel no definidas (`page_height=0`, `page_width=0`). Se corrigió: `page_height=150`, `page_width=105`, fuente 9pt / cabecera 11pt, eliminados todos los `<br/>` innecesarios.
+
+3. **Tipo de código de barras**: cambiado de `EAN13` (requiere formato numérico estricto) a `Code128` (acepta cualquier cadena alfanumérica).
+
+4. **Logo reposicionado**: ahora aparece como última fila de la tabla de contenido, en la parte inferior de la etiqueta.
+
+5. **Vista `pedidos.xml`**: se comentó el xpath `//field[@name='x_studio_rdenes_de_fabricacin']` que referenciaba un campo Studio que ya no existe en la vista padre de `sale.order`, lo que impedía la actualización del módulo.
+
+**Para aplicar cambios:**
+```
+docker exec odoo_javierramos_local-odoo-1 odoo -d javierramoslocal --update=javier_ramos_taller_simple --stop-after-init
+docker restart odoo_javierramos_local-odoo-1
+```
+
+---
