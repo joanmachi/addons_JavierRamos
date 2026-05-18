@@ -18,133 +18,116 @@
     <template id="etiqueta_albaran_entrega_document">
         <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
         <t t-foreach="o.move_ids_without_package" t-as="linea_albaran">
-
-            <!-- Resolver cliente: sale_line > partner directo del picking -->
             <t t-set="cliente_expedicion" t-value="linea_albaran.sale_line_id.order_id.partner_id or o.partner_id"/>
 
             <div class="page article" style="font-family: Arial, sans-serif; box-sizing: border-box; padding: 3mm;">
-                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <style>
+                    table, tr, td, th { border: none !important; border-width: 0 !important; }
+                </style>
 
-                    <!-- CABECERA + número de traslado sutil -->
-                    <tr>
-                        <td colspan="2" style="background: #555555; color: white; padding: 5px 6px; border: 1px solid #555;">
-                            <div style="display: flex; align-items: center;">
-                                <div style="flex: 1;"></div>
-                                <strong style="flex: 0; font-size: 11pt; letter-spacing: 0.5px; text-align: center; white-space: nowrap;">FASE DE EXPEDICIÓN CONFORME</strong>
-                                <div style="flex: 1; text-align: right; font-size: 6pt; color: #bbb; font-weight: normal; padding-left: 4px;">
-                                    <t t-esc="o.name"/>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                <!-- LOGO sin borde -->
+                <div style="text-align: center; padding: 2mm 0 2mm 0;">
+                    <img t-if="o.company_id.logo_web" t-att-src="image_data_uri(o.company_id.logo_web)" alt="Logo" style="height: 20mm;"/>
+                </div>
 
-                    <!-- ARTICULO | ORDEN con barcodes -->
-                    <tr>
-                        <!-- ARTICULO: default_code > barcode del producto -->
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 4px; text-align: center; height: 28mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
-                            <t t-if="linea_albaran.product_id">
-                                <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
-                                <t t-if="cod_art">
-                                    <img style="width: 90%; height: 16mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
-                                    <div style="font-size: 8pt;"><t t-esc="cod_art"/></div>
+                <!-- BLOQUE CON BORDE EXTERIOR -->
+                <div style="border: 1px solid #888;">
+
+                    <!-- CABECERA gris -->
+                    <div style="background: #555555; color: white; padding: 5px 6px; position: relative;">
+                        <strong style="display: block; text-align: center; font-size: 13pt; letter-spacing: 0.5px; white-space: nowrap;">FASE DE EXPEDICIÓN CONFORME</strong>
+                        <span style="position: absolute; top: 6px; right: 6px; font-size: 7pt; color: #bbb;"><t t-esc="o.name"/></span>
+                    </div>
+
+                    <!-- ARTICULO | ORDEN barcodes con separador vertical -->
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
+                                <t t-if="linea_albaran.product_id">
+                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
+                                    <t t-if="cod_art">
+                                        <img style="width: 90%; height: 17mm;"
+                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
+                                        <div style="font-size: 9pt; font-weight: bold;"><t t-esc="cod_art"/></div>
+                                    </t>
                                 </t>
-                            </t>
-                        </td>
-                        <!-- ORDEN: fabricacion > sale order -->
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 4px; text-align: center; height: 28mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
-                            <t t-if="linea_albaran.fabricacion">
-                                <img style="width: 90%; height: 16mm;"
-                                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
-                                <div style="font-size: 8pt;"><t t-esc="linea_albaran.fabricacion.name"/></div>
-                            </t>
-                            <t t-elif="linea_albaran.sale_line_id">
-                                <img style="width: 90%; height: 16mm;"
-                                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.sale_line_id.order_id.name, 200, 60)"/>
-                                <div style="font-size: 8pt;"><t t-esc="linea_albaran.sale_line_id.order_id.name"/></div>
-                            </t>
-                        </td>
-                    </tr>
+                            </td>
+                            <td style="width: 2%; padding: 0;" bgcolor="#cccccc">&#160;</td>
+                            <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
+                                <t t-if="linea_albaran.fabricacion">
+                                    <img style="width: 90%; height: 17mm;"
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
+                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.fabricacion.name"/></div>
+                                </t>
+                                <t t-elif="linea_albaran.sale_line_id">
+                                    <img style="width: 90%; height: 17mm;"
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.sale_line_id.order_id.name, 200, 60)"/>
+                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.sale_line_id.order_id.name"/></div>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- DESCRIPCIÓN -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 16mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">DESCRIPCIÓN</div>
-                            <div style="font-size: 9pt; font-weight: bold; margin-top: 2px;">
-                                <t t-if="linea_albaran.product_id">
-                                    <t t-esc="linea_albaran.product_id.name"/>
-                                </t>
-                            </div>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 14mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">DESCRIPCIÓN</div>
+                        <div style="font-size: 11pt; font-weight: bold; margin-top: 2px;">
+                            <t t-if="linea_albaran.product_id"><t t-esc="linea_albaran.product_id.name"/></t>
+                        </div>
+                    </div>
 
-                    <!-- REF. CLIENTE -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">REF. CLIENTE </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="linea_albaran.product_id and linea_albaran.product_id.description_sale">
-                                    <t t-esc="linea_albaran.product_id.description_sale"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <!-- FECHA ENTREGA -->
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">FECHA ENTREGA</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="linea_albaran.sale_line_id and linea_albaran.sale_line_id.order_id.commitment_date">
+                                <t t-esc="linea_albaran.sale_line_id.order_id.commitment_date.strftime('%d/%m/%Y')"/>
+                            </t>
+                        </div>
+                    </div>
 
                     <!-- PEDIDO JR -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">PEDIDO JR </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="linea_albaran.sale_line_id">
-                                    <t t-esc="linea_albaran.sale_line_id.order_id.name"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">PEDIDO JR</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="linea_albaran.sale_line_id"><t t-esc="linea_albaran.sale_line_id.order_id.name"/></t>
+                        </div>
+                    </div>
 
                     <!-- Nº PEDIDO CLIENTE -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">Nº PEDIDO CLIENTE </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="linea_albaran.sale_line_id">
-                                    <t t-esc="linea_albaran.sale_line_id.order_id.client_order_ref"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">Nº PEDIDO CLIENTE</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="linea_albaran.sale_line_id"><t t-esc="linea_albaran.sale_line_id.order_id.client_order_ref"/></t>
+                        </div>
+                    </div>
 
                     <!-- CLIENTE -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 14mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">CLIENTE
-                                <t t-if="cliente_expedicion.ref">
-                                    <span style="color: #333; font-weight: normal;">&#160;<t t-esc="cliente_expedicion.ref"/></span>
-                                </t>
-                            </div>
-                            <div style="font-size: 10pt; font-weight: bold; margin-top: 2px;">
-                                <t t-esc="cliente_expedicion.name"/>
-                            </div>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 12mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">CLIENTE
+                            <t t-if="cliente_expedicion.ref">
+                                <span style="font-weight: bold; color: #333;">&#160;<t t-esc="cliente_expedicion.ref"/></span>
+                            </t>
+                        </div>
+                        <div style="font-size: 12pt; font-weight: bold; margin-top: 2px;"><t t-esc="cliente_expedicion.name"/></div>
+                    </div>
 
-                    <!-- CANTIDAD -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 20mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">CANTIDAD</div>
-                        </td>
-                    </tr>
+                    <!-- CANTIDAD | LONGITUD con separador vertical -->
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="width: 49%; padding: 3px 5px; height: 16mm; vertical-align: top;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555;">CANTIDAD</div>
+                            </td>
+                            <td style="width: 2%; padding: 0;" bgcolor="#cccccc">&#160;</td>
+                            <td style="width: 49%; padding: 3px 5px; height: 16mm; vertical-align: top;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555;">LONGITUD:</div>
+                            </td>
+                        </tr>
+                    </table>
 
-                    <!-- LOGO -->
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 3px; height: 12mm; vertical-align: middle;">
-                            <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Logo" style="height: 10mm;"/>
-                        </td>
-                    </tr>
-
-                </table>
+                </div>
             </div>
         </t>
     </template>
@@ -153,135 +136,114 @@
     <template id="etiqueta_albaran_recepcion_document">
         <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
         <t t-foreach="o.move_ids_without_package" t-as="linea_albaran">
-
-            <!-- Resolver cliente: fabricacion > sale_line > partner directo del picking -->
             <t t-set="cliente_recepcion" t-value="(linea_albaran.fabricacion.partner_id) or (linea_albaran.sale_line_id.order_id.partner_id) or o.partner_id"/>
 
             <div class="page article" style="font-family: Arial, sans-serif; box-sizing: border-box; padding: 3mm;">
-                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <style>
+                    table, tr, td, th { border: none !important; border-width: 0 !important; }
+                </style>
 
-                    <!-- CABECERA + número de traslado sutil -->
-                    <tr>
-                        <td colspan="2" style="background: #555555; color: white; padding: 5px 6px; border: 1px solid #555;">
-                            <div style="display: flex; align-items: center;">
-                                <div style="flex: 1;"></div>
-                                <strong style="flex: 0; font-size: 11pt; letter-spacing: 0.5px; text-align: center; white-space: nowrap;">FASE DE RECEPCIÓN CONFORME</strong>
-                                <div style="flex: 1; text-align: right; font-size: 6pt; color: #bbb; font-weight: normal; padding-left: 4px;">
-                                    <t t-esc="o.name"/>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                <!-- LOGO sin borde -->
+                <div style="text-align: center; padding: 2mm 0 2mm 0;">
+                    <img t-if="o.company_id.logo_web" t-att-src="image_data_uri(o.company_id.logo_web)" alt="Logo" style="height: 20mm;"/>
+                </div>
 
-                    <!-- ORDEN | ARTICULO con barcodes -->
-                    <tr>
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 4px; text-align: center; height: 28mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
-                            <t t-if="linea_albaran.fabricacion">
-                                <img style="width: 90%; height: 16mm;"
-                                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
-                                <div style="font-size: 8pt;"><t t-esc="linea_albaran.fabricacion.name"/></div>
-                            </t>
-                            <t t-elif="linea_albaran.purchase_line_id">
-                                <img style="width: 90%; height: 16mm;"
-                                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.purchase_line_id.order_id.name, 200, 60)"/>
-                                <div style="font-size: 8pt;"><t t-esc="linea_albaran.purchase_line_id.order_id.name"/></div>
-                            </t>
-                        </td>
-                        <!-- ARTICULO: default_code > barcode del producto -->
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 4px; text-align: center; height: 28mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
-                            <t t-if="linea_albaran.product_id">
-                                <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
-                                <t t-if="cod_art">
-                                    <img style="width: 90%; height: 16mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
-                                    <div style="font-size: 8pt;"><t t-esc="cod_art"/></div>
+                <!-- BLOQUE CON BORDE EXTERIOR -->
+                <div style="border: 1px solid #888;">
+
+                    <!-- CABECERA gris -->
+                    <div style="background: #555555; color: white; padding: 5px 6px; position: relative;">
+                        <strong style="display: block; text-align: center; font-size: 13pt; letter-spacing: 0.5px; white-space: nowrap;">FASE DE RECEPCIÓN CONFORME</strong>
+                        <span style="position: absolute; top: 6px; right: 6px; font-size: 7pt; color: #bbb;"><t t-esc="o.name"/></span>
+                    </div>
+
+                    <!-- ORDEN | ARTICULO barcodes con separador vertical -->
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
+                                <t t-if="linea_albaran.fabricacion">
+                                    <img style="width: 90%; height: 17mm;"
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
+                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.fabricacion.name"/></div>
                                 </t>
-                            </t>
-                        </td>
-                    </tr>
+                                <t t-elif="linea_albaran.purchase_line_id">
+                                    <img style="width: 90%; height: 17mm;"
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.purchase_line_id.order_id.name, 200, 60)"/>
+                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.purchase_line_id.order_id.name"/></div>
+                                </t>
+                            </td>
+                            <td style="width: 2%; padding: 0;" bgcolor="#cccccc">&#160;</td>
+                            <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
+                                <t t-if="linea_albaran.product_id">
+                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
+                                    <t t-if="cod_art">
+                                        <img style="width: 90%; height: 17mm;"
+                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
+                                        <div style="font-size: 9pt; font-weight: bold;"><t t-esc="cod_art"/></div>
+                                    </t>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- DESCRIPCION -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 16mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">DESCRIPCION</div>
-                            <div style="font-size: 9pt; font-weight: bold; margin-top: 2px;">
-                                <t t-if="linea_albaran.product_id">
-                                    <t t-esc="linea_albaran.product_id.name"/>
-                                </t>
-                            </div>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 14mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">DESCRIPCION</div>
+                        <div style="font-size: 11pt; font-weight: bold; margin-top: 2px;">
+                            <t t-if="linea_albaran.product_id"><t t-esc="linea_albaran.product_id.name"/></t>
+                        </div>
+                    </div>
 
                     <!-- FECHA VENCIMIENTO -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">FECHA VENCIMIENTO </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="o.scheduled_date">
-                                    <t t-esc="o.scheduled_date.strftime('%d/%m/%Y')"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">FECHA VENCIMIENTO</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="o.scheduled_date"><t t-esc="o.scheduled_date.strftime('%d/%m/%Y')"/></t>
+                        </div>
+                    </div>
 
                     <!-- PEDIDO -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">PEDIDO </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="linea_albaran.purchase_line_id">
-                                    <t t-esc="linea_albaran.purchase_line_id.order_id.name"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">PEDIDO</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="linea_albaran.purchase_line_id"><t t-esc="linea_albaran.purchase_line_id.order_id.name"/></t>
+                        </div>
+                    </div>
 
                     <!-- REF. PEDIDO -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 9mm; vertical-align: middle;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #555;">REF. PEDIDO </span>
-                            <span style="font-size: 9pt;">
-                                <t t-if="linea_albaran.purchase_line_id">
-                                    <t t-esc="linea_albaran.purchase_line_id.order_id.partner_ref"/>
-                                </t>
-                            </span>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">REF. PEDIDO</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-if="linea_albaran.purchase_line_id"><t t-esc="linea_albaran.purchase_line_id.order_id.partner_ref"/></t>
+                        </div>
+                    </div>
 
                     <!-- CLIENTE -->
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #aaa; padding: 3px 5px; height: 14mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">CLIENTE
-                                <t t-if="cliente_recepcion.ref">
-                                    <span style="color: #333; font-weight: normal;">&#160;<t t-esc="cliente_recepcion.ref"/></span>
-                                </t>
-                            </div>
-                            <div style="font-size: 10pt; font-weight: bold; margin-top: 2px;">
-                                <t t-esc="cliente_recepcion.name"/>
-                            </div>
-                        </td>
-                    </tr>
+                    <div style="padding: 3px 5px; min-height: 12mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">CLIENTE
+                            <t t-if="cliente_recepcion.ref">
+                                <span style="font-weight: bold; color: #333;">&#160;<t t-esc="cliente_recepcion.ref"/></span>
+                            </t>
+                        </div>
+                        <div style="font-size: 12pt; font-weight: bold; margin-top: 2px;"><t t-esc="cliente_recepcion.name"/></div>
+                    </div>
 
-                    <!-- CANTIDAD | LONGITUD -->
-                    <tr>
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 5px; height: 20mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">CANTIDAD</div>
-                        </td>
-                        <td style="width: 50%; border: 1px solid #aaa; padding: 3px 5px; height: 20mm; vertical-align: top;">
-                            <div style="font-size: 7pt; font-weight: bold; color: #555;">LONGITUD:</div>
-                        </td>
-                    </tr>
+                    <!-- CANTIDAD | LONGITUD con separador vertical -->
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="width: 49%; padding: 3px 5px; height: 16mm; vertical-align: top;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555;">CANTIDAD</div>
+                            </td>
+                            <td style="width: 2%; padding: 0;" bgcolor="#cccccc">&#160;</td>
+                            <td style="width: 49%; padding: 3px 5px; height: 16mm; vertical-align: top;">
+                                <div style="font-size: 8pt; font-weight: bold; color: #555;">LONGITUD:</div>
+                            </td>
+                        </tr>
+                    </table>
 
-                    <!-- LOGO -->
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 3px; height: 12mm; vertical-align: middle;">
-                            <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Logo" style="height: 10mm;"/>
-                        </td>
-                    </tr>
-
-                </table>
+                </div>
             </div>
         </t>
     </template>
