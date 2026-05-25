@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_employee_form_apunts_taller" model="ir.ui.view">
+        <field name="name">hr.employee.form.apunts.taller</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_apunts_desbloquear_taller"
+                        string="Desbloquear taller"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="not apunts_taller_bloqueado"
+                        groups="hr.group_hr_user"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Control taller (Apunts)" name="apunts_taller">
+                    <field name="apunts_taller_bloqueado" readonly="1"/>
+                    <field name="apunts_taller_motivo_bloqueo" readonly="1"
+                           invisible="not apunts_taller_bloqueado"/>
+                    <field name="apunts_taller_fecha_bloqueo" readonly="1"
+                           invisible="not apunts_taller_bloqueado"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

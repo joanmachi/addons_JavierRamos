@@ -11,12 +11,9 @@ from . import lira_aging
 from . import lira_purchase_analysis
 from . import lira_collections
 from . import lira_pending_delivery
-from . import lira_mrp_wip
-from . import lira_mrp_products
 from . import lira_hacienda
 from . import lira_purchase_pending
 from . import lira_sales_monthly
-from . import lira_wip_valuation
 from . import lira_pnl_period
 from . import lira_inventory_valuation_fv
 from . import lira_aging_suppliers

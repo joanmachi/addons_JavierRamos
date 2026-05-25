@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_apunts_jr_carga_root"
+              name="Carga centros"
+              sequence="59"
+              web_icon="apunts_jr_carga_centros,static/description/icon.png"/>
+
+    <menuitem id="menu_apunts_jr_carga_resumen"
+              name="Resumen"
+              parent="menu_apunts_jr_carga_root"
+              action="apunts_action_carga_resumen_srv"
+              sequence="1"/>
+
+    <menuitem id="menu_apunts_jr_carga_lista"
+              name="Lista de centros"
+              parent="menu_apunts_jr_carga_root"
+              action="apunts_action_carga_centros_list"
+              sequence="2"/>
+</odoo>

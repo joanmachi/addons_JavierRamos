@@ -17,19 +17,32 @@ class WorkorderQtyWizard(models.TransientModel):
         if self.new_qty > self.workorder_id.qty_ready_to_validate:
              raise ValidationError("No puedes validar mas de la cantidad lista.")
 
-        # Update the 'Validated' field
+        # Detectar si esta WO es la ultima fase: en ese caso, el override
+        # de mrp.workorder.write disparara `_apunts_auto_producir_y_backorder`
+        # que ya se encarga de fijar qty_producing y cerrar/back-order la OF.
+        # Para no chocar con esa logica, hacemos el segundo write a
+        # production.qty_producing SOLO si NO es ultima fase.
+        production = self.workorder_id.production_id
+        es_ultima = production._apunts_es_ultima_fase(self.workorder_id)
+
+        # Update the 'Validated' field (puede disparar el trigger via write())
         self.workorder_id.write({
             'qty_validated': self.workorder_id.qty_validated + self.new_qty,
             'qty_ready_to_validate': self.workorder_id.qty_ready_to_validate - self.new_qty,
             'qty_remaining': self.qty_remaining - self.new_qty
         })
 
-        all_wos = self.workorder_id.production_id.workorder_ids.sorted('sequence')
-        next_wos = all_wos.filtered(lambda w: w.sequence > self.workorder_id.sequence)
-        if not next_wos:
-            self.workorder_id.production_id.write({
-                'qty_producing' : self.workorder_id.production_id.qty_producing + self.new_qty
-            })
+        if not es_ultima:
+            # Fases intermedias: mantenemos el comportamiento anterior por
+            # compatibilidad (el codigo nativo subia qty_producing tambien
+            # cuando no habia "next_wos" — eso solo pasaba en la ultima
+            # fase, ya cubierto por el auto-trigger).
+            all_wos = production.workorder_ids.sorted('sequence')
+            next_wos = all_wos.filtered(lambda w: w.sequence > self.workorder_id.sequence)
+            if not next_wos:
+                production.write({
+                    'qty_producing': production.qty_producing + self.new_qty
+                })
 
     
         self.env.user._bus_send("barcode_refresh_requested", {

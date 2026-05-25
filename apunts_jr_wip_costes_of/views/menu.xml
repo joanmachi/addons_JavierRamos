@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_apunts_jr_wip_root"
+              name="WIP"
+              sequence="58"
+              web_icon="apunts_jr_wip_costes_of,static/description/icon.png"/>
+
+    <menuitem id="menu_apunts_jr_wip_resumen"
+              name="Resumen"
+              parent="menu_apunts_jr_wip_root"
+              action="apunts_action_wip_resumen_srv"
+              sequence="1"/>
+
+    <menuitem id="menu_apunts_jr_wip_list"
+              name="OFs en curso"
+              parent="menu_apunts_jr_wip_root"
+              action="apunts_action_mrp_production_wip"
+              sequence="2"/>
+
+    <menuitem id="menu_apunts_jr_wip_buscar_coste"
+              name="Buscar Coste OF"
+              parent="menu_apunts_jr_wip_root"
+              action="apunts_action_buscar_coste_of"
+              sequence="3"/>
+</odoo>

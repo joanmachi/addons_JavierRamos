@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_wip_resumen_form" model="ir.ui.view">
+        <field name="name">apunts.wip.resumen.form</field>
+        <field name="model">apunts.wip.resumen</field>
+        <field name="arch" type="xml">
+            <form string="Resumen WIP" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>Resumen Trabajo en Curso</h1>
+                        <p class="text-muted">
+                            Foto global ahora mismo de todas las OFs en curso (WIP).
+                            Para detalle por OF, filtros y agrupaciones, abre la lista detallada.
+                        </p>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <button name="action_open_lista_wip" type="object"
+                                string="EN CURSO — abrir lista detallada"
+                                class="btn btn-lg btn-primary"/>
+                        <button name="action_forzar_recompute" type="object"
+                                string="↻ Forzar recompute"
+                                class="btn btn-lg btn-secondary"
+                                help="Recalcula todos los campos del WIP. Útil si acabas de recibir una PO y los datos no se han refrescado todavía."/>
+                    </div>
+
+                    <field name="n_ofs_bom_incompleta" invisible="1"/>
+
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Órdenes en curso</div>
+                                    <div class="display-5 fw-bold text-primary">
+                                        <field name="n_ofs_wip" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Órdenes de fabricación con material ya consumido
+                                        o con material recibido del proveedor (aunque
+                                        la orden aún no haya empezado a trabajarse).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Venta total</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_venta" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Importe del pedido de venta confirmado vinculado
+                                        a estas órdenes (sólo pedidos confirmados).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">En curso (real)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="total_cost_real" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Material recibido + mano de obra fichada + máquina ya invertida.
+                                        El material cuenta desde que llega del proveedor (aunque aún no se haya consumido).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Margen estimado</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="margen_estimado" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Venta total menos coste teórico total.
+                                        Es el margen esperado si todo va según lo previsto.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="mt-4">Desglose por concepto</h3>
+                    <table class="table table-bordered align-middle mt-2">
+                        <thead>
+                            <tr>
+                                <th class="text-start">Concepto</th>
+                                <th class="text-end">Teórico</th>
+                                <th class="text-end">Real</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-bold">MP (Materia Prima)</div>
+                                    <div class="small text-muted">
+                                        Teórico: lista de materiales × cantidad de la orden × precio.
+                                        Real: lo recibido del proveedor (línea de compra con campo Fabricación)
+                                        más lo ya consumido en taller.
+                                    </div>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_mat_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_mat_real" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                            </tr>
+                            <field name="total_mat_planned_ajustado" invisible="1"/>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-bold ps-4">↳ MP pendiente de recibir</div>
+                                    <div class="small text-muted ps-4">
+                                        Importe de las líneas de compra vinculadas a estas órdenes,
+                                        en estado confirmado, que aún no han llegado del proveedor.
+                                    </div>
+                                </td>
+                                <td class="text-end h4 mb-0 text-muted">—</td>
+                                <td class="text-end h4 mb-0 text-warning">
+                                    <field name="total_mp_pendiente_recibir" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                            </tr>
+                            <tr class="table-secondary">
+                                <td class="text-start">
+                                    <div class="fw-bold">Tiempo de fabricación</div>
+                                    <div class="small text-muted">
+                                        Teórico: minutos previstos en las operaciones del producto.
+                                        Real: minutos que los operarios han fichado en las órdenes de trabajo.
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="h4 mb-0">
+                                        <field name="total_min_planned" nolabel="1" readonly="1" widget="float" digits="[16,0]"/> min
+                                    </div>
+                                    <div class="small text-muted">
+                                        ≈ <field name="total_horas_planned" nolabel="1" readonly="1" widget="float" digits="[16,1]"/> h
+                                        · <field name="total_jornadas_planned" nolabel="1" readonly="1" widget="float" digits="[16,1]"/> días laborales (8h)
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="h4 mb-0">
+                                        <field name="total_min_real" nolabel="1" readonly="1" widget="float" digits="[16,0]"/> min
+                                    </div>
+                                    <div class="small text-muted">
+                                        ≈ <field name="total_horas_real" nolabel="1" readonly="1" widget="float" digits="[16,1]"/> h
+                                        · <field name="total_jornadas_real" nolabel="1" readonly="1" widget="float" digits="[16,1]"/> días laborales (8h)
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-bold ps-4">↳ Coste operario</div>
+                                    <div class="small text-muted ps-4">
+                                        Teórico: minutos previstos × tarifa hora del empleado
+                                        (centro de trabajo si no hay empleado asignado).
+                                        Real: minutos fichados × misma tarifa.
+                                    </div>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_mo_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_mo_real" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-bold ps-4">↳ Coste máquina</div>
+                                    <div class="small text-muted ps-4">
+                                        Teórico: minutos previstos × coste por hora del centro de trabajo.
+                                        Real: minutos fichados × coste por hora del centro.
+                                    </div>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_machine_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                                <td class="text-end h4 mb-0">
+                                    <field name="total_machine_real" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                            </tr>
+                            <tr class="table-active">
+                                <td class="text-start fw-bold">TOTAL</td>
+                                <td class="text-end h4 mb-0 fw-bold">
+                                    <field name="total_cost_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                                <td class="text-end h4 mb-0 fw-bold">
+                                    <field name="total_cost_real" nolabel="1" readonly="1" widget="monetary"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <field name="currency_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_wip_resumen_srv" model="ir.actions.server">
+        <field name="name">Resumen WIP</field>
+        <field name="model_id" ref="model_apunts_wip_resumen"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_resumen()</field>
+    </record>
+
+</odoo>

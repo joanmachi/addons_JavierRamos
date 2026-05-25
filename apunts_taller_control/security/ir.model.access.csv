@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_apunts_taller_control_user,apunts.taller.control.user,model_apunts_taller_control,base.group_user,1,0,0,0
+access_apunts_fin_jornada_wizard,apunts.fin.jornada.wizard,model_apunts_fin_jornada_wizard,base.group_user,1,1,1,1
+access_apunts_fin_jornada_wizard_linea,apunts.fin.jornada.wizard.linea,model_apunts_fin_jornada_wizard_linea,base.group_user,1,1,1,1
+access_apunts_sobre_fichaje_wizard,apunts.sobre.fichaje.wizard,model_apunts_sobre_fichaje_wizard,base.group_user,1,1,1,1
+access_apunts_sobre_fichaje_wizard_linea,apunts.sobre.fichaje.wizard.linea,model_apunts_sobre_fichaje_wizard_linea,base.group_user,1,1,1,1

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="apunts_taller_control.FinJornadaBtn"
+       t-inherit="apunts_barcode_workorder.MainComponent"
+       t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('apunts-fichar-btn')]" position="after">
+            <button class="apunts-fichar-btn apunts-fin-jornada-btn"
+                    style="background:#dc3545;flex:1 1 100%;margin-top:8px;"
+                    t-on-click.stop="() => this.openFinJornadaWizard()">
+                <i class="fa fa-sign-out me-1"/>FIN JORNADA
+            </button>
+        </xpath>
+    </t>
+
+</templates>

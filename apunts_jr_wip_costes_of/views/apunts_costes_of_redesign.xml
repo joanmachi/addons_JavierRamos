@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Rediseño de la vista "COSTE OF" (smart button) del módulo apunts_costes_of.
+        Reemplaza el bloque de KPI cards y los 3 bloques de margen por un layout
+        coherente con el Resumen WIP (4 tarjetas + tabla por concepto + explicaciones).
+    -->
+    <record id="apunts_jr_wip_costes_of_form_redesign" model="ir.ui.view">
+        <field name="name">apunts.coste.of.form.redesign.jr.wip</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="apunts_costes_of.view_apunts_mrp_production_form_costes"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@name='apunts_kpi_cards']" position="replace">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center">
+                                <div class="text-muted small text-uppercase">Venta</div>
+                                <div class="display-6 fw-bold text-success">
+                                    <field name="apunts_sale_amount" nolabel="1" readonly="1" widget="monetary"/>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    Importe del pedido de venta confirmado vinculado a esta orden.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center">
+                                <div class="text-muted small text-uppercase">En curso (real)</div>
+                                <div class="display-6 fw-bold text-warning">
+                                    <field name="apunts_cost_total_real" nolabel="1" readonly="1" widget="monetary"/>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    Material recibido + mano de obra fichada + máquina ya invertida.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center">
+                                <div class="text-muted small text-uppercase">Coste teórico OF</div>
+                                <div class="display-6 fw-bold text-primary">
+                                    <field name="apunts_cost_total_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    Material teórico + MO teórica + máquina teórica según BoM y routing.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-info h-100">
+                            <div class="card-body text-center">
+                                <div class="text-muted small text-uppercase">Margen actual</div>
+                                <div class="display-6 fw-bold">
+                                    <field name="apunts_margin_total" nolabel="1" readonly="1" widget="monetary"
+                                           decoration-success="apunts_margin_state == 'green'"
+                                           decoration-warning="apunts_margin_state == 'amber'"
+                                           decoration-danger="apunts_margin_state == 'red'"/>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    Venta − coste real. Verde ≥ 20%, ámbar 0–20%, rojo &lt; 0%.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="mt-3">Desglose por concepto</h3>
+                <table class="table table-bordered align-middle mt-2">
+                    <thead>
+                        <tr>
+                            <th class="text-start">Concepto</th>
+                            <th class="text-end">Teórico</th>
+                            <th class="text-end">Real</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-start">
+                                <div class="fw-bold">MP (Materia Prima)</div>
+                                <div class="small text-muted">
+                                    Teórico: lista de materiales × cantidad de la orden × precio.
+                                    Real: lo recibido del proveedor (línea de compra con campo Fabricación)
+                                    más lo ya consumido en taller.
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_mat_planned_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_mat_real_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td class="text-start">
+                                <div class="fw-bold">Tiempo de fabricación</div>
+                                <div class="small text-muted">
+                                    Teórico: minutos previstos en las operaciones del producto.
+                                    Real: minutos fichados por los operarios.
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_min_total_plan" nolabel="1" readonly="1" widget="float_time"/>
+                                <div class="small text-muted">
+                                    <field name="apunts_min_unit_plan" nolabel="1" readonly="1" widget="float_time" class="oe_inline"/> /pieza
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_min_real_total" nolabel="1" readonly="1" widget="float_time"/>
+                                <div class="small text-muted">
+                                    <field name="apunts_min_unit_real" nolabel="1" readonly="1" widget="float_time" class="oe_inline"/> /pieza
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-start">
+                                <div class="fw-bold ps-4">↳ Coste operario</div>
+                                <div class="small text-muted ps-4">
+                                    Teórico: minutos previstos × tarifa hora del empleado
+                                    (centro de trabajo si no hay empleado asignado).
+                                    Real: minutos fichados × misma tarifa.
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_mo_planned_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_mo_real_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-start">
+                                <div class="fw-bold ps-4">↳ Coste máquina</div>
+                                <div class="small text-muted ps-4">
+                                    Teórico: minutos previstos × coste por hora del centro de trabajo.
+                                    Real: minutos fichados × coste por hora del centro.
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_machine_planned_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_machine_real_total" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                        </tr>
+                        <tr class="table-active">
+                            <td class="text-start fw-bold">TOTAL</td>
+                            <td class="text-end h4 mb-0 fw-bold">
+                                <field name="apunts_cost_total_planned" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                            <td class="text-end h4 mb-0 fw-bold">
+                                <field name="apunts_cost_total_real" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <field name="apunts_bom_incompleta" invisible="1"/>
+                <div class="alert alert-warning mb-3" role="alert" invisible="not apunts_bom_incompleta">
+                    <strong>⚠ Esta orden está gastando mucho más material del previsto.</strong>
+                    Suele pasar cuando a la lista de materiales del producto le faltan piezas o
+                    servicios externos (mecanizado, pavonado, pintura...) o tiene cantidades mal
+                    puestas. Conviene revisar la BoM del producto.
+                </div>
+                <field name="apunts_margin_state" invisible="1"/>
+                <field name="apunts_margin_explanation" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//div[@class='apunts_margin_block apunts_margin_green']" position="replace"/>
+            <xpath expr="//div[@class='apunts_margin_block apunts_margin_amber']" position="replace"/>
+            <xpath expr="//div[@class='apunts_margin_block apunts_margin_red']" position="replace"/>
+
+        </field>
+    </record>
+
+</odoo>

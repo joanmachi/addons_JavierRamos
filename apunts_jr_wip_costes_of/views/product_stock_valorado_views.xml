@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_product_stock_valorado_list" model="ir.ui.view">
+        <field name="name">product.product.stock.valorado.list</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Stock Valorado" create="0" edit="0">
+                <field name="default_code"/>
+                <field name="name"/>
+                <field name="categ_id"/>
+                <field name="qty_available" sum="Total stock"/>
+                <field name="apunts_coste_real"/>
+                <field name="apunts_valor_stock" sum="Valor total stock"/>
+                <field name="apunts_coste_fuente" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <button name="action_open_product_form"
+                        type="object"
+                        string="Ver ficha"
+                        icon="fa-external-link"
+                        title="Abrir ficha del producto"/>
+                <button name="action_update_quantity_on_hand"
+                        type="object"
+                        string="Ajustar"
+                        icon="fa-pencil"
+                        title="Ajustar inventario (mismo flujo que el smart button del producto)"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_product_stock_valorado_search" model="ir.ui.view">
+        <field name="name">product.product.stock.valorado.search</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <search string="Stock Valorado">
+                <field name="name"/>
+                <field name="default_code"/>
+                <field name="categ_id"/>
+                <field name="apunts_coste_fuente"/>
+                <filter name="con_stock" string="Con stock" domain="[('qty_available','&gt;',0)]"/>
+                <filter name="sin_stock" string="Sin stock" domain="[('qty_available','&lt;=',0)]"/>
+                <filter name="sin_coste" string="Sin coste" domain="[('apunts_coste_fuente','=','sin_coste')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_categ" string="Categoría" context="{'group_by':'categ_id'}"/>
+                    <filter name="group_fuente" string="Fuente coste" context="{'group_by':'apunts_coste_fuente'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_product_stock_valorado" model="ir.actions.act_window">
+        <field name="name">Stock Valorado</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_product_stock_valorado_list"/>
+        <field name="search_view_id" ref="view_product_stock_valorado_search"/>
+        <field name="domain">[('is_storable','=',True)]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <menuitem id="menu_product_stock_valorado"
+              name="Stock Valorado"
+              parent="menu_apunts_jr_wip_root"
+              action="action_product_stock_valorado"
+              sequence="4"/>
+
+</odoo>

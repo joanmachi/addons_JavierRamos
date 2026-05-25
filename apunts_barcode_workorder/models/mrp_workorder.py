@@ -9,11 +9,17 @@ import logging
 
 
 _logger = logging.getLogger(__name__)
+
+
+# Importamos la clave de contexto del otro modulo para mantenerlo en un solo sitio.
+from .mrp_production import APUNTS_AUTO_BACKORDER_CTX
+
+
 class WorkOrder(models.Model):
     _inherit = 'mrp.workorder'
 
-    qty_ready_to_validate = fields.Float(string="Cant. por validar", default=0.0)
-    qty_validated = fields.Float(string="Cant. validada", default=0.0)
+    qty_ready_to_validate = fields.Float(string="Cant. por validar", default=0.0, copy=False)
+    qty_validated = fields.Float(string="Cant. validada", default=0.0, copy=False)
     prev_validated_qty = fields.Float(
         string="Qty from Previous Stage", 
         compute="_compute_prev_validated_qty"
@@ -27,30 +33,20 @@ class WorkOrder(models.Model):
 
     @api.depends('employee_ids')
     def _compute_texto_fichados(self):
-        _logger.info('_compute_texto_fichados')
         for wo in self:
-            texto_fichados = ''
-            fichajes = []
-            for fichada in wo.employee_ids:
-                fichajes.append(fichada.name)
-            texto_fichados = ', '.join(fichajes)
-            wo.texto_fichados = texto_fichados
+            wo.texto_fichados = ', '.join(wo.employee_ids.mapped('name'))
+
     @api.depends('production_id.workorder_ids.qty_validated')
     def _compute_prev_validated_qty(self):
-        _logger.info('_compute_prev_validated_qty')
         for wo in self:
-            # Sort all workorders of this MO by sequence
             all_wos = wo.production_id.workorder_ids.sorted('sequence')
-            # Find workorders with a lower sequence
             prev_wos = all_wos.filtered(lambda w: w.sequence < wo.sequence)
-            
-            if prev_wos:
-                # Get the validated qty of the immediate predecessor
-                wo.prev_validated_qty = prev_wos[-1].qty_validated - wo.qty_validated
+            es_conjunto = wo.production_id.product_id.product_tmpl_id.tipo_producto == 'conjunto'
 
-            else:
-                # First workorder: Limit is the total MO quantity
+            if es_conjunto or not prev_wos:
                 wo.prev_validated_qty = wo.production_id.product_qty - wo.qty_validated
+            else:
+                wo.prev_validated_qty = prev_wos[-1].qty_validated - wo.qty_validated
 
   
     def finalizar_fichaje(self,empleado, qty=0):
@@ -112,4 +108,64 @@ class WorkOrder(models.Model):
             wo_data['prev_validated_qty'] = wo.prev_validated_qty
             wo_data['texto_fichados'] = wo.texto_fichados
         return res
- 
+
+    # ------------------------------------------------------------------
+    # Auto-producir + auto-back-order: trigger en write de qty_validated
+    # (apunts_barcode_workorder >= 18.0.1.0.4)
+    # ------------------------------------------------------------------
+
+    def write(self, vals):
+        """Override para disparar `_apunts_auto_producir_y_backorder` cuando
+        se incrementa `qty_validated` en la ULTIMA fase de una produccion.
+
+        Casos en los que NO disparamos:
+        - El contexto trae la flag `apunts_skip_auto_backorder` (reentrancia).
+        - El write no toca `qty_validated`.
+        - La WO no es la ultima fase de su produccion.
+        - La produccion no esta en estado "abierto" (confirmed/progress/to_close).
+        - Tras el write, qty_validated == 0 (no se ha avanzado nada).
+        """
+        # Si no se toca qty_validated o estamos en el propio flujo, atajo.
+        if 'qty_validated' not in vals or self.env.context.get(APUNTS_AUTO_BACKORDER_CTX):
+            return super().write(vals)
+
+        # Tomar snapshot de cambios antes para saber a quien disparar.
+        wos_a_evaluar = []
+        for wo in self:
+            qty_prev = wo.qty_validated or 0.0
+            qty_new = vals.get('qty_validated', qty_prev)
+            if float_compare(qty_new, qty_prev, precision_digits=6) > 0:
+                wos_a_evaluar.append(wo.id)
+
+        res = super().write(vals)
+
+        if not wos_a_evaluar:
+            return res
+
+        # Tras el write, disparar el auto-flujo en aquellas WOs que sean
+        # ultima fase y cuya produccion siga abierta.
+        for wo in self.browse(wos_a_evaluar):
+            try:
+                production = wo.production_id
+                if not production or production.state not in ('confirmed', 'progress', 'to_close'):
+                    continue
+                if not production._apunts_es_ultima_fase(wo):
+                    continue
+                if float_is_zero(wo.qty_validated or 0.0, precision_digits=6):
+                    continue
+                _logger.info(
+                    "[apunts_auto_backorder] Trigger desde WO %s (%s), prod %s, qty_validated=%s",
+                    wo.id, wo.name, production.name, wo.qty_validated,
+                )
+                production._apunts_auto_producir_y_backorder(wo.qty_validated)
+            except UserError:
+                # Propaga al usuario, ya logueado en _apunts_auto_producir_y_backorder
+                raise
+            except Exception:
+                _logger.exception(
+                    "[apunts_auto_backorder] Fallo no controlado en trigger WO %s",
+                    wo.id,
+                )
+                raise
+
+        return res

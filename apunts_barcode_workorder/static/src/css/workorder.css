@@ -59,65 +59,91 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   SECCIÓN PRODUCTO — card 2 columnas
+   SECCIÓN COMPONENTES — encabezado + lista materiales + botón disp.
+   (sustituye antiguo .apunts-prod-card; la cabecera arriba ya da nombre+qty)
    ══════════════════════════════════════════════════════════════════════ */
-.apunts-prod-card {
-    display: flex;
-    align-items: stretch;
-    background: var(--ap-card);
-    border-bottom: 1px solid var(--ap-border);
-    padding: 20px 16px 16px;
-    gap: 12px;
-}
-.apunts-prod-left {
-    flex: 1;
-    min-width: 0;
+.apunts-componentes-card {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    background: var(--ap-card);
+    border-bottom: 1px solid var(--ap-border);
+    padding: 12px 14px 14px;
+    gap: 10px;
 }
-.apunts-prod-label {
-    font-size: .72rem;
-    font-weight: 700;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: #7c3aed;
-}
-.apunts-prod-name {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--ap-text);
-    line-height: 1.2;
-    word-break: break-word;
-}
-.apunts-prod-qty {
+.apunts-componentes-header {
     display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin: 4px 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
-.apunts-prod-qty-done {
-    font-size: 2.4rem;
-    font-weight: 900;
-    color: var(--ap-text);
-    line-height: 1;
+.apunts-componentes-header-left {
+    display: flex; align-items: center; gap: 4px;
+    color: var(--ap-navy);
+    font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase;
 }
-.apunts-prod-qty-sep {
-    font-size: 1.4rem;
-    color: var(--ap-muted);
+.apunts-componentes-title { font-weight: 800; }
+.apunts-componentes-img-circle {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: #ede9fe;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; cursor: zoom-in; flex-shrink: 0;
 }
-.apunts-prod-qty-total {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--ap-muted);
+.apunts-componentes-img {
+    width: 40px; height: 40px;
+    object-fit: contain;
 }
-.apunts-prod-qty-uom {
-    font-size: .9rem;
-    color: var(--ap-muted);
+.apunts-componentes-list {
+    display: flex; flex-direction: column;
+    background: var(--ap-slate);
+    border: 1px solid var(--ap-border);
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.apunts-componente-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--ap-card);
+    border-bottom: 1px solid var(--ap-border);
+    min-width: 0;
+}
+.apunts-componente-row:last-child { border-bottom: none; }
+.apunts-componente-row.apunts-componente-done    { background: #f0fdf4; }
+.apunts-componente-row.apunts-componente-partial { background: #fffbeb; }
+.apunts-componente-info {
+    flex: 1; min-width: 0;
+}
+.apunts-componente-nombre {
+    font-size: .85rem; font-weight: 600; color: var(--ap-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.apunts-componente-ref {
+    font-size: .72rem; color: var(--ap-muted);
+    font-family: monospace; font-weight: 500;
     margin-left: 4px;
 }
+.apunts-componente-qty {
+    display: flex; align-items: baseline; gap: 2px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.apunts-componente-hecho { font-size: .95rem; font-weight: 800; color: var(--ap-blue); }
+.apunts-componente-row.apunts-componente-done .apunts-componente-hecho { color: var(--ap-green); }
+.apunts-componente-sep   { font-size: .78rem; color: var(--ap-muted); padding: 0 2px; }
+.apunts-componente-total { font-size: .9rem; font-weight: 600; color: var(--ap-text); }
+.apunts-componente-uom   { font-size: .7rem; font-weight: 600; color: var(--ap-muted); margin-left: 3px; }
+.apunts-componente-check { color: var(--ap-green); font-size: .95rem; }
+.apunts-componentes-empty {
+    padding: 18px 12px; text-align: center; color: var(--ap-muted);
+    font-size: .85rem; background: var(--ap-card);
+}
 .apunts-disp-btn {
-    align-self: flex-start;
+    align-self: stretch;
     background: var(--ap-navy);
     color: #fff;
     border: none;
@@ -128,32 +154,10 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    margin-top: 4px;
 }
 .apunts-disp-btn:active { opacity: .85; }
-
-.apunts-prod-right {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.apunts-prod-img-circle {
-    width: 110px; height: 110px;
-    border-radius: 50%;
-    background: #ede9fe;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    cursor: zoom-in;
-    flex-shrink: 0;
-}
-.apunts-prod-img {
-    width: 80px; height: 80px;
-    object-fit: contain;
-}
 
 /* ── Zoom overlay ───────────────────────────────────────────────────── */
 .apunts-zoom-overlay {
@@ -233,10 +237,11 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   BARRA ACCIÓN — trabajador + FICHAR (grande) + MAT (pequeño)
+   BARRA ACCIÓN — fila 1 estado fichaje, fila 2 botones 50/50
+   (fix PDA ancho ~360px: texto y botones nunca se solapan)
    ══════════════════════════════════════════════════════════════════════ */
 .apunts-action-bar {
-    display: flex; align-items: center;
+    display: flex; flex-direction: column;
     background: var(--ap-card);
     border: 1px solid var(--ap-border);
     border-radius: var(--ap-radius);
@@ -244,38 +249,54 @@
     padding: 10px 12px;
     gap: 10px;
 }
-.apunts-worker-left {
+.apunts-worker-row {
     display: flex; align-items: center; gap: 8px;
-    flex: 1; min-width: 0;
+    width: 100%; min-width: 0;
 }
 .apunts-worker-icon { font-size: 1.1rem; color: var(--ap-muted); flex-shrink: 0; }
 .apunts-worker-name {
     font-size: .92rem; font-weight: 700; color: var(--ap-text);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    word-break: keep-all;
+    flex: 1; min-width: 0;
 }
-.apunts-worker-empty { font-size: .88rem; color: var(--ap-muted); font-style: italic; }
+.apunts-worker-empty {
+    font-size: .88rem; color: var(--ap-muted); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    word-break: keep-all;
+    flex: 1; min-width: 0;
+}
+
+.apunts-action-buttons {
+    display: flex; align-items: stretch;
+    gap: 8px; width: 100%;
+    flex-wrap: wrap;
+}
 
 .apunts-fichar-btn {
-    flex-shrink: 0;
-    height: 48px; padding: 0 20px;
+    flex: 1 1 50%;
+    height: 48px; padding: 0 16px;
     border-radius: 10px;
     background: var(--ap-navy); color: #fff; border: none;
     font-weight: 800; font-size: .95rem; letter-spacing: .04em;
     cursor: pointer;
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    white-space: nowrap;
 }
 .apunts-fichar-btn:active { opacity: .85; }
 
 .apunts-mat-btn {
-    flex-shrink: 0;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    flex: 1 1 50%;
+    height: 48px; padding: 0 12px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
     background: var(--ap-card); color: var(--ap-navy);
     border: 2px solid var(--ap-border);
-    border-radius: 10px; padding: 6px 12px;
-    font-size: .65rem; font-weight: 700; letter-spacing: .05em;
+    border-radius: 10px;
+    font-size: .85rem; font-weight: 700; letter-spacing: .04em;
     cursor: pointer;
+    white-space: nowrap;
 }
-.apunts-mat-btn i { font-size: 1.2rem; }
+.apunts-mat-btn i { font-size: 1.05rem; }
 .apunts-mat-btn:active { background: var(--ap-slate); }
 
 /* ══════════════════════════════════════════════════════════════════════

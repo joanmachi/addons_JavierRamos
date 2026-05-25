@@ -5,17 +5,6 @@
   
    
 
-    <record id="account_move_tree_view_inherit_date_due" model="ir.ui.view">
-        <field name="name">account.move.tree.date.due.jramos</field>
-        <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_invoice_tree" />
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='invoice_date_due']" position="after">
-                <field name="invoice_due_date_display" widget="date" optional="show" string="Fecha Venc."/>
-            </xpath>
-        </field>
-    </record>
-
     <record id="account_move_form_view_inherit" model="ir.ui.view">
         <field name="name">account.move.form.view.custom.extra</field>
         <field name="model">account.move</field>

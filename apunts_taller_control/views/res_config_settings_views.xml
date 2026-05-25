@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_apunts_taller" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.apunts.taller</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Apunts Taller Control" name="apunts_taller_control"
+                     groups="base.group_system">
+                    <block title="Bloqueos automáticos de operarios">
+                        <setting string="Minutos sin fichaje activo para bloquear"
+                                 help="Bloquear operario checked-in que lleva más de X minutos sin fichaje activo en ninguna orden. Pon 0 para desactivar.">
+                            <field name="apunts_taller_bloqueo_inactividad_min"/>
+                        </setting>
+                        <setting string="Horas continuas en OF para bloquear"
+                                 help="Bloquear operario que lleva más de X horas continuas fichado en la misma orden de fabricación. Pon 0 para desactivar.">
+                            <field name="apunts_taller_bloqueo_horas_continuas_of"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

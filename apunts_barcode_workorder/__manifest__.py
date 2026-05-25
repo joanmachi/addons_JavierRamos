@@ -9,6 +9,7 @@
     'description': """
     """,
 
+    'version': '18.0.1.0.10',
     'author': "Apunts Informàtica",
     'website': "http://www.grupapunts.es",
 

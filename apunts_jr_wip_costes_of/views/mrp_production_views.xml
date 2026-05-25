@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_view_mrp_production_wip_list" model="ir.ui.view">
+        <field name="name">mrp.production.wip.list</field>
+        <field name="model">mrp.production</field>
+        <field name="arch" type="xml">
+            <list string="OFs en curso" create="0" delete="0" edit="0">
+                <field name="apunts_of_short" string="OF"/>
+                <field name="product_id" string="Producto"/>
+                <field name="apunts_partner_id" string="Cliente" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="product_qty" string="Cantidad" sum="Total" widget="integer"/>
+                <field name="apunts_qty_done" string="Hecho" sum="Hecho" widget="integer"/>
+                <field name="apunts_qty_pending" string="Pendiente" sum="Pendiente" widget="integer"/>
+                <field name="apunts_min_total_plan" string="Min plan" widget="float_time" optional="hide" sum="Total min plan"/>
+                <field name="apunts_min_unit_plan" string="Min/pieza plan" widget="float_time" optional="hide"/>
+                <field name="apunts_min_real_total" string="Min real" widget="float_time" optional="hide" sum="Total min real"/>
+                <field name="apunts_min_unit_real" string="Min/pieza real" widget="float_time" optional="hide"/>
+                <field name="apunts_sale_amount" string="Venta (€)" sum="Total venta"/>
+                <field name="apunts_mat_planned_total" string="MP teórico (€)" sum="Total MP teórico" optional="show"/>
+                <field name="apunts_mat_real_total" string="MP real (€)" sum="Total MP real" optional="show"/>
+                <field name="apunts_mo_planned_total" string="Operario teórico (€)" sum="Total operario teórico" optional="show"/>
+                <field name="apunts_mo_real_total" string="Operario real (€)" sum="Total operario real" optional="show"/>
+                <field name="apunts_machine_planned_total" string="Máquina teórico (€)" sum="Total máquina teórico" optional="show"/>
+                <field name="apunts_machine_real_total" string="Máquina real (€)" sum="Total máquina real" optional="show"/>
+                <field name="apunts_cost_total_planned" string="Coste teórico OF (€)" sum="Total coste teórico"/>
+                <field name="apunts_cost_total_real" string="EN CURSO real (€)" sum="Total en curso real"/>
+                <field name="apunts_margen_of" string="Margen (€)" sum="Total margen" optional="show" decoration-danger="apunts_margen_of &lt; 0" decoration-success="apunts_margen_of &gt; 0"/>
+                <field name="apunts_margen_pct" string="Margen %" widget="percentage" optional="hide"/>
+                <field name="apunts_bom_incompleta" string="BoM" widget="boolean_toggle" optional="show"/>
+                <field name="date_start" string="Inicio" widget="date" optional="show"/>
+                <field name="date_deadline" string="Entrega" widget="date" optional="show"/>
+                <field name="apunts_is_wip" column_invisible="1"/>
+                <field name="company_currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_view_mrp_production_wip_search" model="ir.ui.view">
+        <field name="name">mrp.production.wip.search</field>
+        <field name="model">mrp.production</field>
+        <field name="arch" type="xml">
+            <search string="Buscar OF">
+                <field name="name" string="Nº OF"/>
+                <field name="product_id" string="Producto"/>
+                <separator/>
+                <filter name="filter_wip" string="En curso (WIP)" domain="[('apunts_is_wip','=',True)]"/>
+                <filter name="filter_progress" string="En proceso" domain="[('state','=','progress')]"/>
+                <filter name="filter_to_close" string="Lista para cerrar" domain="[('state','=','to_close')]"/>
+                <filter name="filter_confirmed" string="Confirmada" domain="[('state','=','confirmed')]"/>
+                <filter name="filter_done" string="Hecha" domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="filter_con_venta" string="Con venta vinculada" domain="[('apunts_sale_amount','>',0)]"/>
+                <filter name="filter_sin_venta" string="Sin venta vinculada" domain="[('apunts_sale_amount','=',0)]"/>
+                <separator/>
+                <filter name="filter_bom_incompleta" string="⚠ BoM incompleta" domain="[('apunts_bom_incompleta','=',True)]"/>
+                <separator/>
+                <filter name="filter_sin_coste" string="Sin coste teórico" domain="[('apunts_cost_total_planned','=',0)]"/>
+                <filter name="filter_coste_alto" string="Coste teórico &gt; 1.000 €" domain="[('apunts_cost_total_planned','>',1000)]"/>
+                <filter name="filter_real_alto" string="EN CURSO real &gt; 1.000 €" domain="[('apunts_cost_total_real','>',1000)]"/>
+                <separator/>
+                <filter name="filter_start_today" string="Inicia hoy" domain="[('date_start','&gt;=',context_today().strftime('%Y-%m-%d 00:00:00')),('date_start','&lt;',(context_today()+relativedelta(days=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_start_month" string="Inicia este mes" date="date_start"/>
+                <filter name="filter_deadline_month" string="Entrega este mes" date="date_deadline"/>
+                <filter name="filter_deadline_overdue" string="Entrega vencida" domain="[('date_deadline','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_state" string="Estado" context="{'group_by':'state'}"/>
+                    <filter name="group_product" string="Producto" context="{'group_by':'product_id'}"/>
+                    <filter name="group_start_month" string="Mes inicio" context="{'group_by':'date_start:month'}"/>
+                    <filter name="group_start_week" string="Semana inicio" context="{'group_by':'date_start:week'}"/>
+                    <filter name="group_deadline_month" string="Mes entrega" context="{'group_by':'date_deadline:month'}"/>
+                    <filter name="group_wip_flag" string="WIP / no WIP" context="{'group_by':'apunts_is_wip'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_view_mrp_production_wip_pivot" model="ir.ui.view">
+        <field name="name">mrp.production.wip.pivot</field>
+        <field name="model">mrp.production</field>
+        <field name="arch" type="xml">
+            <pivot string="Resumen WIP" sample="0">
+                <field name="date_start" interval="month" type="row"/>
+                <field name="apunts_sale_amount" type="measure"/>
+                <field name="apunts_cost_total_planned" type="measure"/>
+                <field name="apunts_cost_total_real" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_view_mrp_production_wip_form" model="ir.ui.view">
+        <field name="name">mrp.production.form.apunts.coste</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <div class="alert alert-info mb-0" role="status" invisible="not apunts_is_wip">
+                    <strong>OF en curso (WIP)</strong> ·
+                    Venta: <field name="apunts_sale_amount" readonly="1" nolabel="1" class="oe_inline"/> ·
+                    Coste teórico: <field name="apunts_cost_total_planned" readonly="1" nolabel="1" class="oe_inline"/> ·
+                    EN CURSO real: <field name="apunts_cost_total_real" readonly="1" nolabel="1" class="oe_inline"/>
+                    <br/>
+                    Min plan: <field name="apunts_min_total_plan" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/> ·
+                    Min/pieza plan: <field name="apunts_min_unit_plan" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/> ·
+                    Min reales: <field name="apunts_min_real_total" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/> ·
+                    Min/pieza real: <field name="apunts_min_unit_real" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/>
+                </div>
+                <field name="apunts_is_wip" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="apunts_action_mrp_production_wip" model="ir.actions.act_window">
+        <field name="name">OFs en curso</field>
+        <field name="res_model">mrp.production</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="view_id" ref="apunts_view_mrp_production_wip_list"/>
+        <field name="search_view_id" ref="apunts_view_mrp_production_wip_search"/>
+        <field name="domain">[('apunts_is_wip','=',True)]</field>
+        <field name="context">{'search_default_filter_wip':1}</field>
+    </record>
+
+</odoo>

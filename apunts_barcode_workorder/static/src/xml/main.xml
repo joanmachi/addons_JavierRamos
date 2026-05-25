@@ -74,32 +74,51 @@
             <t t-if="env.model.resModel == 'mrp.production'">
             <div class="apunts-mrp-wrapper">
 
-                <!-- ══ SECCIÓN PRODUCTO — info izq + imagen circular der ══════ -->
-                <div class="apunts-prod-card">
-                    <div class="apunts-prod-left">
-                        <div class="apunts-prod-label">Produciendo</div>
-                        <div class="apunts-prod-name" t-if="env.model.record and env.model.record.product_id">
-                            <t t-esc="env.model.record.product_id.display_name"/>
+                <!-- ══ SECCIÓN MATERIALES — lista de componentes + miniatura ═══ -->
+                <div class="apunts-componentes-card">
+                    <div class="apunts-componentes-header">
+                        <div class="apunts-componentes-header-left">
+                            <i class="fa fa-cubes me-2"/>
+                            <span class="apunts-componentes-title">Materiales</span>
                         </div>
-                        <div class="apunts-prod-qty">
-                            <span class="apunts-prod-qty-done"><t t-esc="env.model.qty_produced"/></span>
-                            <span class="apunts-prod-qty-sep"> / </span>
-                            <span class="apunts-prod-qty-total"><t t-esc="env.model.product_qty"/></span>
-                            <span class="apunts-prod-qty-uom"><t t-esc="env.model.product_uom_name"/></span>
-                        </div>
-                        <button class="apunts-disp-btn" t-on-click="() => env.model.comprobarDisponibilidad()">
-                            <i class="fa fa-cubes me-2"/>Comprobar disponibilidad
-                        </button>
-                    </div>
-                    <div class="apunts-prod-right">
                         <t t-if="env.model.product_image">
-                            <div class="apunts-prod-img-circle"
+                            <div class="apunts-componentes-img-circle"
                                  t-on-click.stop="() => env.model.toggleImage()">
                                 <img t-attf-src="data:image/png;base64,#{env.model.product_image}"
-                                     class="apunts-prod-img"/>
+                                     class="apunts-componentes-img"/>
                             </div>
                         </t>
                     </div>
+                    <div class="apunts-componentes-list">
+                        <t t-foreach="env.model.componentes || []" t-as="comp" t-key="comp.id">
+                            <div class="apunts-componente-row"
+                                 t-att-class="{'apunts-componente-done': comp.estado === 'done', 'apunts-componente-partial': comp.hecho > 0 and comp.estado !== 'done'}">
+                                <div class="apunts-componente-info">
+                                    <div class="apunts-componente-nombre">
+                                        <t t-esc="comp.nombre"/>
+                                        <span t-if="comp.referencia" class="apunts-componente-ref">(<t t-esc="comp.referencia"/>)</span>
+                                    </div>
+                                </div>
+                                <div class="apunts-componente-qty">
+                                    <t t-if="comp.hecho > 0">
+                                        <span class="apunts-componente-hecho"><t t-esc="comp.hecho"/></span>
+                                        <span class="apunts-componente-sep">/</span>
+                                    </t>
+                                    <span class="apunts-componente-total"><t t-esc="comp.cantidad"/></span>
+                                    <span class="apunts-componente-uom"><t t-esc="comp.uom"/></span>
+                                    <t t-if="comp.estado === 'done'">
+                                        <i class="fa fa-check-circle apunts-componente-check ms-2"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                        <div t-if="!(env.model.componentes and env.model.componentes.length)" class="apunts-componentes-empty">
+                            <i class="fa fa-inbox me-2"/>Sin componentes registrados
+                        </div>
+                    </div>
+                    <button class="apunts-disp-btn" t-on-click="() => env.model.comprobarDisponibilidad()">
+                        <i class="fa fa-check-square-o me-2"/>Comprobar disponibilidad
+                    </button>
                 </div>
 
                 <!-- Zoom overlay -->
@@ -116,7 +135,7 @@
                      t-on-click="() => env.model.toggleComponentes()">
                     <div class="apunts-mat-dialog" t-on-click.stop="">
                         <div class="apunts-mat-header">
-                            <span><i class="fa fa-cubes me-2"/>Lista de materiales</span>
+                            <span><i class="fa fa-cubes me-2"/>Listado de componentes a consumir</span>
                             <button class="apunts-mat-close" t-on-click="() => env.model.toggleComponentes()">
                                 <i class="fa fa-times"/>
                             </button>
@@ -152,22 +171,26 @@
                     <span t-esc="env.model.log_note"/>
                 </div>
 
-                <!-- ══ BARRA ACCIÓN — trabajador + FICHAR + MAT ══════════════ -->
+                <!-- ══ BARRA ACCIÓN — fila 1: estado operario / fila 2: botones ═ -->
                 <div class="apunts-action-bar">
-                    <div class="apunts-worker-left">
+                    <div class="apunts-worker-row">
                         <i class="fa fa-user apunts-worker-icon"/>
                         <span t-if="env.model.empleadoElegido" class="apunts-worker-name">
                             <t t-esc="env.model.empleadoElegido.name"/>
                         </span>
                         <span t-else="" class="apunts-worker-empty">Sin fichar</span>
                     </div>
-                    <button class="apunts-fichar-btn" t-on-click="() => this.openFicharDialog()">
-                        <i class="fa fa-qrcode me-1"/>FICHAR
-                    </button>
-                    <button class="apunts-mat-btn" t-on-click="() => env.model.toggleComponentes()">
-                        <i class="fa fa-cubes"/>
-                        <span>MAT.</span>
-                    </button>
+                    <div class="apunts-action-buttons">
+                        <button class="apunts-fichar-btn" t-on-click="() => this.openFicharDialog()">
+                            <i class="fa fa-qrcode me-1"/>FICHAR
+                        </button>
+                        <button class="apunts-mat-btn"
+                                t-if="env.model.componentes and env.model.componentes.length > 1"
+                                t-on-click="() => env.model.toggleComponentes()">
+                            <i class="fa fa-cubes me-1"/>
+                            <span>MAT.</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- ══ BANNER FASE ACTIVA ═════════════════════════════════════ -->
@@ -204,7 +227,7 @@
                     <t t-set="is_active"  t-value="env.model.empleadoElegido and orden.employee_ids.includes(env.model.empleadoElegido.id)"/>
                     <t t-set="is_done"    t-value="0 >= orden.qty_remaining"/>
                     <t t-set="is_waiting" t-value="orden.prev_validated_qty == 0"/>
-                    <t t-set="total_qty"  t-value="orden.qty_validated + (orden.qty_remaining > 0 ? orden.qty_remaining : 0)"/>
+                    <t t-set="total_qty"  t-value="env.model.product_qty"/>
                     <t t-set="pct"        t-value="total_qty > 0 ? Math.round(orden.qty_validated / total_qty * 100) : 0"/>
 
                     <div class="apunts-wo-card"

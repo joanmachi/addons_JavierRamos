@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apunts_view_mrp_workcenter_form" model="ir.ui.view">
+        <field name="name">mrp.workcenter.form.apunts.amort</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view"/>
+        <field name="arch" type="xml">
+            <field name="costs_hour" position="after">
+                <field name="apunts_amort_hour"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -26,8 +26,6 @@ access_lira_collections_line,lira.collections.line,model_lira_collections_line,b
 access_lira_pending_delivery,lira.pending.delivery,model_lira_pending_delivery,base.group_user,1,1,1,1
 access_lira_pending_delivery_line,lira.pending.delivery.line,model_lira_pending_delivery_line,base.group_user,1,1,1,1
 access_lira_dashboard_alerta,lira.dashboard.alerta,model_lira_dashboard_alerta,base.group_user,1,1,1,1
-access_lira_mrp_wip,lira.mrp.wip,model_lira_mrp_wip,base.group_user,1,1,1,1
-access_lira_mrp_wip_line,lira.mrp.wip.line,model_lira_mrp_wip_line,base.group_user,1,1,1,1
 access_lira_purchase_received,lira.purchase.received,model_lira_purchase_received,base.group_user,1,1,1,1
 access_lira_purchase_received_line,lira.purchase.received.line,model_lira_purchase_received_line,base.group_user,1,1,1,1
 access_lira_purchase_pending,lira.purchase.pending,model_lira_purchase_pending,base.group_user,1,1,1,1
@@ -36,14 +34,8 @@ access_lira_vat_settlement,lira.vat.settlement,model_lira_vat_settlement,base.gr
 access_lira_vat_line,lira.vat.line,model_lira_vat_line,base.group_user,1,1,1,1
 access_lira_irpf,lira.irpf,model_lira_irpf,base.group_user,1,1,1,1
 access_lira_irpf_line,lira.irpf.line,model_lira_irpf_line,base.group_user,1,1,1,1
-access_lira_mrp_in_progress,lira.mrp.in.progress,model_lira_mrp_in_progress,base.group_user,1,1,1,1
-access_lira_mrp_in_progress_line,lira.mrp.in.progress.line,model_lira_mrp_in_progress_line,base.group_user,1,1,1,1
-access_lira_mrp_to_produce,lira.mrp.to.produce,model_lira_mrp_to_produce,base.group_user,1,1,1,1
-access_lira_mrp_to_produce_line,lira.mrp.to.produce.line,model_lira_mrp_to_produce_line,base.group_user,1,1,1,1
 access_lira_sales_monthly,lira.sales.monthly,model_lira_sales_monthly,base.group_user,1,1,1,1
 access_lira_sales_monthly_line,lira.sales.monthly.line,model_lira_sales_monthly_line,base.group_user,1,1,1,1
-access_lira_wip_valuation,lira.wip.valuation,model_lira_wip_valuation,base.group_user,1,1,1,1
-access_lira_wip_valuation_line,lira.wip.valuation.line,model_lira_wip_valuation_line,base.group_user,1,1,1,1
 access_lira_pnl_period,lira.pnl.period,model_lira_pnl_period,base.group_user,1,1,1,1
 access_lira_pnl_line,lira.pnl.line,model_lira_pnl_line,base.group_user,1,1,1,1
 access_lira_inventory_valuation_fv,lira.inventory.valuation.fv,model_lira_inventory_valuation_fv,base.group_user,1,1,1,1

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_apunts_gestion_taller_root"
+              name="Gestión Taller"
+              sequence="55"
+              groups="mrp.group_mrp_manager"
+              web_icon="apunts_jr_gestion_taller,static/description/icon.png"/>
+
+    <menuitem id="menu_apunts_gestion_fichados_ahora"
+              name="Operarios fichados"
+              parent="menu_apunts_gestion_taller_root"
+              action="apunts_action_fichados_ahora"
+              sequence="1"/>
+
+    <menuitem id="menu_apunts_gestion_estado_empleados"
+              name="Estado operarios"
+              parent="menu_apunts_gestion_taller_root"
+              action="apunts_action_empleados_resumen"
+              sequence="2"/>
+
+    <menuitem id="menu_apunts_gestion_horas_pivot"
+              name="Histórico fichajes"
+              parent="menu_apunts_gestion_taller_root"
+              action="apunts_action_horas_pivot"
+              sequence="3"/>
+
+    <menuitem id="menu_apunts_gestion_corregir_fichaje"
+              name="Corregir fichaje / desbloquear"
+              parent="menu_apunts_gestion_taller_root"
+              action="apunts_corregir_fichaje_action"
+              sequence="3"/>
+
+</odoo>

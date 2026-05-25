@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_corregir_fichaje_wizard_form" model="ir.ui.view">
+        <field name="name">apunts.corregir.fichaje.wizard.form</field>
+        <field name="model">apunts.corregir.fichaje.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Corregir fichaje">
+                <sheet>
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle me-1"/>
+                        Cierra manualmente un fichaje abierto y desbloquea al
+                        operario si estuviera bloqueado. Queda registro en el
+                        chatter del empleado.
+                    </div>
+                    <group>
+                        <field name="employee_id" options="{'no_create': True}"/>
+                        <field name="mostrar_todas_ofs"
+                               help="Por defecto solo aparecen las OFs donde el operario ha fichado. Marca para ver todas."/>
+                        <field name="ofs_filtradas_ids" invisible="1"/>
+                        <field name="production_id" options="{'no_create': True}"/>
+                        <field name="salida_real"/>
+                        <field name="motivo" placeholder="Ej. olvidó cerrar fin de jornada"/>
+                    </group>
+                    <separator string="Fichajes del operario — editables (entrada y salida)"/>
+                    <field name="fichajes_editables_ids" nolabel="1">
+                        <list string="Fichajes del operario" editable="bottom" create="0" delete="1">
+                            <field name="apunts_production_id" string="OF" readonly="1"/>
+                            <field name="workorder_id" string="OT" readonly="1"/>
+                            <field name="workcenter_id" string="Centro" optional="hide" readonly="1"/>
+                            <field name="date_start" string="Entrada"/>
+                            <field name="date_end" string="Salida (vacío=abierto)"/>
+                            <field name="duration" string="Duración (min)" readonly="1" widget="float_time"/>
+                        </list>
+                    </field>
+                    <separator string="Otros fichajes abiertos ahora mismo (todos los operarios)"/>
+                    <field name="productividades_abiertas_html" nolabel="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_aplicar" type="object"
+                            string="Aplicar y desbloquear" class="btn-primary"/>
+                    <button special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_corregir_fichaje_action" model="ir.actions.act_window">
+        <field name="name">Corregir fichaje / desbloquear</field>
+        <field name="res_model">apunts.corregir.fichaje.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

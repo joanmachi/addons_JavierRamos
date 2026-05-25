@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_carga_resumen_form" model="ir.ui.view">
+        <field name="name">apunts.carga.centros.resumen.form</field>
+        <field name="model">apunts.carga.centros.resumen</field>
+        <field name="arch" type="xml">
+            <form string="Resumen carga centros" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>Resumen Carga Centros de Trabajo</h1>
+                        <p class="text-muted">
+                            Foto actual de la carga de cada centro de trabajo:
+                            qué hay pendiente, qué se ha fichado los últimos 7 días
+                            y el acumulado histórico total.
+                        </p>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <button name="action_open_lista_centros" type="object"
+                                string="Ver lista de centros"
+                                class="btn btn-lg btn-primary"/>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Centros activos</div>
+                                    <div class="display-5 fw-bold text-primary">
+                                        <field name="n_centros" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Centros de trabajo dados de alta y activos.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Con trabajo pendiente</div>
+                                    <div class="display-5 fw-bold text-warning">
+                                        <field name="n_centros_activos" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Centros que tienen al menos una orden de trabajo
+                                        en estado ready / pending / progress.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas pendientes (total)</div>
+                                    <div class="display-6 fw-bold text-danger">
+                                        <field name="total_horas_pendientes" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Suma de minutos previstos de TODAS las órdenes de trabajo
+                                        abiertas, en horas (HH:MM).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días de trabajo pendientes</div>
+                                    <div class="display-6 fw-bold text-danger">
+                                        <field name="total_dias_pendientes" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Días laborales (8 h/día) equivalentes al total de horas pendientes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (7 días)</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_horas_reales_semana" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Suma de minutos fichados por operarios en TODOS
+                                        los centros durante los últimos 7 días.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (15 días)</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_horas_reales_15d" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Suma de minutos fichados por operarios en TODOS
+                                        los centros durante los últimos 15 días.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días reales (15 días)</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_dias_reales_15d" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Días laborales (8 h/día) equivalentes a las horas
+                                        fichadas en todos los centros en los últimos 15 días.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (30 días)</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_horas_reales_30d" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Suma de minutos fichados por operarios en TODOS
+                                        los centros durante los últimos 30 días.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días reales (30 días)</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="total_dias_reales_30d" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Días laborales (8 h/día) equivalentes a las horas
+                                        fichadas en todos los centros en los últimos 30 días.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas fichadas (histórico total)</div>
+                                    <div class="display-6 fw-bold text-secondary">
+                                        <field name="total_horas_reales_total" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Total acumulado de horas fichadas en todos los centros
+                                        desde el inicio, sin filtro de fechas.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días fichados (histórico total)</div>
+                                    <div class="display-6 fw-bold text-secondary">
+                                        <field name="total_dias_reales_total" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Días laborales (8 h/día) equivalentes al total
+                                        histórico de horas fichadas en todos los centros.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <field name="total_workorders_pendientes" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_carga_resumen_srv" model="ir.actions.server">
+        <field name="name">Resumen carga centros</field>
+        <field name="model_id" ref="model_apunts_carga_centros_resumen"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_resumen()</field>
+    </record>
+
+</odoo>

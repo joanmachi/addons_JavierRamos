@@ -112,14 +112,6 @@
                                         <field name="apunts_operation_cost_real" widget="monetary" class="oe_inline"/>
                                     </span>
                                 </div>
-                                <div class="mt-2">
-                                    <button name="action_apunts_open_desglose"
-                                            type="object"
-                                            string="Ver desglose"
-                                            class="btn btn-link btn-sm p-0"
-                                            icon="fa-search-plus"
-                                            help="Abre desglose detallado: componentes consumidos, cantidades, precios, proveedor / pedido de compra asociado, mano de obra y centros."/>
-                                </div>
                             </div>
                         </div>
 
@@ -151,14 +143,6 @@
                                 </div>
                                 <div class="apunts_kpi_dev">
                                     <field name="apunts_total_dev_display" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="mt-2">
-                                    <button name="action_apunts_open_desglose"
-                                            type="object"
-                                            string="Ver desglose"
-                                            class="btn btn-link btn-sm p-0"
-                                            icon="fa-search-plus"
-                                            help="Abre desglose detallado: BoM con componentes presupuestados, cantidades necesarias, precios estandar, mano de obra y centros estimados."/>
                                 </div>
                             </div>
                         </div>
@@ -321,32 +305,6 @@
                                    context="{'tree_view_ref': 'apunts_costes_of.view_apunts_material_line_tree'}"/>
                         </page>
 
-                        <!-- Seccion 2: Mano de obra y operaciones -->
-                        <page string="Mano de obra y operaciones" name="apunts_labor">
-                            <div class="apunts_section_help">
-                                <p>
-                                    <i class="fa fa-info-circle me-1"/>
-                                    Una fila por orden de trabajo (OT). <strong>Coste (€)</strong> = horas imputadas x tarifa horaria empleado + tarifa centro de trabajo. <strong>% avance</strong> = horas reales / horas planificadas.
-                                </p>
-                            </div>
-                            <field name="apunts_labor_line_ids" nolabel="1"
-                                   context="{'tree_view_ref': 'apunts_costes_of.view_apunts_labor_line_tree'}"/>
-                        </page>
-
-                        <!-- Seccion 2-bis: Asistencias por empleado x dia (Hito 3) -->
-                        <page string="Asistencias (empleado x dia)" name="apunts_attendance">
-                            <div class="apunts_section_help">
-                                <p>
-                                    <i class="fa fa-info-circle me-1"/>
-                                    Desglose de imputaciones por empleado y dia. Una fila por (empleado x dia x OT). <strong>Coste empleado</strong> = horas x hourly_cost. Ambar = empleado sin coste/hora configurado en master data.
-                                </p>
-                                <button name="action_apunts_drill_attendance" type="object"
-                                        string="Ver pivot productivity entries (filtrable)"
-                                        class="btn-link"/>
-                            </div>
-                            <field name="apunts_attendance_line_ids" nolabel="1"
-                                   context="{'tree_view_ref': 'apunts_costes_of.view_apunts_attendance_line_tree'}"/>
-                        </page>
 
                         <!-- Seccion 6: Producto terminado y trazabilidad forward (Hito 4) -->
                         <page string="Producto terminado (forward)" name="apunts_finished">

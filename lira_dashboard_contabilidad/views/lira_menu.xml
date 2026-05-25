@@ -66,16 +66,7 @@
   <menuitem id="menu_lira_mercaderia"      name="Mercadería (Compra-Reventa)" parent="menu_lira_existencias_cat" sequence="3"
             action="lira_dashboard_contabilidad.action_lira_mercaderia"/>
 
-  <!-- ── Fabricación ───────────────────────────────────────────────────── -->
-  <menuitem id="menu_lira_fabricacion"     name="Fabricación"               parent="menu_lira_root" sequence="7"/>
-  <menuitem id="menu_lira_mrp_wip"         name="En curso (WIP)"            parent="menu_lira_fabricacion" sequence="1"
-            action="lira_dashboard_contabilidad.action_lira_mrp_wip"/>
-  <menuitem id="menu_lira_mrp_in_progress" name="Fabricándose no terminados" parent="menu_lira_fabricacion" sequence="2"
-            action="lira_dashboard_contabilidad.action_lira_mrp_in_progress"/>
-  <menuitem id="menu_lira_mrp_to_produce"  name="Pendientes de fabricar"    parent="menu_lira_fabricacion" sequence="3"
-            action="lira_dashboard_contabilidad.action_lira_mrp_to_produce"/>
-  <menuitem id="menu_lira_wip_valuation"   name="Valoración de producto en curso" parent="menu_lira_fabricacion" sequence="4"
-            action="lira_dashboard_contabilidad.action_lira_wip_valuation"/>
+  <!-- Bloque Fabricación eliminado en v18.0.3.0.0: WIP/MRP movidos a apunts_jr_wip_costes_of -->
 
   <!-- ── Hacienda ──────────────────────────────────────────────────────── -->
   <menuitem id="menu_lira_hacienda"        name="Hacienda"                  parent="menu_lira_root" sequence="8"/>

@@ -42,6 +42,13 @@ patch(BarcodeMRPModel.prototype, {
         this.product_uom_name = data.data.product_uom_name || '';
         if (this.showComponentes === undefined) this.showComponentes = false;
         if (this.componentes === undefined) this.componentes = [];
+        // Cargamos componentes inline (no solo al abrir modal) para mostrarlos en la card
+        if (this.resId) {
+            this.orm.call('mrp.production', 'get_componentes_barcode', [this.resId]).then((comps) => {
+                this.componentes = comps || [];
+                this.trigger('update');
+            }).catch(() => { /* silencioso: la card mostrara mensaje vacio */ });
+        }
         this.trigger('update');
     },
 
@@ -82,14 +89,17 @@ patch(BarcodeMRPModel.prototype, {
                     'comprobar_disponibilidad',
                     [this.resId]
                 );
-        if (respuesta.error){
-            this.notification(respuesta.mensaje, { type: "danger" });
-            
-        }else{
-            this.notification(respuesta.mensaje, { type: "info" });
-
+        if (!respuesta) {
+            this.notification("Sin respuesta del servidor al comprobar disponibilidad.", { type: "warning", sticky: true });
+            await this.refrescarDatos();
+            return;
         }
-        this.trigger('update'); 
+        if (respuesta.error){
+            this.notification(respuesta.mensaje, { type: "danger", sticky: true });
+        }else{
+            this.notification(respuesta.mensaje, { type: "success", sticky: true });
+        }
+        await this.refrescarDatos();
     },
 
     async _processBarcode(barcode) {
@@ -134,8 +144,7 @@ patch(BarcodeMRPModel.prototype, {
                     [this.resId, barcode, this.selectedEmployee]
                 );
             if(respuesta.error){
-    
-                this.notification(respuesta.mensaje, { type: "danger" });
+                this.notification(respuesta.mensaje, { type: "danger", sticky: true });
             }else{
                 this.notification(respuesta.mensaje, { type: "info" });
             }
