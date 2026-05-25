@@ -119,3 +119,12 @@ class LiraSupervisorWorkorder(models.Model):
                 'default_wizard_mode': 'reject',
             },
         }
+
+    def action_open_production(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'mrp.production',
+            'view_mode': 'form',
+            'res_id': self.production_id.id,
+            'target': 'current',
+        }
