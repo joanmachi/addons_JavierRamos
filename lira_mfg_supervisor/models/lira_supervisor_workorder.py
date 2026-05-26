@@ -125,6 +125,7 @@ class LiraSupervisorWorkorder(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'mrp.production',
             'view_mode': 'form',
+            'views': [(False, 'form')],
             'res_id': self.production_id.id,
             'target': 'current',
         }
