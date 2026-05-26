@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Pestaña "Parciales" en el formulario de mrp.production.
+        Muestra la cadena madre + back-orders con costes y tiempos acumulados.
+        Los campos de coste (apunts_*) vienen de apunts_jr_wip_costes_of;
+        si el módulo no estuviera instalado Odoo ignoraría esos campos al no
+        existir en la vista — al declarar depends en el manifest se garantiza
+        que siempre está presente.
+    -->
+    <record id="view_mrp_production_form_lotes_inherit" model="ir.ui.view">
+        <field name="name">mrp.production.form.lotes.inherit</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Añadir pestaña justo antes del cierre del notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Parciales" name="apunts_lotes">
+                    <field name="apunts_lotes_ids"
+                           nolabel="1"
+                           readonly="1"
+                           widget="many2many">
+                        <list string="Parciales de la cadena"
+                              create="0"
+                              delete="0">
+                            <field name="apunts_lote_index"
+                                   string="Lote"
+                                   optional="show"/>
+                            <field name="name"
+                                   string="Nº OF"
+                                   optional="show"/>
+                            <field name="state"
+                                   string="Estado"
+                                   widget="badge"
+                                   decoration-success="state == 'done'"
+                                   decoration-warning="state in ('confirmed','progress','to_close')"
+                                   decoration-danger="state == 'cancel'"
+                                   optional="show"/>
+                            <field name="product_qty"
+                                   string="Piezas planif."
+                                   optional="show"/>
+                            <field name="qty_producing"
+                                   string="Piezas en curso"
+                                   optional="show"/>
+                            <field name="qty_produced"
+                                   string="Piezas validadas"
+                                   sum="Total validadas"
+                                   optional="show"/>
+                            <field name="apunts_mat_real_total"
+                                   string="MP real (€)"
+                                   sum="Total MP"
+                                   optional="show"
+                                   widget="monetary"/>
+                            <field name="apunts_mo_real_total"
+                                   string="MO real (€)"
+                                   sum="Total MO"
+                                   optional="show"
+                                   widget="monetary"/>
+                            <field name="apunts_machine_real_total"
+                                   string="Máquina real (€)"
+                                   sum="Total máquina"
+                                   optional="show"
+                                   widget="monetary"/>
+                            <field name="apunts_min_real_total"
+                                   string="Tiempo real (min)"
+                                   sum="Total min"
+                                   optional="show"/>
+                            <field name="date_start"
+                                   string="Inicio"
+                                   optional="show"/>
+                            <field name="date_finished"
+                                   string="Cierre"
+                                   optional="show"/>
+                            <!-- Campo moneda necesario para widget monetary -->
+                            <field name="company_currency_id"
+                                   column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

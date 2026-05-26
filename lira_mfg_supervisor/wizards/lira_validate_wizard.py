@@ -34,6 +34,10 @@ class LiraValidateWizard(models.TransientModel):
                 f"No puedes validar más de {wo.qty_ready_to_validate} unidades (cantidad entregada por el operario)."
             )
 
+        # El write de qty_validated dispara el auto-trigger de
+        # apunts_barcode_workorder (cierre OF + back-order con transferencia
+        # de excedentes) si esta WO es la ultima fase. Por eso NO hace falta
+        # gestionar qty_producing aqui: el auto-trigger lo set correctamente.
         wo.write({
             'qty_validated': wo.qty_validated + qty,
             'qty_ready_to_validate': wo.qty_ready_to_validate - qty,
@@ -41,11 +45,6 @@ class LiraValidateWizard(models.TransientModel):
             'lira_validated_date': fields.Datetime.now(),
             'lira_supervisor_note': False,
         })
-
-        all_wos = wo.production_id.workorder_ids.sorted('sequence')
-        next_wos = all_wos.filtered(lambda w: w.sequence > wo.sequence)
-        if not next_wos:
-            wo.production_id.write({'qty_producing': wo.production_id.qty_producing + qty})
 
         activities = self.env['mail.activity'].search([
             ('res_model', '=', 'mrp.production'),

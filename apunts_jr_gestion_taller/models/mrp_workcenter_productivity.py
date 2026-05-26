@@ -13,8 +13,20 @@ class MrpWorkcenterProductivity(models.Model):
     )
     apunts_production_id = fields.Many2one(
         related='workorder_id.production_id',
-        string='OF',
+        string='OF (ref)',
         store=True,
+    )
+    apunts_of_short = fields.Char(
+        string='OF',
+        compute='_compute_apunts_of_short',
+        store=True,
+        help='Nombre corto de la OF: name sin prefijo "FAB/MO/".',
+    )
+    apunts_ot_short = fields.Char(
+        string='OT (fase)',
+        compute='_compute_apunts_ot_short',
+        store=True,
+        help='Nombre corto de la OT (workorder): name sin prefijo "FAB/MO/".',
     )
     apunts_dia = fields.Date(
         string='Día',
@@ -56,6 +68,18 @@ class MrpWorkcenterProductivity(models.Model):
     def _compute_apunts_dia(self):
         for rec in self:
             rec.apunts_dia = rec.date_start.date() if rec.date_start else False
+
+    @api.depends('workorder_id.production_id.name')
+    def _compute_apunts_of_short(self):
+        for rec in self:
+            name = (rec.workorder_id.production_id.name or '') if rec.workorder_id else ''
+            rec.apunts_of_short = name.replace('FAB/MO/', '')
+
+    @api.depends('workorder_id.name')
+    def _compute_apunts_ot_short(self):
+        for rec in self:
+            name = (rec.workorder_id.name or '') if rec.workorder_id else ''
+            rec.apunts_ot_short = name.replace('FAB/MO/', '')
 
     def action_apunts_ver_of(self):
         self.ensure_one()

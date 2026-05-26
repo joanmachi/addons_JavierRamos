@@ -10,14 +10,12 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form" />
         <field name="arch" type="xml">
-	   		<!-- xpath desactivado: campo x_studio_rdenes_de_fabricacin eliminado de la vista padre
 	   		<xpath expr="//field[@name='x_studio_rdenes_de_fabricacin']" position="after">
-
+          
 					<field name="total_cuestionario_fase_presupuesto" widget="monetary"/>
                     <field name="total_cuestionario_servicios_presupuesto" widget="monetary"/>
                     <field name="total_cuestionario_material_presupuesto" widget="monetary"/>
             </xpath>
-            -->
          
          
             <xpath expr="//field[@name='payment_term_id']" position="after">

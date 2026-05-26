@@ -9,11 +9,13 @@
                   decoration-danger="apunts_emp_bloqueado"
                   decoration-success="not apunts_emp_bloqueado">
                 <field name="apunts_emp_bloqueado" column_invisible="1"/>
+                <field name="apunts_production_id" column_invisible="1"/>
                 <field name="employee_id" string="Operario" readonly="1"/>
-                <field name="apunts_production_id" string="OF" readonly="1"/>
-                <field name="workorder_id" string="OT (fase)" readonly="1"/>
+                <field name="apunts_of_short" string="OF" readonly="1"/>
+                <field name="apunts_ot_short" string="OT (fase)" readonly="1"/>
                 <field name="workcenter_id" string="Centro" optional="hide" readonly="1"/>
                 <field name="date_start" string="Fichado desde"/>
+                <field name="date_end" string="Fichado hasta" readonly="1"/>
                 <field name="apunts_duracion_viva" string="Llevan (h)" widget="float_time" readonly="1"/>
                 <field name="apunts_emp_horas_hoy" string="Horas HOY" widget="float_time" readonly="1"/>
                 <field name="apunts_emp_horas_semana" string="Horas semana" widget="float_time" readonly="1" optional="show"/>
@@ -50,6 +52,10 @@
                         domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter name="filter_semana" string="Últimos 7 días"
                         domain="[('date_start', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_15d" string="Últimos 15 días"
+                        domain="[('date_start', '&gt;=', (context_today() - relativedelta(days=15)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_30d" string="Últimos 30 días"
+                        domain="[('date_start', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d 00:00:00'))]"/>
                 <group string="Agrupar por">
                     <filter name="group_employee" string="Operario" context="{'group_by': 'employee_id'}"/>
                     <filter name="group_of" string="OF" context="{'group_by': 'apunts_production_id'}"/>

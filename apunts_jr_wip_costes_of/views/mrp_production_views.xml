@@ -26,8 +26,11 @@
                 <field name="apunts_machine_real_total" string="Máquina real (€)" sum="Total máquina real" optional="show"/>
                 <field name="apunts_cost_total_planned" string="Coste teórico OF (€)" sum="Total coste teórico"/>
                 <field name="apunts_cost_total_real" string="EN CURSO real (€)" sum="Total en curso real"/>
-                <field name="apunts_margen_of" string="Margen (€)" sum="Total margen" optional="show" decoration-danger="apunts_margen_of &lt; 0" decoration-success="apunts_margen_of &gt; 0"/>
-                <field name="apunts_margen_pct" string="Margen %" widget="percentage" optional="hide"/>
+                <field name="apunts_margen_of" string="Margen teórico (€)" sum="Total margen teórico" optional="show" decoration-danger="apunts_margen_of &lt; 0" decoration-success="apunts_margen_of &gt; 0"/>
+                <field name="apunts_margen_pct" string="Margen teórico %" widget="percentage" optional="hide"/>
+                <field name="apunts_margen_real_of" string="Margen real (€)" sum="Total margen real" optional="show" decoration-danger="apunts_margen_real_dudoso or apunts_margen_real_of &lt; 0" decoration-success="not apunts_margen_real_dudoso and apunts_margen_real_of &gt; 0"/>
+                <field name="apunts_margen_real_pct" string="Margen real %" widget="percentage" optional="hide" decoration-danger="apunts_margen_real_dudoso" decoration-success="not apunts_margen_real_dudoso and apunts_margen_real_pct &gt; 0"/>
+                <field name="apunts_margen_real_dudoso" column_invisible="1"/>
                 <field name="apunts_bom_incompleta" string="BoM" widget="boolean_toggle" optional="show"/>
                 <field name="date_start" string="Inicio" widget="date" optional="show"/>
                 <field name="date_deadline" string="Entrega" widget="date" optional="show"/>

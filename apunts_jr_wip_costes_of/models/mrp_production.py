@@ -206,7 +206,29 @@ class MrpProduction(models.Model):
         string="Margen (%)",
         compute="_compute_apunts_margen",
         store=True,
-        help="Margen € / Venta × 100. 0 si no hay venta vinculada.",
+        help="Margen € / Venta × 100. Calculado sobre coste TEÓRICO.",
+    )
+    apunts_margen_real_of = fields.Monetary(
+        string="Margen real (€)",
+        compute="_compute_apunts_margen",
+        store=True,
+        currency_field="company_currency_id",
+        help="Venta vinculada − Coste REAL acumulado (lo fichado hasta el momento). "
+             "Si el coste real es 0 (OF sin empezar) este margen es engañoso: ver columna "
+             "'Margen real sin datos' / decoración roja.",
+    )
+    apunts_margen_real_pct = fields.Float(
+        string="Margen real (%)",
+        compute="_compute_apunts_margen",
+        store=True,
+        help="Margen real € / Venta × 100. Calculado sobre coste REAL acumulado.",
+    )
+    apunts_margen_real_dudoso = fields.Boolean(
+        string="Margen real sin datos",
+        compute="_compute_apunts_margen",
+        store=True,
+        help="True si el coste real es 0 (OF sin fichajes). El margen real entonces es "
+             "100% artificial — usar decoración roja en vistas.",
     )
 
     @api.depends(
@@ -226,16 +248,25 @@ class MrpProduction(models.Model):
                 partner = prod.procurement_group_id.sale_id.partner_id
             prod.apunts_partner_id = partner or False
 
-    @api.depends("apunts_sale_amount", "apunts_cost_total_planned")
+    @api.depends("apunts_sale_amount", "apunts_cost_total_planned", "apunts_cost_total_real")
     def _compute_apunts_margen(self):
-        # apunts_margen_pct se guarda como fracción (0..1) — widget percentage en la vista
-        # ya multiplica × 100 para mostrar "99,57%" al usuario. Si guardáramos × 100 aquí,
-        # el widget mostraría "9957%".
+        # apunts_margen_pct y apunts_margen_real_pct se guardan como fracción (0..1)
+        # — el widget percentage en la vista ya multiplica × 100 al mostrar.
+        # Dos pares de campos: teórico (planned por BoM) vs real (fichado hasta ahora).
+        # `apunts_margen_real_dudoso` marca cuando el real es 0 (OF sin empezar): el
+        # margen real entonces es 100% artificial — la vista lo pinta en rojo.
         for prod in self:
             venta = prod.apunts_sale_amount or 0.0
-            coste = prod.apunts_cost_total_planned or 0.0
-            prod.apunts_margen_of = venta - coste
+            coste_teo = prod.apunts_cost_total_planned or 0.0
+            coste_real = prod.apunts_cost_total_real or 0.0
+            # Margen teórico (BoM)
+            prod.apunts_margen_of = venta - coste_teo
             prod.apunts_margen_pct = (prod.apunts_margen_of / venta) if venta else 0.0
+            # Margen real (fichado)
+            prod.apunts_margen_real_of = venta - coste_real
+            prod.apunts_margen_real_pct = (prod.apunts_margen_real_of / venta) if venta else 0.0
+            # Flag de "sin datos reales"
+            prod.apunts_margen_real_dudoso = (coste_real <= 0.0) and (venta > 0.0)
 
     apunts_min_total_plan = fields.Float(
         string="Min totales (plan)",
