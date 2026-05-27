@@ -350,3 +350,34 @@ docker compose start odoo
 ```
 
 ---
+
+## [018] Factor de cobertura (venta / coste real)
+
+**Fecha:** 2026-05-27  
+**Módulos:** `apunts_jr_wip_costes_of`, `apunts_jr_parciales_of`  
+**Ficheros modificados:**
+- `apunts_jr_wip_costes_of/models/mrp_production.py` — nuevo campo `apunts_factor_cobertura` (Float, 2 dec.) calculado en `_compute_apunts_margen`
+- `apunts_jr_wip_costes_of/views/apunts_costes_of_redesign.xml` — muestra el factor en la tarjeta "Margen actual" de la vista Coste OF
+- `apunts_jr_wip_costes_of/views/mrp_production_views.xml` — columna `Factor (×)` opcional en la lista WIP
+- `apunts_jr_parciales_of/models/apunts_jr_costes_cadena.py` — campo `cadena_factor_cobertura`
+- `apunts_jr_parciales_of/models/mrp_production.py` — cálculo del factor en `action_jr_costes_cadena`
+- `apunts_jr_parciales_of/views/apunts_jr_costes_cadena_views.xml` — muestra el factor en la tarjeta "Margen actual" de la vista Coste cadena
+
+**Qué hace:**  
+Añade el indicador `Factor = Venta / Coste real` en los tres sitios donde se muestran costes de OFs. Objetivo JR: ≥ 1,35.
+
+- Verde: factor ≥ 1,35 (objetivo cumplido)
+- Ámbar: 1,0 ≤ factor < 1,35 (rentable pero por debajo del objetivo)
+- Rojo: factor < 1,0 (pérdidas)
+- Sin color: factor = 0 (OF sin datos de coste real todavía)
+
+Si la OF no tiene fichajes reales (coste_real = 0), muestra 0 sin colorear.
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update apunts_jr_wip_costes_of,apunts_jr_parciales_of --stop-after-init
+docker compose start odoo
+```
+
+---
