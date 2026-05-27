@@ -4,264 +4,224 @@
 
 Este repositorio contiene los módulos custom y de terceros del cliente **Javier Ramos** sobre **Odoo 18 Enterprise**. El entorno de desarrollo es un Docker local que replica la base de datos de producción (servidor Plesk: `apuntserp.es`).
 
-Hay **dos desarrolladores trabajando en paralelo** sobre esta misma carpeta. Cada uno tiene su propio entorno Docker local. El flujo de trabajo es:
-- Cada desarrollador trabaja en su rama o directamente en `main`
-- Cada modificación se commitea por separado con el prefijo `[NNN]` que corresponde a la entrada en `CAMBIOS.md`
-- Al finalizar, se comparten los commits y se decide qué fusionar
+Hay **dos desarrolladores trabajando en paralelo**: **Joan** y **Alex**. Cada uno tiene su propio entorno Docker local.
+
+**Repositorio GitHub:** `https://github.com/joanmachi/addons_JavierRamos.git`
+
+---
+
+## Entorno Docker local
+
+| | |
+|---|---|
+| **Odoo** | `http://localhost:8069` |
+| **Contenedor Odoo** | `odoo_javierramos_local-odoo-1` |
+| **Contenedor DB** | `odoo_javierramos_local-db-1` |
+| **Base de datos** | `javierramoslocal` |
+| **Usuario Odoo** | `direccion@jramos.com` |
+| **Contraseña Odoo** | `admin123` |
+
+---
+
+## Cómo aplicar cambios en Odoo
+
+Después de modificar vistas XML o modelos Python:
+
+```bash
+# Parar Odoo
+cd C:\Users\<tu_usuario>\Documents\Docker\odoo_18_JavierRamos
+docker compose stop odoo
+
+# Actualizar módulo(s)
+docker compose run --rm odoo odoo -d javierramoslocal --update NOMBRE_MODULO --stop-after-init
+
+# Volver a arrancar
+docker compose start odoo
+```
+
+Para instalar un módulo nuevo (que no estaba instalado):
+```bash
+docker compose run --rm odoo odoo -d javierramoslocal --init NOMBRE_MODULO --stop-after-init
+```
+
+Para limpiar la caché de assets JS/CSS (cuando cambias ficheros .js o .css):
+```bash
+docker exec odoo_javierramos_local-db-1 psql -U odoo -d javierramoslocal -c "DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';"
+```
+
+---
+
+## Flujo de trabajo
+
+Cada modificación sigue este patrón:
+
+1. Editar los ficheros del módulo
+2. Actualizar el módulo en Odoo y verificar que funciona
+3. Commitear: `git commit -m "[NNN] Descripción corta"`
+4. Subir: `git push origin main` (o tu rama)
+
+---
+
+## Estado actual de los módulos custom
+
+### Módulos modificados por Joan (sobre la base de Alex)
+
+| Módulo | Cambios |
+|---|---|
+| `javier_ramos_pedidos` | Campo `invoice_due_date_display` en `account.move`; columna "Fecha Venc." en lista facturas |
+| `javier_ramos_taller_simple` | Etiqueta albarán rediseñada (logo, barcodes, formato 105×150mm); xpath Studio comentado |
+| `lira_mfg_supervisor` | Click en fila del panel abre la orden de fabricación (OWL component + método Python) |
+
+### Módulos que existen pero no se han tocado en este repo
+- `apunts_barcode_workorder`, `apunts_jr_gestion_taller`, `apunts_jr_wip_costes_of`
+- `lira_dashboard_contabilidad`, `apunts_jr_parciales_of` (nuevo, instalado)
+- `javier_ramos_pedidos`, `plastec_*`, `lira_*`
+
+### Módulos eliminados por Alex (ya no están en el repo)
+- `apunts_stock_delivery_grouped` — eliminado, si estaba instalado en Odoo puede dar warning
+- `apunts_wip` — eliminado
 
 ---
 
 ## Instrucciones para Claude Code
 
-### Lo que eres y lo que haces aquí
+> Esta sección la lee Claude (la IA) para entender el proyecto desde cero.
 
-Eres el asistente de desarrollo de este proyecto Odoo. Tu trabajo es ayudar a programar modificaciones sobre los módulos custom del cliente. **Todas las modificaciones que hagas deben seguir el flujo de trabajo descrito abajo.**
+### Qué eres y qué haces aquí
 
-### Estructura de carpetas relevante
+Eres el asistente de desarrollo de este proyecto Odoo 18 Enterprise para el cliente Javier Ramos. Tu trabajo es implementar modificaciones sobre los módulos custom. **Antes de tocar nada, lee los ficheros relevantes con Read.**
+
+### Reglas importantes
+
+- **Nunca comentes un `xpath` sin entender por qué falla.** Si un xpath falla, primero verifica si el campo padre existe en la vista heredada ejecutando un grep en `/usr/lib/python3/dist-packages/odoo/addons/` dentro del contenedor.
+- **El campo logo en Odoo 18 es `logo_web`**, no `logo` (`res.company.logo_web`).
+- **Para abrir un formulario desde JS en Odoo 18**, el action dict debe incluir `'views': [(False, 'form')]` o el frontend lanza `Cannot read properties of undefined (reading 'map')`.
+- **Las etiquetas PDF** usan `web.html_container` (no `web.internal_layout`) y necesitan `class="page article"` en el div de página para que `_prepare_html` añada el charset y el zoom no sea 0.47 por culpa de dpi=203.
+- **Después de cambiar JS/CSS**, borrar la caché de assets en la BD y reiniciar Odoo.
+- **Xpath `x_studio_rdenes_de_fabricacin`** en `javier_ramos_taller_simple/views/pedidos.xml` está **comentado** a propósito — el campo Studio fue eliminado de la vista padre en producción. No lo reactives.
+
+### Estructura clave de ficheros
 
 ```
-addons/                          ← estás aquí (este repo git)
-├── javier_ramos_pedidos/        ← módulo principal de facturas, pedidos, albaranes
-├── javier_ramos_taller/         ← módulo de taller/producción
-├── javier_ramos_taller_simple/  ← variante simplificada del taller
-├── plastec_pedido/              ← módulo específico Plastec
-├── plastec_taller/              ← taller Plastec
-├── lira_dashboard_contabilidad/ ← dashboard contabilidad
-├── apunts_*/                    ← módulos de Apunts Informàtica
-└── ...otros módulos de terceros
+addons/
+├── javier_ramos_pedidos/
+│   ├── models/
+│   │   ├── __init__.py             ← importa account_move, sale_order, etc.
+│   │   ├── account_move.py         ← hereda account.move, añade invoice_due_date_display
+│   │   └── ...
+│   └── views/
+│       └── factura.xml             ← vista lista facturas con columna fecha vencimiento
+├── javier_ramos_taller_simple/
+│   ├── report/
+│   │   ├── labels.xml              ← etiqueta albarán (WHOUT/WHIN), diseño propio
+│   │   └── paper_format.xml        ← 105×150mm, dpi=96 (importante: NO poner dpi=203)
+│   └── views/
+│       └── pedidos.xml             ← xpath Studio comentado
+└── lira_mfg_supervisor/
+    ├── models/
+    │   └── lira_supervisor_workorder.py  ← action_open_production() al final
+    ├── views/
+    │   └── lira_supervisor_views.xml     ← js_class="lira_supervisor_list" en ambas listas
+    ├── static/src/js/
+    │   └── supervisor_list.js            ← OWL component, openRecord → action_open_production
+    └── __manifest__.py                   ← supervisor_list.js en web.assets_backend
 ```
 
-Los módulos a tocar habitualmente son los que empiezan por `javier_ramos_`, `plastec_` y `lira_`.
+---
 
-### Entorno Docker local
+## Para Alex: cómo recibir los cambios de Joan
 
-El entorno corre con Docker Compose. Los contenedores son:
-- `odoo_javierramos_local-odoo-1` — Odoo 18 en `http://localhost:8069`
-- `odoo_javierramos_local-db-1` — PostgreSQL 16 en `localhost:5433`
+### Paso 1 — Obtén el repositorio
 
-Base de datos local: `javierramoslocal`  
-Usuario Odoo: `direccion@jramos.com`  
-Contraseña Odoo: `admin123`
-
-### Cómo aplicar cambios en Odoo
-
-Cada vez que modifiques vistas XML o modelos Python de un módulo, aplica así:
-
+**Si aún no tienes el repo clonado:**
 ```bash
-docker exec odoo_javierramos_local-odoo-1 odoo -d javierramoslocal --update=NOMBRE_MODULO --stop-after-init
-docker restart odoo_javierramos_local-odoo-1
+git clone https://github.com/joanmachi/addons_JavierRamos.git addons
+cd addons
 ```
 
----
-
-## Flujo de trabajo obligatorio para cada modificación
-
-### 1. Haz el cambio en el código
-
-Edita los ficheros necesarios dentro de `addons/`.
-
-### 2. Añade la entrada en CAMBIOS.md
-
-Abre `CAMBIOS.md` y añade una nueva sección siguiendo el formato:
-
-```markdown
-## [NNN] Título corto del cambio
-
-**Fecha:** YYYY-MM-DD
-**Módulo:** `nombre_modulo`
-**Ficheros modificados:**
-- `ruta/al/fichero.py` — descripción de qué hace
-- `ruta/al/fichero.xml` — descripción de qué hace
-
-**Vista/función afectada:** dónde se ve en Odoo
-
-**Qué hace:**
-Descripción clara del cambio.
-
-**Para aplicar cambios:**
-\```
-docker exec odoo_javierramos_local-odoo-1 odoo -d javierramoslocal --update=MODULO --stop-after-init
-docker restart odoo_javierramos_local-odoo-1
-\```
-
----
-```
-
-El número `[NNN]` es correlativo al último que haya en `CAMBIOS.md`.
-
-### 3. Commitea los cambios
-
+**Si ya lo tienes clonado:**
 ```bash
-git add <ficheros modificados> CAMBIOS.md
-git commit -m "[NNN] Título corto del cambio"
+git fetch origin
+git log origin/main --oneline   # revisa los commits nuevos
 ```
 
-El mensaje del commit debe coincidir con el título de la entrada en `CAMBIOS.md`.
-
----
-
-## Cómo recibir los cambios de otro desarrollador (sin perder los tuyos)
-
-Esta sección explica paso a paso cómo un compañero puede integrar los commits de esta rama con sus propios cambios locales.
-
----
-
-### Situación de partida
-
-Este repositorio tiene los siguientes commits nuevos desde el estado inicial:
-
-```
-0f6d001  Supervisor planta: Click en fila, abre OF
-9f28a91  Anotacion de cambios
-a0738fa  Albaranes de entrega, valorados y no valorados
-79bdac6  Columna fecha vencimiento en facturas
-5505730  Añadir README.md con instrucciones para Claude Code y CAMBIOS.md
-ee32548  Estado inicial - modulos extraidos de produccion Javier Ramos
-```
-
-Los módulos modificados son: `javier_ramos_pedidos`, `stock_picking_report_valued`, `apunts_stock_delivery_grouped` y `lira_mfg_supervisor`. Consulta `CAMBIOS.md` para el detalle completo de cada cambio.
-
----
-
-### Paso 1 — Guarda tu trabajo antes de nada
-
-Comprueba si tienes cambios sin commitear:
+### Paso 2 — Guarda tu trabajo actual
 
 ```bash
 git status
 ```
 
-**Si tienes cambios sin commitear**, guárdalos temporalmente:
+- Si tienes cambios sin commitear: `git stash push -m "mis cambios"`
+- Si tienes commits propios en tu rama: anota el hash del último con `git log --oneline`
 
+### Paso 3 — Integra
+
+**Si trabajas en `main`:**
 ```bash
-git stash push -m "mis cambios pendientes"
+git merge origin/main
 ```
 
-**Si ya tienes commits propios en tu rama**, anótalos (verás sus hashes con `git log --oneline`). No hace falta hacer nada todavía.
-
----
-
-### Paso 2 — Obtén los commits nuevos
-
-**Opción A — Si ya tienes el repositorio clonado:**
-
-```bash
-git fetch origin
-git log origin/main --oneline   # revisa qué commits nuevos hay
-```
-
-**Opción B — Si no tienes el repositorio:**
-
-```bash
-git clone <URL_DEL_REPO> addons
-cd addons
-```
-
----
-
-### Paso 3 — Integra los cambios nuevos con los tuyos
-
-Aquí hay dos casos:
-
-#### Caso 1: Tus cambios están en commits propios
-
-Usa `rebase` para poner tus commits encima de los nuevos (lo más limpio):
-
+**Si trabajas en tu propia rama:**
 ```bash
 git rebase origin/main
 ```
 
-Si hay conflictos en algún fichero, Git te lo indicará. Resuélvelos así:
+Si hay conflictos en `CAMBIOS.md`: mantén las entradas de los dos lados, reordénalas por número `[NNN]`.
+Si hay conflictos en XML: los `<record>` suelen ser independientes, normalmente puedes conservar ambos.
+
+### Paso 4 — Actualiza los módulos en Odoo
+
+Los módulos que Joan ha modificado son:
 
 ```bash
-# 1. Abre el fichero en conflicto, busca los marcadores <<<<<<< HEAD
-#    y edita hasta que quede como quieras
-
-# 2. Marca el conflicto como resuelto
-git add <fichero_en_conflicto>
-
-# 3. Continúa el rebase
-git rebase --continue
-```
-
-Si en algún momento quieres cancelar y volver al estado anterior:
-```bash
-git rebase --abort
-```
-
-#### Caso 2: Tus cambios están en el stash (sin commitear)
-
-```bash
-# Primero sube a la punta de origin/main
-git merge origin/main
-
-# Luego recupera tus cambios
-git stash pop
-```
-
-Si `stash pop` produce conflictos, resuelve igual que arriba (busca `<<<<<<<` en los ficheros afectados, edita, `git add`, y ya está).
-
----
-
-### Paso 4 — Comprueba qué módulos hay que actualizar en Odoo
-
-Mira qué ficheros cambiaron respecto al estado que tenías:
-
-```bash
-git diff HEAD~5 --name-only   # ajusta el número según los commits nuevos
-```
-
-Los módulos afectados por los commits nuevos son:
-
-| Módulo | Tipo de cambio |
-|---|---|
-| `javier_ramos_pedidos` | Campo Python + vista XML |
-| `stock_picking_report_valued` | Modelo Python + XML reporte |
-| `apunts_stock_delivery_grouped` | XML reporte |
-| `lira_mfg_supervisor` | Modelo Python + vistas XML + JS |
-
-Actualiza solo los que hayas integrado (o todos para ir seguro):
-
-```bash
-docker exec odoo_javierramos_local-odoo-1 odoo -d javierramoslocal \
-  --update=javier_ramos_pedidos,stock_picking_report_valued,apunts_stock_delivery_grouped,lira_mfg_supervisor \
+cd C:\ruta\a\tu\Docker\odoo_18_JavierRamos
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal \
+  --update javier_ramos_pedidos,javier_ramos_taller_simple,lira_mfg_supervisor \
   --stop-after-init
-
-docker restart odoo_javierramos_local-odoo-1
+docker compose start odoo
 ```
 
-Para `lira_mfg_supervisor` (cambio JS), además de actualizar el módulo, recarga la página con **Ctrl+Shift+R** en el navegador para forzar la recarga de assets.
+Limpia también la caché de assets (por el cambio JS en lira_mfg_supervisor):
+```bash
+docker exec odoo_javierramos_local-db-1 psql -U odoo -d javierramoslocal \
+  -c "DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';"
+```
+
+### Paso 5 — Verifica
+
+- **Facturas** → debe aparecer la columna "Fecha Venc." (opcional, hay que activarla desde el icono de columnas)
+- **Etiqueta albarán** → al imprimir un albarán de salida (WHOUT), debe salir con logo arriba, recuadro oscuro, barcodes de artículo y orden
+- **Panel Supervisor Planta** → al hacer clic en una fila, debe abrir la orden de fabricación
 
 ---
 
-### Paso 5 — Verifica que todo funciona
+## Prompt para darle a tu Claude
 
-Comprueba en Odoo los puntos clave de cada cambio integrado:
+Copia esto y pégaselo a tu Claude Code al inicio de la sesión:
 
-- **Facturas (Contabilidad > Clientes > Facturas)**: debe aparecer la columna "Fecha Venc." como columna opcional.
-- **Albarán (cualquier traslado > Imprimir)**: deben aparecer dos opciones: el albarán estándar y "Imprimir Albarán Valorado".
-- **Albarán PDF**: la tabla de productos no debe aparecer duplicada.
-- **Supervisor Planta**: al hacer clic en una fila, debe abrir la orden de fabricación correspondiente.
+```
+Estás trabajando en el proyecto Odoo 18 Enterprise del cliente Javier Ramos.
+Lee el fichero README.md en la raíz del repositorio de addons — contiene todo el
+contexto del proyecto, las reglas técnicas importantes y el estado actual de los módulos.
 
----
+El repositorio está en: C:\Users\<TU_USUARIO>\Documents\Docker\odoo_18_JavierRamos\addons
 
-### Resolución de conflictos frecuentes
+Antes de hacer cualquier cambio:
+1. Lee README.md completo
+2. Lee el fichero que vayas a modificar
+3. Verifica que el xpath o campo que vayas a usar existe en la vista/modelo padre
 
-**Conflicto en `CAMBIOS.md`:**  
-Es muy probable porque ambos desarrolladores añaden entradas. Abre el fichero, mantén TODAS las entradas de ambos lados (las tuyas y las nuevas) ordenadas por número `[NNN]`, y ajusta la numeración si es necesario.
-
-**Conflicto en un fichero XML de vistas:**  
-Lee los dos bloques en conflicto y decide si deben convivir (normalmente sí — son `<record>` independientes) o si uno reemplaza al otro. Cuando tengas dudas, consulta `CAMBIOS.md` para entender qué hace cada bloque.
-
-**Conflicto en un fichero Python de modelo:**  
-Normalmente son métodos o campos distintos que se pueden mantener juntos. Si los dos lados tocan el mismo método, hay que leerlos con cuidado y fusionar la lógica manualmente.
+El compañero Joan ya ha hecho una serie de modificaciones — están documentadas en
+CAMBIOS.md y en la sección "Estado actual" del README. No las repitas ni las sobreescribas.
+```
 
 ---
 
-## Notas técnicas importantes
+## Notas técnicas
 
-- **Odoo 18**: las vistas XML usan xpath. Antes de escribir un xpath, verifica qué campos existen en la vista padre mirando el fuente dentro del contenedor en `/usr/lib/python3/dist-packages/odoo/addons/`.
-- **Enterprise**: la carpeta `enterprise/` está en el nivel superior (fuera de este repo). No la toques.
-- **Line endings**: este repo usa LF (`.gitattributes` configurado). No cambies esa configuración.
-- **`__pycache__`**: ignorado por `.gitignore`. No los commitees.
-- **La vista lista de facturas** en Odoo 18 es `account.view_invoice_tree`, no `account.view_move_tree`.
+- **Odoo 18**: usa `<list>` en lugar de `<tree>` en las vistas
+- **Enterprise**: la carpeta `enterprise/` está en el nivel superior (fuera de este repo). No la toques
+- **Line endings**: este repo usa LF
+- **`__pycache__`**: ignorado por `.gitignore`
+- **Vista lista de facturas** en Odoo 18: `account.view_invoice_tree`
