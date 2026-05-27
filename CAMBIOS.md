@@ -139,3 +139,179 @@ docker restart odoo_javierramos_local-odoo-1
 ```
 
 ---
+
+## [007] Etiquetas albarán — versión mejorada final (logo arriba, barcodes, divisores)
+
+**Fecha:** 2026-05-16  
+**Módulo:** `javier_ramos_taller_simple`  
+**Ficheros modificados:**
+- `javier_ramos_taller_simple/report/labels.xml` — reescritura completa del diseño
+- `javier_ramos_taller_simple/report/paper_format.xml` — ajuste a 150×105 mm, dpi=96
+
+**Qué hace:**  
+Versión final del diseño de etiqueta de albarán:
+- Logo de empresa centrado en la parte superior (fuera del recuadro)
+- Recuadro con borde exterior desde la cabecera hasta el final
+- Cabecera gris oscuro (#555555) con título centrado y número de traslado en esquina derecha
+- Dos columnas de barcodes (ARTICULO | ORDEN) con separador vertical `bgcolor="#cccccc"`
+- Secciones de contenido como `<div>` independientes para evitar bordes Bootstrap
+- Etiqueta en gris pequeño arriba, valor en negrita abajo (FECHA ENTREGA, PEDIDO JR, Nº PEDIDO CLIENTE)
+- CANTIDAD | LONGITUD con separador vertical al final
+- `class="page article"` en el div de página para correcto charset UTF-8 en `_prepare_html`
+- `dpi=96` en paper_format (zoom=1.0); con dpi=203 el contenido aparecía al 47%
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update javier_ramos_taller_simple --stop-after-init
+docker compose start odoo
+```
+
+---
+
+## [008] Recuperar fecha vencimiento y clic supervisor tras merge Alex v1
+
+**Fecha:** 2026-05-19  
+**Módulos:** `javier_ramos_pedidos`, `lira_mfg_supervisor`  
+**Ficheros modificados:**
+- `javier_ramos_pedidos/views/factura.xml` — restaurado record `account_move_tree_view_inherit_date_due`
+- `javier_ramos_pedidos/models/account_move.py` — restaurado campo `invoice_due_date_display`
+- `javier_ramos_pedidos/models/__init__.py` — restaurado import de `account_move`
+- `lira_mfg_supervisor/models/lira_supervisor_workorder.py` — restaurado `action_open_production()`
+- `lira_mfg_supervisor/views/lira_supervisor_views.xml` — restaurado `js_class="lira_supervisor_list"`
+- `lira_mfg_supervisor/static/src/js/supervisor_list.js` — restaurado componente OWL
+- `lira_mfg_supervisor/__manifest__.py` — restaurado `supervisor_list.js` en assets
+
+**Por qué:**  
+El merge de la carpeta addons de Alex (primera entrega) sobrescribió las modificaciones [001] y [005]. Se recuperaron todas las funcionalidades sobre la base de Alex.
+
+---
+
+## [009] Comentar xpath Studio en pedidos.xml
+
+**Fecha:** 2026-05-19  
+**Módulo:** `javier_ramos_taller_simple`  
+**Ficheros modificados:**
+- `javier_ramos_taller_simple/views/pedidos.xml`
+
+**Por qué:**  
+El xpath `//field[@name='x_studio_rdenes_de_fabricacin']` referencia un campo Studio eliminado de la vista padre `sale.view_order_form` en producción. Dejarlo activo impide actualizar el módulo. Se comenta con nota explicativa para no perderlo en futuros merges.
+
+---
+
+## [010] lira_mfg_supervisor: versión exacta de Alex (gestión de merge)
+
+**Fecha:** 2026-05-20  
+**Módulo:** `lira_mfg_supervisor`  
+**Nota:** Commit de gestión — se reemplazaron los ficheros del módulo por la versión exacta del compañero Alex tal como está en producción, para partir desde una base limpia antes de aplicar las modificaciones propias.
+
+---
+
+## [011] lira_mfg_supervisor: clic en fila abre orden de fabricación
+
+**Fecha:** 2026-05-20  
+**Módulo:** `lira_mfg_supervisor`  
+**Ficheros modificados:**
+- `lira_mfg_supervisor/models/lira_supervisor_workorder.py` — método `action_open_production()`
+- `lira_mfg_supervisor/static/src/js/supervisor_list.js` — componente OWL `SupervisorListController`
+- `lira_mfg_supervisor/views/lira_supervisor_views.xml` — `js_class="lira_supervisor_list"`
+- `lira_mfg_supervisor/__manifest__.py` — JS añadido a assets
+
+**Qué hace:**  
+Al hacer clic en cualquier fila del Panel Supervisor, navega directamente al formulario de la orden de fabricación (`mrp.production`) en lugar de abrir el workorder.
+
+---
+
+## [012] Fix action_open_production: añadir `views` para _preprocessAction
+
+**Fecha:** 2026-05-20  
+**Módulo:** `lira_mfg_supervisor`  
+**Ficheros modificados:**
+- `lira_mfg_supervisor/models/lira_supervisor_workorder.py`
+
+**Por qué:**  
+El clic lanzaba `TypeError: Cannot read properties of undefined (reading 'map')` en el frontend. En Odoo 18, `_preprocessAction` del cliente JS requiere que el dict de acción incluya la clave `views`. Sin ella, el método intenta hacer `.map()` sobre `undefined`.
+
+**Solución:** añadir `'views': [(False, 'form')]` al dict devuelto por `action_open_production()`.
+
+---
+
+## [013] Estado addons Alex v2 — segunda entrega (gestión de merge)
+
+**Fecha:** 2026-05-26  
+**Nota:** Commit de gestión — integración de la segunda carpeta addons de Alex. Cambios relevantes:
+- Nuevo módulo instalado: `apunts_jr_parciales_of`
+- Módulos eliminados del repo: `apunts_stock_delivery_grouped`, `apunts_wip`
+- Eliminado por Alex: `javier_ramos_pedidos/models/account_move.py` (restaurado en [014])
+- Eliminado por Alex: `lira_mfg_supervisor/static/src/js/supervisor_list.js` (restaurado en [014])
+
+---
+
+## [014] Restaurar customizaciones sobre Alex v2
+
+**Fecha:** 2026-05-26  
+**Módulos:** `javier_ramos_pedidos`, `javier_ramos_taller_simple`, `lira_mfg_supervisor`  
+**Ficheros modificados:**
+- `javier_ramos_taller_simple/views/pedidos.xml` — xpath Studio comentado de nuevo
+- `javier_ramos_taller_simple/report/labels.xml` — restaurado diseño mejorado [007]
+- `javier_ramos_taller_simple/report/paper_format.xml` — restaurado 150×105mm, dpi=96
+- `javier_ramos_pedidos/models/account_move.py` — recreado con `invoice_due_date_display`
+- `javier_ramos_pedidos/models/__init__.py` — reimportado `account_move`
+- `javier_ramos_pedidos/views/factura.xml` — restaurada columna Fecha Venc.
+- `lira_mfg_supervisor/models/lira_supervisor_workorder.py` — restaurado `action_open_production()`
+- `lira_mfg_supervisor/views/lira_supervisor_views.xml` — restaurado `js_class="lira_supervisor_list"`
+- `lira_mfg_supervisor/static/src/js/supervisor_list.js` — recreado componente OWL
+- `lira_mfg_supervisor/__manifest__.py` — JS restaurado en assets
+
+**Por qué:**  
+La segunda entrega de Alex sobrescribió todas las modificaciones propias. Se restauraron íntegramente sobre la nueva base.
+
+---
+
+## [015] README: workflow para Alex, prompt para Claude, estado módulos
+
+**Fecha:** 2026-05-26  
+**Ficheros modificados:**
+- `README.md`
+
+**Qué hace:**  
+Actualización completa del README con el estado real de los módulos, instrucciones para que Alex pueda clonar el repo e integrar los cambios en su entorno Mac, y un prompt listo para copiar-pegar a su Claude Code.
+
+---
+
+## [016] Desglose líneas de venta y factura
+
+**Fecha:** 2026-05-27  
+**Módulo:** `javier_ramos_pedidos`  
+**Ficheros modificados:**
+- `javier_ramos_pedidos/models/pedido_linea.py` — campo `qty_to_deliver` (pendiente de entrega)
+- `javier_ramos_pedidos/views/desglose_ventas.xml` — nuevo fichero con ambas vistas
+- `javier_ramos_pedidos/__manifest__.py` — añadido `desglose_ventas.xml`
+
+**Vista afectada:**
+- Ventas > Informes > Desglose líneas de venta
+- Contabilidad > Informes > Desglose líneas de factura
+
+**Qué hace:**  
+Dos vistas lista independientes para analizar el estado de cada línea sin entrar en cada pedido o factura:
+
+**Desglose líneas de venta** (`sale.order.line`):
+- Columnas: Pedido, Cliente, Producto, Pedido (qty), Entregado, Pdte. entrega (rojo si > 0), Facturado, Estado, Subtotal
+- Sumas totales por columna numérica
+- Filtros: *Pendiente de entregar* / *Entregado y pendiente de facturar* / *Completamente facturado* / *Solo pedidos confirmados*
+- Agrupaciones por: Cliente, Producto, Pedido, Estado facturación
+
+**Desglose líneas de factura** (`account.move.line`):
+- Solo líneas de producto de facturas de cliente (excluye impuestos, subtotales, etc.)
+- Columnas: Fecha, Factura, Cliente, Producto, Cantidad, Precio, Subtotal, Estado
+- Filtros: *Facturas confirmadas* / *Borradores* / *Este mes*
+- Agrupaciones por: Cliente, Producto, Factura, Mes
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update javier_ramos_pedidos --stop-after-init
+docker compose start odoo
+```
+
+---
