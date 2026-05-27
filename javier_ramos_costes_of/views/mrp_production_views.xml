@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_jr_costes_cadena_form_inherit" model="ir.ui.view">
+    <field name="name">mrp.production.form.jr.costes.cadena</field>
+    <field name="model">mrp.production</field>
+    <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+    <field name="arch" type="xml">
+
+      <xpath expr="//div[@name='button_box']" position="inside">
+        <button name="action_jr_costes_cadena"
+                type="object"
+                class="oe_stat_button"
+                icon="fa-eur"
+                invisible="not jr_is_parcial">
+          <div class="o_stat_info">
+            <span class="o_stat_value">
+              <field name="jr_cadena_count" nolabel="1"/> OFs
+            </span>
+            <span class="o_stat_text">Coste cadena</span>
+          </div>
+        </button>
+      </xpath>
+
+    </field>
+  </record>
+
+</odoo>
