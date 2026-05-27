@@ -67,6 +67,14 @@
                                 <div class="small text-muted mt-1">
                                     Venta − coste real. Verde ≥ 20%, ámbar 0–20%, rojo &lt; 0%.
                                 </div>
+                                <div class="small fw-bold mt-2">
+                                    Factor:
+                                    <field name="apunts_factor_cobertura" nolabel="1" readonly="1"
+                                           class="oe_inline"
+                                           decoration-success="apunts_factor_cobertura &gt;= 1.35"
+                                           decoration-warning="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.35"
+                                           decoration-danger="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.0"/>x
+                                </div>
                             </div>
                         </div>
                     </div>

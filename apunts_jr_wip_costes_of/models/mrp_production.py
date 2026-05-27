@@ -230,6 +230,13 @@ class MrpProduction(models.Model):
         help="True si el coste real es 0 (OF sin fichajes). El margen real entonces es "
              "100% artificial — usar decoración roja en vistas.",
     )
+    apunts_factor_cobertura = fields.Float(
+        string="Factor cobertura",
+        compute="_compute_apunts_margen",
+        store=True,
+        digits=(6, 2),
+        help="Venta / Coste real. Objetivo JR: ≥ 1,35. Valor < 1 = pérdidas.",
+    )
 
     @api.depends(
         "sale_line_id",
@@ -267,6 +274,8 @@ class MrpProduction(models.Model):
             prod.apunts_margen_real_pct = (prod.apunts_margen_real_of / venta) if venta else 0.0
             # Flag de "sin datos reales"
             prod.apunts_margen_real_dudoso = (coste_real <= 0.0) and (venta > 0.0)
+            # Factor de cobertura: venta / coste_real (objetivo JR: >= 1,35)
+            prod.apunts_factor_cobertura = (venta / coste_real) if coste_real > 0 else 0.0
 
     apunts_min_total_plan = fields.Float(
         string="Min totales (plan)",

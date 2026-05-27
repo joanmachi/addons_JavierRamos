@@ -43,3 +43,6 @@ class ApuntsJrCostesCadena(models.TransientModel):
         string='Margen (€)', currency_field='currency_id', readonly=True,
     )
     cadena_margin_state = fields.Char(readonly=True)
+    cadena_factor_cobertura = fields.Float(
+        string='Factor cobertura', digits=(6, 2), readonly=True,
+    )

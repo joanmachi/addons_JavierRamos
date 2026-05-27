@@ -176,6 +176,7 @@ class MrpProductionLotesOf(models.Model):
         cost_real = sum(cadena.mapped('apunts_cost_total_real'))
         cost_planned = sum(cadena.mapped('apunts_cost_total_planned'))
         margin = sale - cost_real
+        factor = (sale / cost_real) if cost_real > 0 else 0.0
         if sale > 0:
             pct = margin / sale
             margin_state = 'green' if pct >= 0.20 else ('amber' if pct >= 0 else 'red')
@@ -200,6 +201,7 @@ class MrpProductionLotesOf(models.Model):
             'cadena_min_planned': sum(cadena.mapped('apunts_min_total_plan')),
             'cadena_margin': margin,
             'cadena_margin_state': margin_state,
+            'cadena_factor_cobertura': factor,
         })
 
         return {

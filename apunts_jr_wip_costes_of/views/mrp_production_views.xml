@@ -30,6 +30,10 @@
                 <field name="apunts_margen_pct" string="Margen teórico %" widget="percentage" optional="hide"/>
                 <field name="apunts_margen_real_of" string="Margen real (€)" sum="Total margen real" optional="show" decoration-danger="apunts_margen_real_dudoso or apunts_margen_real_of &lt; 0" decoration-success="not apunts_margen_real_dudoso and apunts_margen_real_of &gt; 0"/>
                 <field name="apunts_margen_real_pct" string="Margen real %" widget="percentage" optional="hide" decoration-danger="apunts_margen_real_dudoso" decoration-success="not apunts_margen_real_dudoso and apunts_margen_real_pct &gt; 0"/>
+                <field name="apunts_factor_cobertura" string="Factor (×)" optional="show"
+                       decoration-success="apunts_factor_cobertura &gt;= 1.35"
+                       decoration-warning="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.35"
+                       decoration-danger="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.0"/>
                 <field name="apunts_margen_real_dudoso" column_invisible="1"/>
                 <field name="apunts_bom_incompleta" string="BoM" widget="boolean_toggle" optional="show"/>
                 <field name="date_start" string="Inicio" widget="date" optional="show"/>
