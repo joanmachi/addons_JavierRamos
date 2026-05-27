@@ -315,3 +315,38 @@ docker compose start odoo
 ```
 
 ---
+
+## [017] Coste cadena OFs parciales — smart button en apunts_jr_parciales_of
+
+**Fecha:** 2026-05-27  
+**Módulo:** `apunts_jr_parciales_of`  
+**Ficheros modificados/creados:**
+- `apunts_jr_parciales_of/models/apunts_jr_costes_cadena.py` — nuevo TransientModel `apunts.jr.costes.cadena`
+- `apunts_jr_parciales_of/models/mrp_production.py` — nuevos campos `jr_is_parcial`, `jr_cadena_count` y método `action_jr_costes_cadena()`
+- `apunts_jr_parciales_of/models/__init__.py` — import del nuevo modelo
+- `apunts_jr_parciales_of/security/ir.model.access.csv` — acceso al TransientModel
+- `apunts_jr_parciales_of/views/apunts_jr_costes_cadena_views.xml` — vista formulario con KPIs + tabla desglose + lista OFs
+- `apunts_jr_parciales_of/views/mrp_production_views.xml` — smart button en button_box
+- `apunts_jr_parciales_of/__manifest__.py` — nuevos ficheros en `data`
+
+**Módulo eliminado:** `javier_ramos_costes_of` (eliminado carpeta + limpieza BD)
+
+**Vista afectada:**  
+Fabricación > Orden de fabricación (formulario) — aparece el botón "Coste cadena" con el número de OFs cuando la OF es parcial (pertenece a una cadena de más de una OF).
+
+**Qué hace:**  
+Al clicar el smart button "Coste cadena" en una OF parcial, abre una vista con:
+- 4 tarjetas KPI: Venta total (verde), En curso real (ámbar), Coste teórico (azul), Margen actual (verde/ámbar/rojo según umbral 20%/0%)
+- Tabla desglose: MP, Tiempo, Coste operario, Coste máquina, TOTAL — columnas Teórico vs Real
+- Lista de todas las OFs de la cadena con sus costes individuales y sumas por columna
+
+Los costes se agregan sumando los campos `apunts_*` de todas las OFs hermanas (misma `procurement_group_id`). La venta se calcula también por suma (distribución proporcional de `sale_line_id`).
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update apunts_jr_parciales_of --stop-after-init
+docker compose start odoo
+```
+
+---

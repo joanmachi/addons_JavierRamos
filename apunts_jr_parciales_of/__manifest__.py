@@ -12,6 +12,8 @@
         "apunts_jr_wip_costes_of",
     ],
     "data": [
+        "security/ir.model.access.csv",
+        "views/apunts_jr_costes_cadena_views.xml",
         "views/mrp_production_views.xml",
     ],
     "installable": True,

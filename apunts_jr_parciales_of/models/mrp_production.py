@@ -149,6 +149,70 @@ class MrpProductionLotesOf(models.Model):
         }
 
     # ------------------------------------------------------------------
+    # Smart button "Coste cadena"
+    # ------------------------------------------------------------------
+    jr_is_parcial = fields.Boolean(
+        string='Es parcial',
+        compute='_compute_jr_cadena_info',
+    )
+    jr_cadena_count = fields.Integer(
+        string='OFs en cadena',
+        compute='_compute_jr_cadena_info',
+    )
+
+    @api.depends('procurement_group_id', 'name')
+    def _compute_jr_cadena_info(self):
+        for prod in self:
+            cadena = prod._apunts_get_cadena()
+            prod.jr_cadena_count = len(cadena)
+            prod.jr_is_parcial = len(cadena) > 1
+
+    def action_jr_costes_cadena(self):
+        self.ensure_one()
+        cadena = self._apunts_get_cadena()
+        raiz = cadena.sorted('id')[0] if cadena else self
+
+        sale = sum(cadena.mapped('apunts_sale_amount'))
+        cost_real = sum(cadena.mapped('apunts_cost_total_real'))
+        cost_planned = sum(cadena.mapped('apunts_cost_total_planned'))
+        margin = sale - cost_real
+        if sale > 0:
+            pct = margin / sale
+            margin_state = 'green' if pct >= 0.20 else ('amber' if pct >= 0 else 'red')
+        else:
+            margin_state = 'amber'
+
+        wizard = self.env['apunts.jr.costes.cadena'].create({
+            'production_id': self.id,
+            'of_ids': [(6, 0, cadena.ids)],
+            'raiz_name': raiz.name,
+            'currency_id': self.company_currency_id.id,
+            'cadena_sale_amount': sale,
+            'cadena_cost_total_real': cost_real,
+            'cadena_cost_total_planned': cost_planned,
+            'cadena_mat_real': sum(cadena.mapped('apunts_mat_real_total')),
+            'cadena_mat_planned': sum(cadena.mapped('apunts_mat_planned_total')),
+            'cadena_mo_real': sum(cadena.mapped('apunts_mo_real_total')),
+            'cadena_mo_planned': sum(cadena.mapped('apunts_mo_planned_total')),
+            'cadena_machine_real': sum(cadena.mapped('apunts_machine_real_total')),
+            'cadena_machine_planned': sum(cadena.mapped('apunts_machine_planned_total')),
+            'cadena_min_real': sum(cadena.mapped('apunts_min_real_total')),
+            'cadena_min_planned': sum(cadena.mapped('apunts_min_total_plan')),
+            'cadena_margin': margin,
+            'cadena_margin_state': margin_state,
+        })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Costes cadena — {raiz.name}',
+            'res_model': 'apunts.jr.costes.cadena',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'current',
+        }
+
+    # ------------------------------------------------------------------
     # Campo Many2many computado para la pestaña Lotes (solo en vista)
     # Many2many computed sin store es válido para mostrar listas read-only
     # en Odoo 18 sin necesitar tabla intermedia real.
