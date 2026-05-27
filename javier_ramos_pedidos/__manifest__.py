@@ -19,6 +19,7 @@
         'views/pedidos.xml',
         'views/factura.xml',
         'views/albaran_view.xml',
+        'views/desglose_ventas.xml',
         'report/albaran_report.xml',
         'report/factura_report.xml',
         'report/venta_report.xml',

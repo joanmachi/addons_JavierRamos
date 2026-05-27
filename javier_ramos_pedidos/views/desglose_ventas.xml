@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ── LÍNEAS DE PEDIDO — Lista ─────────────────────────────────────── -->
+  <record id="view_jr_sale_line_desglose_list" model="ir.ui.view">
+    <field name="name">jr.sale.order.line.desglose.list</field>
+    <field name="model">sale.order.line</field>
+    <field name="arch" type="xml">
+      <list string="Desglose líneas de venta" create="0" delete="0" edit="0"
+            decoration-muted="invoice_status == 'invoiced'">
+
+        <field name="order_id"         string="Pedido"/>
+        <field name="order_partner_id" string="Cliente"/>
+        <field name="product_id"       string="Producto"/>
+        <field name="name"             string="Descripción"  optional="hide"/>
+
+        <field name="product_uom_qty"  string="Pedido"       sum="Total pedido"/>
+        <field name="qty_delivered"    string="Entregado"    sum="Total entregado"/>
+        <field name="qty_to_deliver"   string="Pdte. entrega" sum="Total pendiente"
+               decoration-danger="qty_to_deliver > 0"
+               decoration-muted="qty_to_deliver &lt;= 0"/>
+        <field name="qty_invoiced"     string="Facturado"    sum="Total facturado"/>
+
+        <field name="invoice_status"   string="Estado"       widget="badge"
+               decoration-success="invoice_status == 'invoiced'"
+               decoration-warning="invoice_status == 'to invoice'"
+               decoration-info="invoice_status == 'upselling'"
+               decoration-muted="invoice_status == 'no'"/>
+
+        <field name="price_unit"       string="Precio"       optional="show"/>
+        <field name="price_subtotal"   string="Subtotal"     sum="Total"/>
+
+      </list>
+    </field>
+  </record>
+
+  <!-- ── LÍNEAS DE PEDIDO — Búsqueda ──────────────────────────────────── -->
+  <record id="view_jr_sale_line_desglose_search" model="ir.ui.view">
+    <field name="name">jr.sale.order.line.desglose.search</field>
+    <field name="model">sale.order.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar líneas">
+
+        <field name="order_id"         string="Pedido"/>
+        <field name="order_partner_id" string="Cliente"/>
+        <field name="product_id"       string="Producto"/>
+        <field name="name"             string="Descripción"/>
+
+        <separator/>
+        <filter name="filter_to_deliver"
+                string="Pendiente de entregar"
+                domain="[('qty_to_deliver', '&gt;', 0), ('state', '=', 'sale')]"/>
+        <filter name="filter_delivered_to_invoice"
+                string="Entregado y pendiente de facturar"
+                domain="[('invoice_status', '=', 'to invoice')]"/>
+        <filter name="filter_invoiced"
+                string="Completamente facturado"
+                domain="[('invoice_status', '=', 'invoiced')]"/>
+
+        <separator/>
+        <filter name="filter_confirmed"
+                string="Solo pedidos confirmados"
+                domain="[('state', '=', 'sale')]"/>
+
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner" string="Cliente"
+                  context="{'group_by': 'order_partner_id'}"/>
+          <filter name="group_product" string="Producto"
+                  context="{'group_by': 'product_id'}"/>
+          <filter name="group_order"   string="Pedido"
+                  context="{'group_by': 'order_id'}"/>
+          <filter name="group_status"  string="Estado facturación"
+                  context="{'group_by': 'invoice_status'}"/>
+        </group>
+
+      </search>
+    </field>
+  </record>
+
+  <!-- ── LÍNEAS DE PEDIDO — Acción ────────────────────────────────────── -->
+  <record id="action_jr_sale_line_desglose" model="ir.actions.act_window">
+    <field name="name">Desglose líneas de venta</field>
+    <field name="res_model">sale.order.line</field>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_jr_sale_line_desglose_list"/>
+    <field name="search_view_id" ref="view_jr_sale_line_desglose_search"/>
+    <field name="domain">[('state', 'in', ['sale', 'done'])]</field>
+  </record>
+
+  <!-- ── LÍNEAS DE FACTURA — Lista ────────────────────────────────────── -->
+  <record id="view_jr_invoice_line_desglose_list" model="ir.ui.view">
+    <field name="name">jr.account.move.line.desglose.list</field>
+    <field name="model">account.move.line</field>
+    <field name="arch" type="xml">
+      <list string="Desglose líneas de factura" create="0" delete="0" edit="0"
+            decoration-muted="parent_state == 'draft'">
+
+        <field name="date"          string="Fecha"/>
+        <field name="move_id"       string="Factura"/>
+        <field name="partner_id"    string="Cliente"/>
+        <field name="product_id"    string="Producto"/>
+        <field name="name"          string="Descripción"  optional="hide"/>
+        <field name="quantity"      string="Cantidad"     sum="Total unidades"/>
+        <field name="price_unit"    string="Precio"       optional="show"/>
+        <field name="price_subtotal" string="Subtotal"    sum="Total"/>
+
+        <field name="parent_state"  string="Estado"       widget="badge"
+               decoration-success="parent_state == 'posted'"
+               decoration-info="parent_state == 'draft'"
+               decoration-danger="parent_state == 'cancel'"/>
+
+      </list>
+    </field>
+  </record>
+
+  <!-- ── LÍNEAS DE FACTURA — Búsqueda ─────────────────────────────────── -->
+  <record id="view_jr_invoice_line_desglose_search" model="ir.ui.view">
+    <field name="name">jr.account.move.line.desglose.search</field>
+    <field name="model">account.move.line</field>
+    <field name="arch" type="xml">
+      <search string="Buscar líneas factura">
+
+        <field name="move_id"    string="Factura"/>
+        <field name="partner_id" string="Cliente"/>
+        <field name="product_id" string="Producto"/>
+        <field name="name"       string="Descripción"/>
+
+        <separator/>
+        <filter name="filter_posted"
+                string="Facturas confirmadas"
+                domain="[('parent_state', '=', 'posted')]"/>
+        <filter name="filter_draft"
+                string="Borradores"
+                domain="[('parent_state', '=', 'draft')]"/>
+
+        <separator/>
+        <filter name="filter_date_month"
+                string="Este mes"
+                domain="[('date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+
+        <group expand="1" string="Agrupar por">
+          <filter name="group_partner" string="Cliente"
+                  context="{'group_by': 'partner_id'}"/>
+          <filter name="group_product" string="Producto"
+                  context="{'group_by': 'product_id'}"/>
+          <filter name="group_move"    string="Factura"
+                  context="{'group_by': 'move_id'}"/>
+          <filter name="group_month"   string="Mes"
+                  context="{'group_by': 'date:month'}"/>
+        </group>
+
+      </search>
+    </field>
+  </record>
+
+  <!-- ── LÍNEAS DE FACTURA — Acción ───────────────────────────────────── -->
+  <record id="action_jr_invoice_line_desglose" model="ir.actions.act_window">
+    <field name="name">Desglose líneas de factura</field>
+    <field name="res_model">account.move.line</field>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_jr_invoice_line_desglose_list"/>
+    <field name="search_view_id" ref="view_jr_invoice_line_desglose_search"/>
+    <field name="domain">[
+      ('display_type', '=', 'product'),
+      ('move_id.move_type', 'in', ['out_invoice', 'out_refund'])
+    ]</field>
+  </record>
+
+  <!-- ── MENÚS ─────────────────────────────────────────────────────────── -->
+  <menuitem id="menu_jr_sale_line_desglose"
+            name="Desglose líneas de venta"
+            parent="sale.menu_sale_report"
+            action="action_jr_sale_line_desglose"
+            sequence="20"/>
+
+  <menuitem id="menu_jr_invoice_line_desglose"
+            name="Desglose líneas de factura"
+            parent="account.menu_finance_reports"
+            action="action_jr_invoice_line_desglose"
+            sequence="20"/>
+
+</odoo>

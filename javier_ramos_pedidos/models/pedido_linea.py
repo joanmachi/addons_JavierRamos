@@ -17,7 +17,19 @@ _logger = logging.getLogger(__name__)
 class PedidoLinea(models.Model):
     _inherit = "sale.order.line"
 
-    pos_palet =fields.Text(string='POS.')
+    pos_palet = fields.Text(string='POS.')
+
+    qty_to_deliver = fields.Float(
+        string='Pdte. entrega',
+        compute='_compute_qty_to_deliver',
+        store=True,
+        digits='Product Unit of Measure',
+    )
+
+    @api.depends('product_uom_qty', 'qty_delivered')
+    def _compute_qty_to_deliver(self):
+        for line in self:
+            line.qty_to_deliver = line.product_uom_qty - line.qty_delivered
 
     def _prepare_invoice_line(self, **optional_values):
         self.ensure_one()
