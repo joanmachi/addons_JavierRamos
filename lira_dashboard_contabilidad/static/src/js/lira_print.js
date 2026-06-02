@@ -45,6 +45,7 @@ class LiraPrintButton extends Component {
     static props = {
         title: { type: String, optional: true },
         line_model: { type: String, optional: true },
+        "*": true,
     };
 
     setup() {

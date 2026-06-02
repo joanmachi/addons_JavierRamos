@@ -381,3 +381,17 @@ docker compose start odoo
 ```
 
 ---
+
+## [019] Fix bug presupuesto desde OF — display_qty_widget
+
+**Fecha:** 2026-05-27  
+**Módulo:** `javier_ramos_pedidos`  
+**Ficheros modificados:**
+- `javier_ramos_pedidos/models/pedido_linea.py` — eliminado método `_compute_qty_to_deliver` propio y simplificado campo `qty_to_deliver`
+
+**Por qué:**  
+Al abrir un presupuesto desde una OF salía `ValueError: Compute method failed to assign sale.order.line(...).display_qty_widget`. El módulo definía su propio `_compute_qty_to_deliver` que solo asignaba `qty_to_deliver` pero machacaba el método de `sale_stock`, que también asigna `display_qty_widget`. Al no asignar ese campo, Odoo lanzaba el error.
+
+**Solución:** eliminar el método custom y dejar solo `qty_to_deliver = fields.Float(string='Pdte. entrega')` para conservar el label en español sin interferir con el método de `sale_stock`.
+
+---

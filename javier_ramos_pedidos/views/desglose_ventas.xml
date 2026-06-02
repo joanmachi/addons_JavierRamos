@@ -84,7 +84,7 @@
     <field name="view_mode">list</field>
     <field name="view_id" ref="view_jr_sale_line_desglose_list"/>
     <field name="search_view_id" ref="view_jr_sale_line_desglose_search"/>
-    <field name="domain">[('state', 'in', ['sale', 'done'])]</field>
+    <field name="domain">[('state', 'in', ['sale', 'done']), ('product_uom_qty', '>', 0), ('order_id.name', '!=', 'S00087')]</field>
   </record>
 
   <!-- ── LÍNEAS DE FACTURA — Lista ────────────────────────────────────── -->
