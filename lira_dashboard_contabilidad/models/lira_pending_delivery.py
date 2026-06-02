@@ -26,6 +26,7 @@ class LiraPendingDeliveryLine(models.Model):
     user_id          = fields.Many2one('res.users', ondelete='cascade', index=True)
     pedido           = fields.Char(string='Pedido')
     fecha_pedido     = fields.Date(string='Fecha pedido')
+    fecha_entrega    = fields.Date(string='Fecha entrega')
     partner_id       = fields.Many2one('res.partner', string='Cliente', index=True)
     partner_vat      = fields.Char(related='partner_id.vat', string='NIF/CIF', store=False)
     partner_city     = fields.Char(related='partner_id.city', string='Ciudad', store=False)
@@ -71,11 +72,13 @@ class LiraPendingDelivery(models.TransientModel):
             if pendiente <= 0.001:
                 continue
             fecha = l.order_id.date_order.date() if l.order_id.date_order else hoy
+            fecha_entrega = l.order_id.commitment_date.date() if l.order_id.commitment_date else False
             dias = (hoy - fecha).days
             pct = round(l.qty_delivered / l.product_uom_qty * 100, 1) if l.product_uom_qty else 0.0
             vals.append({
                 'pedido':           l.order_id.name,
                 'fecha_pedido':     fecha,
+                'fecha_entrega':    fecha_entrega,
                 'partner_id':       l.order_id.partner_id.id,
                 'product_id':       l.product_id.id,
                 'categ_id':         l.product_id.categ_id.id or False,

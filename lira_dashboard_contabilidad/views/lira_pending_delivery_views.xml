@@ -77,6 +77,9 @@
                help="Número del pedido de venta."/>
         <field name="fecha_pedido" string="Fecha pedido"
                help="Fecha de confirmación del pedido."/>
+        <field name="fecha_entrega" string="Fecha entrega"
+               decoration-danger="fecha_entrega and fecha_entrega &lt; current_date"
+               help="Fecha de entrega comprometida con el cliente (campo 'Fecha de entrega' del pedido)."/>
         <field name="partner_id" string="Cliente"
                help="Cliente del pedido."/>
         <field name="partner_vat" string="NIF/CIF" optional="hide"
