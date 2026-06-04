@@ -577,31 +577,25 @@ class MrpProduction(models.Model):
     @staticmethod
     def _apunts_workorder_totals_real(prod):
         # Fuente única: productividades cerradas (date_end != NULL) de los
-        # workorders de la OF. Misma query que apunts_costes_of para que
-        # M.Obra real coincida en ambos módulos.
-        # MO real: cascada de coste/hora →
-        #   1) hr_employee.hourly_cost (más preciso, por persona)
-        #   2) mrp_workcenter.employee_costs_hour (fallback genérico, por centro)
-        # NULLIF transforma 0 en NULL para que COALESCE pase al siguiente nivel.
+        # workorders de la OF. MO real con prorrateo cuando hay solapamiento
+        # de empleados entre varias OFs simultáneas.
+        # Máquina y amortización usan duración bruta (son independientes por centro).
         cr = prod.env.cr
         cr.execute("""
             SELECT
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(
-                    NULLIF(he.hourly_cost, 0),
-                    wc.employee_costs_hour,
-                    0
-                )), 0)                                                                   AS mo,
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)         AS machine,
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.apunts_amort_hour, 0)), 0)  AS amort
+                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)        AS machine,
+                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.apunts_amort_hour, 0)), 0) AS amort
             FROM   mrp_workcenter_productivity p
             JOIN   mrp_workorder               wo ON wo.id = p.workorder_id
             JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            LEFT   JOIN hr_employee            he ON he.id = p.employee_id
-            WHERE  wo.production_id = %s
-              AND  p.date_end IS NOT NULL
+            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL
         """, [prod.id])
-        row = cr.fetchone() or (0.0, 0.0, 0.0)
-        return float(row[0] or 0.0), float(row[1] or 0.0), float(row[2] or 0.0)
+        row = cr.fetchone() or (0.0, 0.0)
+        machine = float(row[0] or 0.0)
+        amort = float(row[1] or 0.0)
+        # MO: cascada hourly_cost → employee_costs_hour, con prorrateo temporal
+        mo = prod._apunts_prorated_emp_cost(prod.id, use_cascade=True)
+        return mo, machine, amort
 
     def _apunts_get_product_cost(self, product, production=None):
         """Cascada: pol vinculada a la OF (campo `fabricacion`) → standard_price

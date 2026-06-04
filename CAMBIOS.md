@@ -395,3 +395,48 @@ Al abrir un presupuesto desde una OF salía `ValueError: Compute method failed t
 **Solución:** eliminar el método custom y dejar solo `qty_to_deliver = fields.Float(string='Pdte. entrega')` para conservar el label en español sin interferir con el método de `sale_stock`.
 
 ---
+
+## [020] Columna "Fecha entrega" en Pedidos Pendientes de Entrega
+
+**Fecha:** 2026-06-02  
+**Módulo:** `lira_dashboard_contabilidad`  
+**Ficheros modificados:**
+- `lira_dashboard_contabilidad/models/lira_pending_delivery.py` — campo `fecha_entrega` en `LiraPendingDeliveryLine`; poblado desde `sale.order.commitment_date` en `_build_data`
+- `lira_dashboard_contabilidad/views/lira_pending_delivery_views.xml` — columna `fecha_entrega` entre `fecha_pedido` y `partner_id`, con `decoration-danger` para fechas vencidas
+
+**Qué hace:**  
+En la vista "Pedidos pendientes de entrega — detalle" aparece la columna **Fecha entrega** (fecha comprometida con el cliente) sin tener que abrir el pedido. Las filas con fecha ya vencida se colorean en rojo.
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update lira_dashboard_contabilidad --stop-after-init
+docker compose start odoo
+```
+
+---
+
+## [021] Prorrateo de coste de mano de obra en solapamientos de OFs
+
+**Fecha:** 2026-06-04  
+**Módulos:** `apunts_costes_of` (11.0.9) · `apunts_jr_wip_costes_of` (1.1.19)  
+**Ficheros modificados:**
+- `apunts_costes_of/models/mrp_production.py` — nuevo helper `_apunts_prorated_emp_cost`; modificados `_apunts_labor_and_operation_real` y `_apunts_wo_cost`
+- `apunts_jr_wip_costes_of/models/mrp_production.py` — modificado `_apunts_workorder_totals_real`
+
+**Qué hace:**  
+Cuando un operario ficha simultáneamente en varias OFs, el coste de mano de obra se distribuye proporcionalmente entre ellas. Si ficha de 8h a 14h en OF-1 y a las 12h ficha también en OF-2:
+- OF-1: 4h exclusivas + 2h compartidas (÷2) = **6h efectivas**
+- OF-2: 2h compartidas (÷2) = **2h efectivas**
+- Total real: 8h = tiempo de asistencia real del operario
+
+El algoritmo divide cada intervalo de tiempo por el número de productividades activas del empleado en ese instante. El coste de máquina y amortización NO cambia (son costes del centro, independientes del empleado).
+
+**Para aplicar cambios:**
+```
+docker compose stop odoo
+docker compose run --rm odoo odoo -d javierramoslocal --update apunts_costes_of,apunts_jr_wip_costes_of --stop-after-init
+docker compose start odoo
+```
+
+---

@@ -624,23 +624,93 @@ class MrpProduction(models.Model):
     # CALCULOS - MANO DE OBRA + OPERACION (centros)
     # ============================================================
 
+    def _apunts_prorated_emp_cost(self, production_id, workorder_id=None, use_cascade=False):
+        """Coste de mano de obra con prorrateo temporal en solapamientos.
+
+        Cuando un empleado está simultáneamente fichado en varias OFs, divide
+        el tiempo de cada sub-intervalo entre el número de registros concurrentes.
+        use_cascade=True aplica NULLIF(hourly_cost,0) → wc.employee_costs_hour.
+        """
+        cr = self.env.cr
+        rate_expr = (
+            "COALESCE(NULLIF(he.hourly_cost, 0), wc.employee_costs_hour, 0)"
+            if use_cascade else
+            "COALESCE(he.hourly_cost, 0)"
+        )
+        if workorder_id:
+            cr.execute("""
+                SELECT p.id, p.employee_id, p.date_start, p.date_end, {rate}
+                FROM   mrp_workcenter_productivity p
+                JOIN   mrp_workcenter wc ON wc.id = p.workcenter_id
+                LEFT   JOIN hr_employee he ON he.id = p.employee_id
+                WHERE  p.workorder_id = %s
+                  AND  p.date_end IS NOT NULL AND p.employee_id IS NOT NULL
+            """.format(rate=rate_expr), [workorder_id])
+        else:
+            cr.execute("""
+                SELECT p.id, p.employee_id, p.date_start, p.date_end, {rate}
+                FROM   mrp_workcenter_productivity p
+                JOIN   mrp_workorder wo ON wo.id = p.workorder_id
+                JOIN   mrp_workcenter wc ON wc.id = p.workcenter_id
+                LEFT   JOIN hr_employee he ON he.id = p.employee_id
+                WHERE  wo.production_id = %s
+                  AND  p.date_end IS NOT NULL AND p.employee_id IS NOT NULL
+            """.format(rate=rate_expr), [production_id])
+
+        own_records = cr.fetchall()
+        if not own_records:
+            return 0.0
+
+        by_emp = defaultdict(list)
+        for rec_id, emp_id, ds, de, rate in own_records:
+            by_emp[emp_id].append((rec_id, ds, de, rate))
+
+        total_cost = 0.0
+        for emp_id, recs in by_emp.items():
+            min_start = min(r[1] for r in recs)
+            max_end = max(r[2] for r in recs)
+            # All closed productivity records of this employee in this time range
+            cr.execute("""
+                SELECT p.id, p.date_start, p.date_end
+                FROM   mrp_workcenter_productivity p
+                WHERE  p.employee_id = %s
+                  AND  p.date_end IS NOT NULL
+                  AND  p.date_start < %s AND p.date_end > %s
+            """, [emp_id, max_end, min_start])
+            all_recs = cr.fetchall()
+
+            for rec_id, ds, de, rate in recs:
+                bps = sorted({ds, de} | {
+                    t for _, os, oe in all_recs
+                    for t in (os, oe) if ds < t < de
+                })
+                eff_min = 0.0
+                for i in range(len(bps) - 1):
+                    t0, t1 = bps[i], bps[i + 1]
+                    mid = t0 + (t1 - t0) / 2
+                    concurrent = sum(
+                        1 for _, os, oe in all_recs if os <= mid < oe
+                    )
+                    eff_min += (t1 - t0).total_seconds() / 60.0 / max(concurrent, 1)
+                total_cost += eff_min / 60.0 * (rate or 0.0)
+
+        return round(total_cost, 2)
+
     def _apunts_labor_and_operation_real(self):
         """Devuelve (labor_real_empleado, operacion_real_centro) en EUR."""
         self.ensure_one()
         cr = self.env.cr
         cr.execute("""
-            SELECT
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(he.hourly_cost, 0)), 0)        AS coste_emp,
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)         AS coste_wc
+            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0) AS coste_wc
             FROM   mrp_workcenter_productivity p
             JOIN   mrp_workorder               wo ON wo.id = p.workorder_id
             JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            LEFT   JOIN hr_employee            he ON he.id = p.employee_id
-            WHERE  wo.production_id = %s
-              AND  p.date_end IS NOT NULL
+            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL
         """, [self.id])
-        row = cr.fetchone() or (0.0, 0.0)
-        return round(row[0] or 0.0, 2), round(row[1] or 0.0, 2)
+        row = cr.fetchone() or (0.0,)
+        coste_wc = round(row[0] or 0.0, 2)
+        coste_emp = self._apunts_prorated_emp_cost(self.id)
+        return coste_emp, coste_wc
 
     def _apunts_labor_and_operation_planned(self):
         """Plan teorico: routing de la BoM x cantidad de la OF.
@@ -991,17 +1061,15 @@ class MrpProduction(models.Model):
         """Devuelve (coste_empleado, coste_workcenter) para una workorder."""
         cr = self.env.cr
         cr.execute("""
-            SELECT
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(he.hourly_cost, 0)), 0)        AS coste_emp,
-                COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)         AS coste_wc
+            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0) AS coste_wc
             FROM   mrp_workcenter_productivity p
             JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            LEFT   JOIN hr_employee            he ON he.id = p.employee_id
-            WHERE  p.workorder_id = %s
-              AND  p.date_end IS NOT NULL
+            WHERE  p.workorder_id = %s AND p.date_end IS NOT NULL
         """, [wo.id])
-        row = cr.fetchone() or (0.0, 0.0)
-        return round(row[0] or 0.0, 2), round(row[1] or 0.0, 2)
+        row = cr.fetchone() or (0.0,)
+        coste_wc = round(row[0] or 0.0, 2)
+        coste_emp = self._apunts_prorated_emp_cost(None, workorder_id=wo.id)
+        return coste_emp, coste_wc
 
     def _apunts_wo_employees(self, wo):
         """Lista de nombres de empleados imputados a la WO (uniques)."""
