@@ -114,3 +114,10 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 "next": {"type": "ir.actions.act_window_close"},
             },
         }
+
+
+class ApuntsFinJornadaWizardLinea(models.TransientModel):
+    _name = "apunts.fin.jornada.wizard.linea"
+    _description = "Línea OF (mantenida por compatibilidad)"
+
+    wizard_id = fields.Many2one("apunts.fin.jornada.wizard", ondelete="cascade")
