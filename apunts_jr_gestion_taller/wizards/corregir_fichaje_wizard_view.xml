@@ -13,77 +13,100 @@
                     <field name="productivity_abierta_id" invisible="1"/>
                     <field name="ofs_filtradas_ids" invisible="1"/>
 
-                    <!-- Info del bloqueo -->
-                    <group invisible="not motivo_bloqueo">
-                        <field name="motivo_bloqueo" readonly="1" string="Motivo del bloqueo"/>
-                        <field name="fecha_bloqueo" readonly="1" string="Bloqueado desde"/>
-                    </group>
-
-                    <!-- CASO 1: hay fichaje abierto (fichado demasiado tiempo) -->
-                    <div invisible="not tiene_fichaje_abierto" class="alert alert-warning">
-                        <i class="fa fa-clock-o me-1"/>
-                        <strong>Fichaje abierto detectado.</strong>
-                        El operario lleva demasiado tiempo fichado en una OF.
-                        Corrige la hora de salida real y aplica para cerrar el fichaje y desbloquearle.
+                    <!-- Datos del bloqueo (siempre visible si existe) -->
+                    <div class="alert alert-secondary" invisible="not motivo_bloqueo">
+                        <i class="fa fa-lock me-1"/>
+                        <strong>
+                            <field name="motivo_bloqueo" readonly="1" nolabel="1"
+                                   style="display:inline"/>
+                        </strong>
+                        — bloqueado el
+                        <field name="fecha_bloqueo" readonly="1" nolabel="1"
+                               style="display:inline" widget="datetime"/>
                     </div>
 
-                    <!-- CASO 2: no hay fichaje abierto (inactividad) -->
-                    <div invisible="tiene_fichaje_abierto" class="alert alert-info">
-                        <i class="fa fa-search me-1"/>
-                        <strong>Operario sin fichaje activo.</strong>
-                        Estaba fichado en el sistema pero sin ninguna OF activa.
-                        Selecciona la OF y la fase donde estuvo trabajando, pon el rango horario
-                        y aplica para registrar ese periodo y desbloquearle.
-                    </div>
-
+                    <!-- Operario (siempre) -->
                     <group>
                         <field name="employee_id" options="{'no_create': True}"/>
+                        <field name="mostrar_todas_ofs"
+                               help="Por defecto solo aparecen las OFs del operario. Marca para ver todas."/>
                     </group>
 
-                    <!-- ── CASO 1: cerrar fichaje abierto ── -->
-                    <group invisible="not tiene_fichaje_abierto" string="Corregir salida">
-                        <field name="salida_real" string="Hora de salida real"/>
-                        <field name="motivo" placeholder="Ej. olvidó cerrar fin de jornada"/>
-                    </group>
-
-                    <group invisible="not tiene_fichaje_abierto" string="OF del fichaje abierto">
-                        <field name="mostrar_todas_ofs"/>
-                        <field name="production_id" options="{'no_create': True}"/>
-                    </group>
-
-                    <div invisible="not (tiene_fichaje_abierto and production_id)">
-                        <separator string="Fichajes del operario en esta OF"/>
-                        <field name="fichajes_operario_of_html" nolabel="1"/>
+                    <!-- ═══════════════════════════════════════════════════════
+                         CASO 1 — Fichado demasiado tiempo
+                         Muestra: OF + OT del fichaje abierto, "fichado desde",
+                         hora de salida a corregir.
+                    ═══════════════════════════════════════════════════════ -->
+                    <div invisible="not tiene_fichaje_abierto">
+                        <div class="alert alert-warning">
+                            <i class="fa fa-clock-o me-1"/>
+                            <strong>Fichaje abierto detectado.</strong>
+                            El operario lleva demasiado tiempo fichado.
+                            Selecciona la OF y la fase, comprueba desde cuándo lleva
+                            fichado y corrige la hora de salida.
+                        </div>
+                        <group string="Fichaje a cerrar">
+                            <field name="production_id" string="Orden de Fabricación (OF)"
+                                   options="{'no_create': True}"/>
+                            <field name="workorder_id_abierto" string="Fase (OT)"
+                                   options="{'no_create': True}"
+                                   invisible="not production_id"/>
+                            <field name="date_start_abierto" string="Fichado desde"
+                                   readonly="1"
+                                   invisible="not workorder_id_abierto"
+                                   widget="datetime"/>
+                            <field name="salida_real" string="Corregir salida a"
+                                   invisible="not workorder_id_abierto"/>
+                            <field name="motivo"
+                                   placeholder="Ej. olvidó cerrar al final de jornada"
+                                   invisible="not workorder_id_abierto"/>
+                        </group>
                     </div>
 
-                    <!-- ── CASO 2: crear nuevo fichaje por inactividad ── -->
-                    <group invisible="tiene_fichaje_abierto" string="OF y periodo trabajado">
-                        <field name="mostrar_todas_ofs"/>
-                        <field name="production_id" options="{'no_create': True}"
-                               string="Orden de Fabricación"/>
-                        <field name="workorder_id_nuevo" options="{'no_create': True}"
-                               invisible="not production_id"/>
-                        <field name="date_start_nuevo" invisible="not production_id"/>
-                        <field name="date_end_nuevo" invisible="not production_id"/>
-                        <field name="motivo" placeholder="Ej. se distrajo entre fichajes"
-                               invisible="not production_id"/>
-                    </group>
+                    <!-- ═══════════════════════════════════════════════════════
+                         CASO 2 — Inactividad (sin fichaje activo)
+                         Muestra: buscador OF, buscador OT dentro de esa OF,
+                         rango de fechas del periodo a registrar.
+                    ═══════════════════════════════════════════════════════ -->
+                    <div invisible="tiene_fichaje_abierto">
+                        <div class="alert alert-info">
+                            <i class="fa fa-search me-1"/>
+                            <strong>Operario sin fichaje activo.</strong>
+                            Estaba en el sistema pero sin ninguna OF activa.
+                            Busca la OF y la fase donde estuvo trabajando y
+                            pon el rango horario para registrar ese periodo.
+                        </div>
+                        <group string="Periodo a registrar">
+                            <field name="production_id" string="Orden de Fabricación (OF)"
+                                   options="{'no_create': True}"/>
+                            <field name="workorder_id_nuevo" string="Fase (OT)"
+                                   options="{'no_create': True}"
+                                   invisible="not production_id"/>
+                            <field name="date_start_nuevo" string="Inicio del periodo"
+                                   invisible="not production_id"/>
+                            <field name="date_end_nuevo" string="Fin del periodo"
+                                   invisible="not production_id"/>
+                            <field name="motivo"
+                                   placeholder="Ej. se distrajo entre fichajes"
+                                   invisible="not production_id"/>
+                        </group>
+                    </div>
 
-                    <!-- Fichajes editables (visible en ambos casos) -->
+                    <!-- ═══════════════════════════════════════════════════════
+                         Tabla de fichajes editables (ambos casos)
+                    ═══════════════════════════════════════════════════════ -->
                     <separator string="Todos los fichajes del operario (editables)"/>
                     <field name="fichajes_editables_ids" nolabel="1">
-                        <list string="Fichajes del operario" editable="bottom" create="0" delete="1">
+                        <list string="Fichajes" editable="bottom" create="0" delete="1">
                             <field name="apunts_production_id" string="OF" readonly="1"/>
                             <field name="workorder_id" string="OT" readonly="1"/>
                             <field name="workcenter_id" string="Centro" optional="hide" readonly="1"/>
                             <field name="date_start" string="Entrada"/>
-                            <field name="date_end" string="Salida (vacío=abierto)"/>
-                            <field name="duration" string="Duración (min)" readonly="1" widget="float_time"/>
+                            <field name="date_end" string="Salida (vacío = abierto)"/>
+                            <field name="duration" string="Duración (min)" readonly="1"
+                                   widget="float_time"/>
                         </list>
                     </field>
-
-                    <separator string="Otros fichajes abiertos ahora mismo (todos los operarios)"/>
-                    <field name="productividades_abiertas_html" nolabel="1"/>
 
                 </sheet>
                 <footer>
