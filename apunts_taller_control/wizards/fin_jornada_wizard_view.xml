@@ -7,10 +7,10 @@
         <field name="arch" type="xml">
             <form string="Fin de jornada">
                 <sheet>
-                    <div class="alert alert-info">
-                        <i class="fa fa-info-circle me-1"/>
-                        Cierra todos tus fichajes abiertos del día y registra
-                        el nº de piezas hechas en la última OF.
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle me-1"/>
+                        Si tienes OFs con fichaje abierto, desfíchate de cada una
+                        escaneando su código de barras antes de confirmar el cierre de jornada.
                     </div>
                     <group>
                         <field name="pin" password="True" placeholder="Tu PIN"/>
@@ -21,15 +21,6 @@
                             invisible="employee_id"/>
                     <separator string="Resumen del día"/>
                     <field name="resumen_html" nolabel="1"/>
-                    <separator string="Piezas hechas en cada OF abierta" invisible="not employee_id"/>
-                    <field name="linea_ids" nolabel="1" invisible="not employee_id">
-                        <list editable="bottom" create="0" delete="0">
-                            <field name="of_name" string="OF" readonly="1"/>
-                            <field name="ot_name" string="OT" readonly="1"/>
-                            <field name="inicio" string="Inicio" readonly="1"/>
-                            <field name="qty_piezas" string="Piezas hechas"/>
-                        </list>
-                    </field>
                 </sheet>
                 <footer>
                     <button name="action_confirmar_fin_jornada" type="object"
