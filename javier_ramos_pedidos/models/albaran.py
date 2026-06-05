@@ -9,6 +9,31 @@ _logger = logging.getLogger(__name__)
 class Albaran(models.Model):
     _inherit = "stock.picking"
 
+    def apunts_get_rectified_lines(self):
+        """Returns lines with net qty (original - returned), excluding zero-qty lines."""
+        self.ensure_one()
+        result = []
+        for move in self.move_ids.filtered(lambda m: m.state not in ('cancel', 'draft')):
+            returned = self.env['stock.move'].search([
+                ('origin_returned_move_id', '=', move.id),
+                ('state', 'not in', ('cancel', 'draft')),
+            ])
+            returned_qty = sum(m.quantity for m in returned)
+            net_qty = (move.quantity or move.product_uom_qty) - returned_qty
+            if net_qty <= 0:
+                continue
+            description = move.description_picking or ''
+            if description in (move.product_id.name, move.product_id.display_name):
+                description = ''
+            result.append({
+                'move': move,
+                'net_qty': net_qty,
+                'name': move.product_id.display_name,
+                'description': description,
+                'uom': move.product_uom.name,
+                'pos_palet': move.pos_palet or '',
+            })
+        return result
 
     def _set_sale_id(self):
         res = super(Albaran,self)._set_sale_id()

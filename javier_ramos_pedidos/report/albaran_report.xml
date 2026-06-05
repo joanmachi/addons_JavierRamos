@@ -1,6 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <!-- ALBARÁN RECTIFICADO: standalone template with net quantities -->
+    <template id="apunts_report_albaran_rectificado">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h2>
+                                    ALBARÁN DE ENTREGA
+                                    <span style="font-size:0.55em; background-color:#e67e22; color:white; padding:3px 10px; border-radius:4px; vertical-align:middle; margin-left:8px;">RECTIFICADO</span>
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <address t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone"]}'/>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Albarán:</td>
+                                        <td><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr t-if="o.date_done">
+                                        <td class="fw-bold">Fecha:</td>
+                                        <td><span t-field="o.date_done" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                    <tr t-if="o.origin">
+                                        <td class="fw-bold">Origen:</td>
+                                        <td><span t-field="o.origin"/></td>
+                                    </tr>
+                                    <tr t-if="o.sale_id">
+                                        <td class="fw-bold">Pedido:</td>
+                                        <td><span t-field="o.sale_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <t t-set="rectified_lines" t-value="o.apunts_get_rectified_lines()"/>
+                        <t t-set="show_palet" t-value="any(l['pos_palet'] for l in rectified_lines)"/>
+
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th t-if="show_palet" class="text-right" style="width:60px;">POS.</th>
+                                    <th>Producto</th>
+                                    <th class="text-center" style="width:100px;">Cantidad</th>
+                                    <th class="text-center" style="width:80px;">UdM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="rectified_lines" t-as="line">
+                                    <tr>
+                                        <td t-if="show_palet"><span t-esc="line['pos_palet']"/></td>
+                                        <td>
+                                            <span t-esc="line['name']"/>
+                                            <p t-if="line['description']" style="margin:0;">
+                                                <small><span t-esc="line['description']"/></small>
+                                            </p>
+                                        </td>
+                                        <td class="text-center"><span t-esc="int(line['net_qty'])"/></td>
+                                        <td class="text-center"><span t-esc="line['uom']"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_albaran_rectificado" model="ir.actions.report">
+        <field name="name">Albarán Rectificado</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">javier_ramos_pedidos.apunts_report_albaran_rectificado</field>
+        <field name="report_file">javier_ramos_pedidos/report/albaran_rectificado</field>
+        <field name="print_report_name">'Albaran_Rectificado_' + (object.name or '').replace('/', '_')</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+
     <template id="report_stock_delivery_document_custom" inherit_id="stock.report_delivery_document" priority="1">
         <xpath expr="//table[@name='stock_move_table']" position="before">
                 <t t-set="ocultar_posiciones" t-value="1"/>
