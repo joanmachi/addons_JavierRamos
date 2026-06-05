@@ -161,20 +161,14 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             # CASO 2: crear nuevo fichaje para el periodo sin fichar
             nuevo = False
             if self.workorder_id_nuevo and self.date_start_nuevo:
-                loss = self.env['mrp.workcenter.loss'].search(
-                    [('loss_type', '=', 'productive')], limit=1
-                )
-                vals = {
+                nuevo = Productivity.create({
                     'workorder_id': self.workorder_id_nuevo.id,
                     'workcenter_id': self.workorder_id_nuevo.workcenter_id.id,
                     'employee_id': self.employee_id.id,
                     'date_start': self.date_start_nuevo,
                     'date_end': self.date_end_nuevo or fields.Datetime.now(),
                     'description': f'Fichaje creado manualmente por {self.env.user.name}',
-                }
-                if loss:
-                    vals['loss_id'] = loss.id
-                nuevo = Productivity.create(vals)
+                })
                 accion_msg = (
                     f"Nuevo fichaje creado (id {nuevo.id}) en "
                     f"{self.workorder_id_nuevo.production_id.name} / {self.workorder_id_nuevo.name}: "
