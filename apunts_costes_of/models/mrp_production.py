@@ -103,6 +103,15 @@ class MrpProduction(models.Model):
                 return so
         return SaleOrder
 
+    # Trigger store=True: el hook de productividad lo escribe cuando hay solapamientos.
+    # Cambiar un campo store=True provoca notificación bus → formulario abierto se refresca.
+    apunts_productivity_trigger = fields.Datetime(
+        string='Trigger recálculo productividad',
+        readonly=True,
+        help='Lo escribe el hook de mrp.workcenter.productivity cuando cambia un fichaje '
+             'que afecta a esta OF por solapamiento. Fuerza refresco del formulario abierto.',
+    )
+
     # --- KPI scalars: REAL (siempre frescos, store=False)
 
     apunts_material_cost_real = fields.Monetary(
@@ -113,18 +122,21 @@ class MrpProduction(models.Model):
     )
     apunts_labor_cost_real = fields.Monetary(
         compute='_compute_apunts_costs',
+        store=True,
         currency_field='currency_id',
         string='Mano de obra empleado',
         help='Coste laboral real imputado: SUM(productivity.duration/60 x hr.employee.hourly_cost) sobre productivity entries con employee_id. Si hourly_cost=0, sale 0 y aparece alerta en master data.',
     )
     apunts_operation_cost_real = fields.Monetary(
         compute='_compute_apunts_costs',
+        store=True,
         currency_field='currency_id',
         string='Operacion centro/maquina',
         help='Coste de uso de maquinas: SUM(productivity.duration/60 x mrp.workcenter.costs_hour). Independiente del coste empleado.',
     )
     apunts_total_cost_real = fields.Monetary(
         compute='_compute_apunts_costs',
+        store=True,
         currency_field='currency_id',
         string='Coste total real',
         help='Suma de material consumido + mano de obra empleado + operacion centro. Es el coste real total imputado a la OF a dia de hoy.',
@@ -307,6 +319,7 @@ class MrpProduction(models.Model):
         'move_raw_ids.quantity',
         'workorder_ids', 'workorder_ids.duration', 'workorder_ids.duration_expected',
         'product_qty', 'qty_producing', 'bom_id', 'state',
+        'apunts_productivity_trigger',
     )
     def _compute_apunts_costs(self):
         for prod in self:
@@ -624,19 +637,11 @@ class MrpProduction(models.Model):
     # CALCULOS - MANO DE OBRA + OPERACION (centros)
     # ============================================================
 
-    def _apunts_prorated_emp_cost(self, production_id, workorder_id=None, use_cascade=False):
-        """Coste de mano de obra con prorrateo temporal en solapamientos.
-
-        Cuando un empleado está simultáneamente fichado en varias OFs, divide
-        el tiempo de cada sub-intervalo entre el número de registros concurrentes.
-        use_cascade=True aplica NULLIF(hourly_cost,0) → wc.employee_costs_hour.
-        """
+    def _apunts_prorated_cost_raw(self, production_id, workorder_id, rate_expr):
+        """Proration engine: computes cost for any rate_expr SQL, dividing each
+        time interval by the number of concurrent productivity records of the
+        same employee across all OFs."""
         cr = self.env.cr
-        rate_expr = (
-            "COALESCE(NULLIF(he.hourly_cost, 0), wc.employee_costs_hour, 0)"
-            if use_cascade else
-            "COALESCE(he.hourly_cost, 0)"
-        )
         if workorder_id:
             cr.execute("""
                 SELECT p.id, p.employee_id, p.date_start, p.date_end, {rate}
@@ -656,20 +661,16 @@ class MrpProduction(models.Model):
                 WHERE  wo.production_id = %s
                   AND  p.date_end IS NOT NULL AND p.employee_id IS NOT NULL
             """.format(rate=rate_expr), [production_id])
-
         own_records = cr.fetchall()
         if not own_records:
             return 0.0
-
         by_emp = defaultdict(list)
         for rec_id, emp_id, ds, de, rate in own_records:
             by_emp[emp_id].append((rec_id, ds, de, rate))
-
         total_cost = 0.0
         for emp_id, recs in by_emp.items():
             min_start = min(r[1] for r in recs)
             max_end = max(r[2] for r in recs)
-            # All closed productivity records of this employee in this time range
             cr.execute("""
                 SELECT p.id, p.date_start, p.date_end
                 FROM   mrp_workcenter_productivity p
@@ -678,7 +679,6 @@ class MrpProduction(models.Model):
                   AND  p.date_start < %s AND p.date_end > %s
             """, [emp_id, max_end, min_start])
             all_recs = cr.fetchall()
-
             for rec_id, ds, de, rate in recs:
                 bps = sorted({ds, de} | {
                     t for _, os, oe in all_recs
@@ -693,23 +693,40 @@ class MrpProduction(models.Model):
                     )
                     eff_min += (t1 - t0).total_seconds() / 60.0 / max(concurrent, 1)
                 total_cost += eff_min / 60.0 * (rate or 0.0)
-
         return round(total_cost, 2)
 
+    def _apunts_prorated_emp_cost(self, production_id, workorder_id=None, use_cascade=False, use_center=False):
+        """Coste con prorrateo temporal en solapamientos de empleado entre OFs.
+
+        use_cascade=True: hourly_cost del empleado con fallback a employee_costs_hour del centro.
+        use_center=True: tarifa costs_hour del centro de trabajo (proratea coste máquina).
+        """
+        rate_expr = (
+            "COALESCE(wc.costs_hour, 0)" if use_center else
+            "COALESCE(NULLIF(he.hourly_cost, 0), wc.employee_costs_hour, 0)" if use_cascade else
+            "COALESCE(he.hourly_cost, 0)"
+        )
+        return self._apunts_prorated_cost_raw(production_id, workorder_id, rate_expr)
+
     def _apunts_labor_and_operation_real(self):
-        """Devuelve (labor_real_empleado, operacion_real_centro) en EUR."""
+        """Devuelve (labor_real_empleado, operacion_real_centro) en EUR.
+
+        Ambos costes se prorratean cuando un empleado está simultáneamente fichado
+        en varias OFs. Los registros sin empleado usan duración bruta (sin prorrateo).
+        """
         self.ensure_one()
         cr = self.env.cr
+        # Records without employee_id: raw machine cost (proration needs employee tracking)
         cr.execute("""
-            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0) AS coste_wc
+            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)
             FROM   mrp_workcenter_productivity p
-            JOIN   mrp_workorder               wo ON wo.id = p.workorder_id
-            JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL
+            JOIN   mrp_workorder wo ON wo.id = p.workorder_id
+            JOIN   mrp_workcenter wc ON wc.id = p.workcenter_id
+            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL AND p.employee_id IS NULL
         """, [self.id])
-        row = cr.fetchone() or (0.0,)
-        coste_wc = round(row[0] or 0.0, 2)
+        coste_wc_anon = round((cr.fetchone() or (0.0,))[0] or 0.0, 2)
         coste_emp = self._apunts_prorated_emp_cost(self.id)
+        coste_wc = round(coste_wc_anon + self._apunts_prorated_emp_cost(self.id, use_center=True), 2)
         return coste_emp, coste_wc
 
     def _apunts_labor_and_operation_planned(self):
@@ -1058,17 +1075,20 @@ class MrpProduction(models.Model):
             Labor.create(rows)
 
     def _apunts_wo_cost(self, wo):
-        """Devuelve (coste_empleado, coste_workcenter) para una workorder."""
+        """Devuelve (coste_empleado, coste_workcenter) para una workorder.
+
+        Ambos costes se prorratean; los registros sin empleado usan duración bruta.
+        """
         cr = self.env.cr
         cr.execute("""
-            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0) AS coste_wc
+            SELECT COALESCE(SUM(p.duration / 60.0 * COALESCE(wc.costs_hour, 0)), 0)
             FROM   mrp_workcenter_productivity p
-            JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            WHERE  p.workorder_id = %s AND p.date_end IS NOT NULL
+            JOIN   mrp_workcenter wc ON wc.id = p.workcenter_id
+            WHERE  p.workorder_id = %s AND p.date_end IS NOT NULL AND p.employee_id IS NULL
         """, [wo.id])
-        row = cr.fetchone() or (0.0,)
-        coste_wc = round(row[0] or 0.0, 2)
+        coste_wc_anon = round((cr.fetchone() or (0.0,))[0] or 0.0, 2)
         coste_emp = self._apunts_prorated_emp_cost(None, workorder_id=wo.id)
+        coste_wc = round(coste_wc_anon + self._apunts_prorated_emp_cost(None, workorder_id=wo.id, use_center=True), 2)
         return coste_emp, coste_wc
 
     def _apunts_wo_employees(self, wo):

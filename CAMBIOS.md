@@ -416,26 +416,29 @@ docker compose start odoo
 
 ---
 
-## [021] Prorrateo de coste de mano de obra en solapamientos de OFs
+## [021] Prorrateo de coste de centro y mano de obra en solapamientos de OFs
 
 **Fecha:** 2026-06-04  
-**Módulos:** `apunts_costes_of` (11.0.9) · `apunts_jr_wip_costes_of` (1.1.19)  
+**Módulos:** `apunts_costes_of` (11.2.0) · `apunts_jr_wip_costes_of` (1.1.20)  
 **Ficheros modificados:**
-- `apunts_costes_of/models/mrp_production.py` — nuevo helper `_apunts_prorated_emp_cost`; modificados `_apunts_labor_and_operation_real` y `_apunts_wo_cost`
-- `apunts_jr_wip_costes_of/models/mrp_production.py` — modificado `_apunts_workorder_totals_real`
+- `apunts_costes_of/models/mrp_production.py` — nuevo motor genérico `_apunts_prorated_cost_raw`; `_apunts_prorated_emp_cost` refactorizado con parámetro `use_center`; `_apunts_labor_and_operation_real` y `_apunts_wo_cost` prorratan también el coste de centro (`wc.costs_hour`)
+- `apunts_jr_wip_costes_of/models/mrp_production.py` — `_apunts_workorder_totals_real` prorrata máquina y amortización
+- `apunts_costes_of/models/mrp_workcenter_productivity.py` — hook write/create para regenerar líneas de OFs afectadas al modificar un fichaje
+- `apunts_costes_of/__init__.py` — importa `mrp_workcenter_productivity`
 
 **Qué hace:**  
-Cuando un operario ficha simultáneamente en varias OFs, el coste de mano de obra se distribuye proporcionalmente entre ellas. Si ficha de 8h a 14h en OF-1 y a las 12h ficha también en OF-2:
-- OF-1: 4h exclusivas + 2h compartidas (÷2) = **6h efectivas**
-- OF-2: 2h compartidas (÷2) = **2h efectivas**
-- Total real: 8h = tiempo de asistencia real del operario
+Cuando un operario ficha simultáneamente en varias OFs, el tiempo (y su coste) se distribuye proporcionalmente entre ellas. Si ficha de 10h a 14h en OF-1 y de 12h a 14h en OF-2:
+- OF-1: 2h exclusivas (10-12) + 2h compartidas ÷2 (12-14) = **3h efectivas → 30 €**
+- OF-2: 2h compartidas ÷2 (12-14) = **1h efectiva → 10 €**
 
-El algoritmo divide cada intervalo de tiempo por el número de productividades activas del empleado en ese instante. El coste de máquina y amortización NO cambia (son costes del centro, independientes del empleado).
+El prorrateo aplica tanto al coste del empleado (`hourly_cost`) como al coste del centro de trabajo (`costs_hour`). En el módulo WIP también se prorrata la amortización (`apunts_amort_hour`). Los registros sin `employee_id` siguen usando duración bruta.
+
+Al modificar un fichaje, el hook `write/create` en `mrp.workcenter.productivity` regenera automáticamente las líneas almacenadas de las OFs afectadas por el solapamiento.
 
 **Para aplicar cambios:**
 ```
 docker compose stop odoo
-docker compose run --rm odoo odoo -d javierramoslocal --update apunts_costes_of,apunts_jr_wip_costes_of --stop-after-init
+docker compose run --rm odoo odoo -d javierramoslocal -u apunts_costes_of,apunts_jr_wip_costes_of --stop-after-init
 docker compose start odoo
 ```
 

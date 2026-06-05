@@ -406,6 +406,7 @@ class MrpProduction(models.Model):
         "workorder_ids.duration",
         "workorder_ids.workcenter_id.costs_hour",
         "workorder_ids.workcenter_id.apunts_amort_hour",
+        "apunts_productivity_trigger",
     )
     def _compute_apunts_wip_costs(self):
         for prod in self:
@@ -576,10 +577,9 @@ class MrpProduction(models.Model):
 
     @staticmethod
     def _apunts_workorder_totals_real(prod):
-        # Fuente única: productividades cerradas (date_end != NULL) de los
-        # workorders de la OF. MO real con prorrateo cuando hay solapamiento
-        # de empleados entre varias OFs simultáneas.
-        # Máquina y amortización usan duración bruta (son independientes por centro).
+        # Fuente única: productividades cerradas (date_end != NULL) de los workorders.
+        # MO, máquina y amortización se prorratean cuando un empleado está fichado
+        # simultáneamente en varias OFs. Registros sin empleado usan duración bruta.
         cr = prod.env.cr
         cr.execute("""
             SELECT
@@ -588,13 +588,14 @@ class MrpProduction(models.Model):
             FROM   mrp_workcenter_productivity p
             JOIN   mrp_workorder               wo ON wo.id = p.workorder_id
             JOIN   mrp_workcenter              wc ON wc.id = p.workcenter_id
-            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL
+            WHERE  wo.production_id = %s AND p.date_end IS NOT NULL AND p.employee_id IS NULL
         """, [prod.id])
         row = cr.fetchone() or (0.0, 0.0)
-        machine = float(row[0] or 0.0)
-        amort = float(row[1] or 0.0)
-        # MO: cascada hourly_cost → employee_costs_hour, con prorrateo temporal
+        machine_anon = float(row[0] or 0.0)
+        amort_anon = float(row[1] or 0.0)
         mo = prod._apunts_prorated_emp_cost(prod.id, use_cascade=True)
+        machine = machine_anon + prod._apunts_prorated_emp_cost(prod.id, use_center=True)
+        amort = amort_anon + prod._apunts_prorated_cost_raw(prod.id, None, "COALESCE(wc.apunts_amort_hour, 0)")
         return mo, machine, amort
 
     def _apunts_get_product_cost(self, product, production=None):

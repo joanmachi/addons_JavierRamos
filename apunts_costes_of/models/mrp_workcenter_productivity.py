@@ -1,4 +1,7 @@
-from odoo import api, models
+import logging
+from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class MrpWorkcenterProductivityApunts(models.Model):
@@ -35,18 +38,31 @@ class MrpWorkcenterProductivityApunts(models.Model):
                 affected |= self.env['mrp.production'].browse(prod_ids)
         return affected
 
+    def _apunts_refresh_affected(self, affected):
+        """Regenera líneas y dispara refresco de formulario para las producciones afectadas."""
+        now = fields.Datetime.now()
+        for prod in affected:
+            prod._apunts_regenerate_lines()
+        if affected:
+            # Escribir un campo store=True en OF1 → Odoo manda notificación bus →
+            # el formulario abierto en el navegador se refresca automáticamente.
+            affected.write({'apunts_productivity_trigger': now})
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         affected = records._apunts_find_affected_productions()
-        for prod in affected:
-            prod._apunts_regenerate_lines()
+        self._apunts_refresh_affected(affected)
         return records
 
     def write(self, vals):
+        keys_changed = [k for k in ('employee_id', 'date_start', 'date_end') if k in vals]
+        pre_affected = self._apunts_find_affected_productions() if keys_changed else self.env['mrp.production']
         result = super().write(vals)
-        if any(k in vals for k in ('employee_id', 'date_start', 'date_end')):
-            affected = self._apunts_find_affected_productions()
-            for prod in affected:
-                prod._apunts_regenerate_lines()
+        if keys_changed:
+            post_affected = self._apunts_find_affected_productions()
+            affected = pre_affected | post_affected
+            _logger.info('APUNTS hook write ids=%s keys=%s affected=%s',
+                         self.ids, keys_changed, affected.ids)
+            self._apunts_refresh_affected(affected)
         return result
