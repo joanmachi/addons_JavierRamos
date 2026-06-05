@@ -1,8 +1,32 @@
+import logging
+
 from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class MrpProduction(models.Model):
     _inherit = "mrp.production"
+
+    def _cal_price(self, consumed_moves):
+        """Handle multiple finished moves from split productions.
+
+        mrp_account._cal_price expects ensure_one() on the filtered finished_move,
+        but when an MO has been split into parts, each split adds its own entry to
+        move_finished_ids on the same production. The filter then returns N moves
+        and ensure_one() raises ValueError. Catch and log rather than crashing
+        the backorder — the backorder operation completes normally.
+        """
+        try:
+            return super()._cal_price(consumed_moves)
+        except ValueError as e:
+            if 'Expected singleton' not in str(e):
+                raise
+            _logger.warning(
+                "apunts._cal_price [%s]: multiple finished moves on split MO — "
+                "standard price recalculation skipped, backorder continues. (%s)",
+                self.name, e,
+            )
 
     apunts_is_wip = fields.Boolean(
         string="En curso (WIP)",
