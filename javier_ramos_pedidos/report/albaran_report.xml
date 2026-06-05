@@ -1,127 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-    <!-- ALBARÁN RECTIFICADO: standalone template with net quantities -->
-    <template id="apunts_report_albaran_rectificado">
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
-                    <div class="page">
-
-                        <div class="row mb-4">
-                            <div class="col-12 text-center">
-                                <h2>
-                                    ALBARÁN DE ENTREGA
-                                    <span style="font-size:0.55em; background-color:#e67e22; color:white; padding:3px 10px; border-radius:4px; vertical-align:middle; margin-left:8px;">RECTIFICADO</span>
-                                </h2>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-6">
-                                <address t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone"]}'/>
-                            </div>
-                            <div class="col-6">
-                                <table class="table table-sm table-borderless">
-                                    <tr>
-                                        <td class="fw-bold">Albarán:</td>
-                                        <td><span t-field="o.name"/></td>
-                                    </tr>
-                                    <tr t-if="o.date_done">
-                                        <td class="fw-bold">Fecha:</td>
-                                        <td><span t-field="o.date_done" t-options='{"widget": "date"}'/></td>
-                                    </tr>
-                                    <tr t-if="o.origin">
-                                        <td class="fw-bold">Origen:</td>
-                                        <td><span t-field="o.origin"/></td>
-                                    </tr>
-                                    <tr t-if="o.sale_id">
-                                        <td class="fw-bold">Pedido:</td>
-                                        <td><span t-field="o.sale_id.name"/></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-
-                        <t t-set="rectified_lines" t-value="o.apunts_get_rectified_lines()"/>
-                        <t t-set="show_palet" t-value="any(l['pos_palet'] for l in rectified_lines)"/>
-
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th t-if="show_palet" class="text-right" style="width:60px;">POS.</th>
-                                    <th>Producto</th>
-                                    <th class="text-center" style="width:100px;">Cantidad</th>
-                                    <th class="text-center" style="width:80px;">UdM</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="rectified_lines" t-as="line">
-                                    <tr>
-                                        <td t-if="show_palet"><span t-esc="line['pos_palet']"/></td>
-                                        <td>
-                                            <span t-esc="line['name']"/>
-                                            <p t-if="line['description']" style="margin:0;">
-                                                <small><span t-esc="line['description']"/></small>
-                                            </p>
-                                        </td>
-                                        <td class="text-center"><span t-esc="int(line['net_qty'])"/></td>
-                                        <td class="text-center"><span t-esc="line['uom']"/></td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-
-                    </div>
-                </t>
-            </t>
-        </t>
-    </template>
-
-    <record id="action_report_albaran_rectificado" model="ir.actions.report">
+    <!-- Server action to print rectified albarán with context (so the template can detect it) -->
+    <record id="server_action_print_albaran_rectificado" model="ir.actions.server">
         <field name="name">Albarán Rectificado</field>
-        <field name="model">stock.picking</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">javier_ramos_pedidos.apunts_report_albaran_rectificado</field>
-        <field name="report_file">javier_ramos_pedidos/report/albaran_rectificado</field>
-        <field name="print_report_name">'Albaran_Rectificado_' + (object.name or '').replace('/', '_')</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">action = records.apunts_print_rectified_albaran()</field>
         <field name="binding_model_id" ref="stock.model_stock_picking"/>
         <field name="binding_type">report</field>
     </record>
 
-
-
     <template id="report_stock_delivery_document_custom" inherit_id="stock.report_delivery_document" priority="1">
+
+        <!-- POS: detect whether any line has pos_palet -->
         <xpath expr="//table[@name='stock_move_table']" position="before">
-                <t t-set="ocultar_posiciones" t-value="1"/>
-                <t t-foreach="o.move_ids" t-as="linea">
-                    <t t-if="linea.pos_palet">
-                        <t t-set="ocultar_posiciones" t-value="0"/>
-                    </t>
+            <t t-set="ocultar_posiciones" t-value="1"/>
+            <t t-foreach="o.move_ids" t-as="linea">
+                <t t-if="linea.pos_palet">
+                    <t t-set="ocultar_posiciones" t-value="0"/>
                 </t>
-            </xpath>
+            </t>
+        </xpath>
+
+        <!-- RECTIFICADO badge before the not-done move table -->
+        <xpath expr="//table[@name='stock_move_table']" position="before">
+            <t t-if="o.env.context.get('apunts_rectificado')">
+                <h4 class="text-center" style="color:#c0392b; border-bottom:2px solid #c0392b; padding-bottom:4px; margin-bottom:12px; margin-top:8px;">ALBARÁN RECTIFICADO</h4>
+            </t>
+        </xpath>
+
+        <!-- POS column header in move_line_table -->
         <xpath expr="//table[@name='stock_move_line_table']//thead//tr[1]//th[@name='th_sml_product']" position="before">
             <t t-if="ocultar_posiciones == 0">
                 <th class="text-right">POS.</th>
-
             </t>
         </xpath>
 
-           <xpath expr="//th[@name='th_sm_product']" position="before">
+        <!-- POS column header in move_table -->
+        <xpath expr="//th[@name='th_sm_product']" position="before">
             <t t-if="ocultar_posiciones == 0">
                 <th class="text-right">POS.</th>
-
             </t>
         </xpath>
+
+        <!-- POS td before product td in move_table body -->
         <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="before">
             <t t-if="ocultar_posiciones == 0">
                 <td>
                     <span t-field="move.pos_palet" />
-
                 </td>
-
             </t>
         </xpath>
+
+        <!-- Product td: add description_sale -->
         <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="replace">
             <td>
                 <span t-field="move.product_id">Customizable Desk</span>
@@ -130,34 +62,90 @@
                 </p>
                 <p t-if="move.product_id.description_sale">
                     <span t-field="move.product_id.description_sale"></span>
-                    
                 </p>
             </td>
         </xpath>
 
+        <!-- RECTIFICADO: hide move rows whose net qty is zero -->
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]" position="attributes">
+            <attribute name="t-if">not o.env.context.get('apunts_rectificado') or o.apunts_get_net_qty(move) > 0</attribute>
+        </xpath>
+
+        <!-- Suppress backorder section -->
         <xpath expr="//t[@t-set='backorders']" position="after">
             <t t-set="backorders" t-value="0"/>
         </xpath>
-        <xpath expr="//span[@t-field='move.product_uom_qty']" position="replace">
-            <span t-field="move.product_uom_qty" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
-        </xpath>
-        <xpath expr="//span[@t-field='move.quantity']" position="replace">
-            <span t-field="move.quantity" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
-        </xpath>
-        
-        
 
-     
+        <!-- Ordered qty: show net qty in rectified mode, integer widget otherwise -->
+        <xpath expr="//span[@t-field='move.product_uom_qty']" position="replace">
+            <t t-if="o.env.context.get('apunts_rectificado')">
+                <span t-esc="int(o.apunts_get_net_qty(move))"/>
+            </t>
+            <t t-else="">
+                <span t-field="move.product_uom_qty" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
+            </t>
+        </xpath>
+
+        <!-- Done qty: show net qty in rectified mode, integer widget otherwise -->
+        <xpath expr="//span[@t-field='move.quantity']" position="replace">
+            <t t-if="o.env.context.get('apunts_rectificado')">
+                <span t-esc="int(o.apunts_get_net_qty(move))"/>
+            </t>
+            <t t-else="">
+                <span t-field="move.quantity" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
+            </t>
+        </xpath>
+
+        <!-- RECTIFICADO (done state): hide the complex move_line_table with lots/serials -->
+        <xpath expr="//table[@name='stock_move_line_table']" position="attributes">
+            <attribute name="t-if">o.state == 'done' and not o.env.context.get('apunts_rectificado')</attribute>
+        </xpath>
+
+        <!-- RECTIFICADO (done state): show a clean simple table with net quantities -->
+        <xpath expr="//table[@name='stock_move_line_table']" position="after">
+            <t t-if="o.state == 'done' and o.env.context.get('apunts_rectificado')">
+                <h4 class="text-center" style="color:#c0392b; border-bottom:2px solid #c0392b; padding-bottom:4px; margin-bottom:12px; margin-top:8px;">ALBARÁN RECTIFICADO</h4>
+                <t t-set="rect_lines_done" t-value="o.apunts_get_rectified_lines()"/>
+                <t t-set="show_palet_done" t-value="any(l['pos_palet'] for l in rect_lines_done)"/>
+                <table class="table table-borderless mt48">
+                    <thead>
+                        <tr>
+                            <th t-if="show_palet_done" class="text-right">POS.</th>
+                            <th><strong>Producto</strong></th>
+                            <th class="text-center"><strong>Pedido</strong></th>
+                            <th class="text-center"><strong>Hecho</strong></th>
+                            <th groups="uom.group_uom" class="text-center"><strong>UdM</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="rect_lines_done" t-as="line">
+                            <tr>
+                                <td t-if="show_palet_done"><span t-esc="line['pos_palet']"/></td>
+                                <td>
+                                    <span t-esc="line['name']"/>
+                                    <p t-if="line['description']" style="margin:0;">
+                                        <small><span t-esc="line['description']"/></small>
+                                    </p>
+                                    <p t-if="line['description_sale']" style="margin:0;">
+                                        <span t-esc="line['description_sale']"/>
+                                    </p>
+                                </td>
+                                <td class="text-center"><span t-esc="int(line['net_qty'])"/></td>
+                                <td class="text-center"><span t-esc="int(line['net_qty'])"/></td>
+                                <td groups="uom.group_uom" class="text-center"><span t-esc="line['uom']"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+        </xpath>
+
     </template>
+
     <template id="stock_report_delivery_has_serial_move_line" inherit_id="stock.stock_report_delivery_has_serial_move_line" priority="1">
-       
-   
         <xpath expr="//td[1]" position="replace">
             <td>
                 <span t-field="move_line.product_id"/>
-                <!-- this is an annoying workaround for the multiple types of descriptions (often auto-filled) that we do not want to print -->
-                <!-- this makes it so we can pre-filter the descriptions in inherited templates since we cannot extend the standard "if" condition -->
-                <!-- let's agree that pre-filtered descriptions will be set to "" -->
                 <t t-if="not description and description != ''">
                     <t t-set="description" t-value="move_line.move_id.description_picking"/>
                 </t>
@@ -166,14 +154,12 @@
                 </p>
                 <p t-if="move_line.product_id.description_sale">
                     <span t-field="move_line.product_id.description_sale"></span>
-                    
                 </p>
             </td>
         </xpath>
         <xpath expr="//td[1]" position="before">
             <t t-if="ocultar_posiciones == 0">
-
-                <td >
+                <td>
                     <span t-field="move_line.move_id.pos_palet" />
                 </td>
             </t>
@@ -181,13 +167,9 @@
         <xpath expr="//span[@t-field='move_line.quantity']" position="replace">
             <span t-field="move_line.quantity" t-options="{&quot;widget&quot;: &quot;integer&quot;}">3.00</span>
         </xpath>
-  
-     
-   
     </template>
+
     <template id="stock_report_delivery_aggregated_move_lines" inherit_id="stock.stock_report_delivery_aggregated_move_lines" priority="1">
-       
- 
         <xpath expr="//td[1]" position="replace">
             <td>
                 <span t-esc="aggregated_lines[line]['name']"/>
@@ -198,7 +180,6 @@
                     <span t-esc="aggregated_lines[line]['product'].description_sale" t-options="{'widget': 'text'}"/>
                 </p>
             </td>
-
         </xpath>
         <xpath expr="//td[1]" position="before">
             <t t-if="ocultar_posiciones == 0">
@@ -206,7 +187,6 @@
                     <span t-esc="aggregated_lines[line]['pos_palet']"/>
                 </td>
             </t>
-
         </xpath>
         <xpath expr="//td[@name='move_line_aggregated_qty_ordered']" position="replace">
             <td class="text-center" name="move_line_aggregated_qty_ordered">
@@ -216,7 +196,6 @@
                     (<span t-out="aggregated_lines[line]['packaging_qty']" t-options="{&quot;widget&quot;: &quot;integer&quot;}"/> <span t-out="aggregated_lines[line]['packaging'].name"/>)
                 </span>
             </td>
-
         </xpath>
         <xpath expr="//td[@name='move_line_aggregated_quantity']" position="replace">
             <td class="text-center" name="move_line_aggregated_quantity">
@@ -228,10 +207,7 @@
                     </span>
                 </t>
             </td>
-
         </xpath>
-  
-      
-        
     </template>
+
 </odoo>

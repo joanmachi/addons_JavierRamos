@@ -9,17 +9,21 @@ _logger = logging.getLogger(__name__)
 class Albaran(models.Model):
     _inherit = "stock.picking"
 
+    def apunts_get_net_qty(self, move):
+        """Net qty for one move: original done qty minus all returns."""
+        returned = self.env['stock.move'].search([
+            ('origin_returned_move_id', '=', move.id),
+            ('state', 'not in', ('cancel', 'draft')),
+        ])
+        returned_qty = sum(m.quantity for m in returned)
+        return max((move.quantity or move.product_uom_qty) - returned_qty, 0.0)
+
     def apunts_get_rectified_lines(self):
-        """Returns lines with net qty (original - returned), excluding zero-qty lines."""
+        """Lines with positive net qty — used for the done-state rectified table."""
         self.ensure_one()
         result = []
         for move in self.move_ids.filtered(lambda m: m.state not in ('cancel', 'draft')):
-            returned = self.env['stock.move'].search([
-                ('origin_returned_move_id', '=', move.id),
-                ('state', 'not in', ('cancel', 'draft')),
-            ])
-            returned_qty = sum(m.quantity for m in returned)
-            net_qty = (move.quantity or move.product_uom_qty) - returned_qty
+            net_qty = self.apunts_get_net_qty(move)
             if net_qty <= 0:
                 continue
             description = move.description_picking or ''
@@ -30,10 +34,16 @@ class Albaran(models.Model):
                 'net_qty': net_qty,
                 'name': move.product_id.display_name,
                 'description': description,
+                'description_sale': move.product_id.description_sale or '',
                 'uom': move.product_uom.name,
                 'pos_palet': move.pos_palet or '',
             })
         return result
+
+    def apunts_print_rectified_albaran(self):
+        """Print the normal delivery report with apunts_rectificado context."""
+        report = self.env.ref('stock.action_report_delivery')
+        return report.with_context(apunts_rectificado=True).report_action(self)
 
     def _set_sale_id(self):
         res = super(Albaran,self)._set_sale_id()
