@@ -8,6 +8,42 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
     employee_id = fields.Many2one(
         'hr.employee', string='Operario', required=True,
     )
+    motivo_bloqueo = fields.Char(
+        string='Motivo del bloqueo', readonly=True,
+        help='Razón por la que el operario fue bloqueado automáticamente.',
+    )
+    fecha_bloqueo = fields.Datetime(
+        string='Bloqueado desde', readonly=True,
+    )
+
+    # ── Detección automática del caso ────────────────────────────────────────
+
+    tiene_fichaje_abierto = fields.Boolean(
+        compute='_compute_tiene_fichaje_abierto',
+        help='True si el operario tiene un fichaje abierto (caso: fichado demasiado tiempo).',
+    )
+    productivity_abierta_id = fields.Many2one(
+        'mrp.workcenter.productivity',
+        compute='_compute_tiene_fichaje_abierto',
+        string='Fichaje abierto',
+    )
+
+    @api.depends('employee_id')
+    def _compute_tiene_fichaje_abierto(self):
+        for w in self:
+            if not w.employee_id:
+                w.tiene_fichaje_abierto = False
+                w.productivity_abierta_id = False
+                continue
+            prod = self.env['mrp.workcenter.productivity'].search([
+                ('employee_id', '=', w.employee_id.id),
+                ('date_end', '=', False),
+            ], order='date_start DESC', limit=1)
+            w.tiene_fichaje_abierto = bool(prod)
+            w.productivity_abierta_id = prod
+
+    # ── CASO 1: fichado demasiado tiempo → cerrar con hora corregida ─────────
+
     mostrar_todas_ofs = fields.Boolean(
         string='Buscar en TODAS las OFs',
         default=False,
@@ -15,13 +51,22 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
              'Marca esto si necesitas elegir una OF en la que NO haya trabajado todavía.',
     )
     production_id = fields.Many2one(
-        'mrp.production', string='Orden de Fabricación', required=True,
+        'mrp.production', string='Orden de Fabricación',
         domain="[('id', 'in', ofs_filtradas_ids)]",
     )
     ofs_filtradas_ids = fields.Many2many(
         'mrp.production',
         string='OFs filtradas',
         compute='_compute_ofs_filtradas_ids',
+    )
+    salida_real = fields.Datetime(
+        string='Salida real (hora corregida)',
+        default=fields.Datetime.now,
+        help='Hora a la que se cerrará el fichaje abierto del operario.',
+    )
+    motivo = fields.Char(
+        string='Motivo de la corrección (opcional)',
+        help='Texto libre para auditoría en el chatter del empleado.',
     )
     fichajes_operario_of_html = fields.Html(
         string='Fichajes del operario en esta OF',
@@ -32,13 +77,25 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
         compute='_compute_fichajes_editables_ids',
         string='Fichajes editables (entrada/salida)',
     )
-    salida_real = fields.Datetime(
-        string='Salida real', required=True, default=fields.Datetime.now,
+
+    # ── CASO 2: inactividad → crear nuevo fichaje ─────────────────────────────
+
+    workorder_id_nuevo = fields.Many2one(
+        'mrp.workorder', string='Fase (OT)',
+        domain="[('production_id', '=', production_id), ('state', 'not in', ('cancel',))]",
+        help='Selecciona la fase/orden de trabajo dentro de la OF donde estuvo el operario.',
     )
-    motivo = fields.Char(
-        string='Motivo (opcional)',
-        help='Texto libre para auditoría en el chatter del empleado.',
+    date_start_nuevo = fields.Datetime(
+        string='Inicio del periodo',
+        help='Hora a la que el operario empezó a trabajar (se creará un fichaje desde aquí).',
     )
+    date_end_nuevo = fields.Datetime(
+        string='Fin del periodo',
+        default=fields.Datetime.now,
+        help='Hora a la que el operario paró de trabajar.',
+    )
+
+    # ── Computados auxiliares ─────────────────────────────────────────────────
 
     productividades_abiertas_html = fields.Html(
         string='Fichajes abiertos ahora',
@@ -50,7 +107,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
         for w in self:
             if w.mostrar_todas_ofs or not w.employee_id:
                 w.ofs_filtradas_ids = self.env['mrp.production'].search([
-                    ('state', 'in', ('progress', 'done', 'to_close')),
+                    ('state', 'in', ('progress', 'done', 'to_close', 'confirmed')),
                 ])
             else:
                 productivities = self.env['mrp.workcenter.productivity'].search([
@@ -83,7 +140,8 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             for r in registros:
                 wo = r.workorder_id.name or '?'
                 ini = fields.Datetime.to_string(r.date_start) if r.date_start else '?'
-                fin = fields.Datetime.to_string(r.date_end) if r.date_end else '<strong style="color:#c00">ABIERTO</strong>'
+                fin = (fields.Datetime.to_string(r.date_end) if r.date_end
+                       else '<strong style="color:#c00">ABIERTO</strong>')
                 if r.date_start and r.date_end:
                     horas = (r.date_end - r.date_start).total_seconds() / 3600.0
                     dur = f"{horas:.2f} h"
@@ -139,38 +197,69 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                 f"<tbody>{''.join(filas)}</tbody></table>"
             )
 
+    # ── Acción principal ──────────────────────────────────────────────────────
+
     def action_aplicar(self):
         self.ensure_one()
         Productivity = self.env['mrp.workcenter.productivity']
-        prod = Productivity.search([
-            ('employee_id', '=', self.employee_id.id),
-            ('workorder_id.production_id', '=', self.production_id.id),
-            ('date_end', '=', False),
-        ], order='date_start DESC', limit=1)
-        if prod:
-            prod.write({'date_end': self.salida_real})
+
+        if self.tiene_fichaje_abierto:
+            # CASO 1: cerrar el fichaje abierto con la hora corregida
+            prod = self.productivity_abierta_id
+            if not prod and self.production_id:
+                prod = Productivity.search([
+                    ('employee_id', '=', self.employee_id.id),
+                    ('workorder_id.production_id', '=', self.production_id.id),
+                    ('date_end', '=', False),
+                ], order='date_start DESC', limit=1)
+            if prod:
+                prod.write({'date_end': self.salida_real})
+                accion_msg = (
+                    f"Fichaje cerrado (id {prod.id}) en {prod.workorder_id.production_id.name} "
+                    f"— salida corregida a {fields.Datetime.to_string(self.salida_real)}."
+                )
+            else:
+                accion_msg = "No se encontró fichaje abierto — solo se desbloqueó el empleado."
+        else:
+            # CASO 2: crear nuevo fichaje para el periodo sin fichar
+            nuevo = False
+            if self.workorder_id_nuevo and self.date_start_nuevo:
+                loss = self.env['mrp.workcenter.loss'].search(
+                    [('loss_type', '=', 'productive')], limit=1
+                )
+                vals = {
+                    'workorder_id': self.workorder_id_nuevo.id,
+                    'workcenter_id': self.workorder_id_nuevo.workcenter_id.id,
+                    'employee_id': self.employee_id.id,
+                    'date_start': self.date_start_nuevo,
+                    'date_end': self.date_end_nuevo or fields.Datetime.now(),
+                    'description': f'Fichaje creado manualmente por {self.env.user.name}',
+                }
+                if loss:
+                    vals['loss_id'] = loss.id
+                nuevo = Productivity.create(vals)
+                accion_msg = (
+                    f"Nuevo fichaje creado (id {nuevo.id}) en "
+                    f"{self.workorder_id_nuevo.production_id.name} / "
+                    f"{self.workorder_id_nuevo.name}: "
+                    f"{fields.Datetime.to_string(self.date_start_nuevo)} → "
+                    f"{fields.Datetime.to_string(self.date_end_nuevo)}."
+                )
+            else:
+                accion_msg = "No se creó fichaje (falta fase o fecha de inicio) — solo se desbloqueó el empleado."
+
+        # Desbloquear siempre
         if self.employee_id.apunts_taller_bloqueado:
             self.employee_id.write({
                 'apunts_taller_bloqueado': False,
                 'apunts_taller_motivo_bloqueo': False,
                 'apunts_taller_fecha_bloqueo': False,
             })
-        accion_msg = (
-            f"Productividad cerrada (id {prod.id})." if prod
-            else "No había productividad abierta — solo se desbloqueó el empleado."
-        )
+
         msg = _(
-            "Fichaje corregido manualmente por %(user)s.\n"
-            "OF: %(of)s\n"
-            "Salida real: %(salida)s\n"
-            "%(accion)s"
-        ) % {
-            'user': self.env.user.name,
-            'of': self.production_id.name,
-            'salida': self.salida_real,
-            'accion': accion_msg,
-        }
+            "Desbloqueo manual por %(user)s.\n%(accion)s"
+        ) % {'user': self.env.user.name, 'accion': accion_msg}
         if self.motivo:
-            msg += "\nMotivo: %s" % self.motivo
+            msg += _("\nMotivo: %s") % self.motivo
         self.employee_id.message_post(body=msg)
         return {'type': 'ir.actions.act_window_close'}
