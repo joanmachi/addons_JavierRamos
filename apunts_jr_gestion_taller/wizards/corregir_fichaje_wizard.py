@@ -161,14 +161,30 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             # CASO 2: crear nuevo fichaje para el periodo sin fichar
             nuevo = False
             if self.workorder_id_nuevo and self.date_start_nuevo:
-                nuevo = Productivity.create({
+                # Resolver loss_id sin depender del nombre del modelo
+                # (mrp.workcenter.loss puede no estar registrado en Odoo 18)
+                loss_id = False
+                loss_field = Productivity._fields.get('loss_id')
+                if loss_field and loss_field.comodel_name in self.env.registry:
+                    loss = self.env[loss_field.comodel_name].search(
+                        [('loss_type', '=', 'productive')], limit=1
+                    )
+                    loss_id = loss.id
+                if not loss_id:
+                    ref = Productivity.search([('loss_id', '!=', False)], limit=1)
+                    loss_id = ref.loss_id.id if ref else False
+
+                vals_prod = {
                     'workorder_id': self.workorder_id_nuevo.id,
                     'workcenter_id': self.workorder_id_nuevo.workcenter_id.id,
                     'employee_id': self.employee_id.id,
                     'date_start': self.date_start_nuevo,
                     'date_end': self.date_end_nuevo or fields.Datetime.now(),
                     'description': f'Fichaje creado manualmente por {self.env.user.name}',
-                })
+                }
+                if loss_id:
+                    vals_prod['loss_id'] = loss_id
+                nuevo = Productivity.create(vals_prod)
                 accion_msg = (
                     f"Nuevo fichaje creado (id {nuevo.id}) en "
                     f"{self.workorder_id_nuevo.production_id.name} / {self.workorder_id_nuevo.name}: "
