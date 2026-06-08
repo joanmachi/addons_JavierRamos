@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-  <!-- Añadir los 3 botones al button_box (base product form — funciona siempre) -->
+  <!--
+    Ambos records heredan de product_template_only_form_view (igual que el módulo stock).
+    Record 1 (priority 16): añade nuestros 3 botones ANTES de Pronosticado.
+    Record 2 (priority 17): oculta Pronosticado original y lo añade al final.
+    El módulo stock tiene priority=15 → se aplica primero, luego nosotros.
+  -->
+
+  <!-- Añadir Saliente / En fabricación / Compras pdte. antes de Pronosticado -->
   <record id="view_jr_product_template_stock_buttons" model="ir.ui.view">
     <field name="name">jr.product.template.stock.buttons</field>
     <field name="model">product.template</field>
-    <field name="inherit_id" ref="product.product_template_form_view"/>
+    <field name="inherit_id" ref="product.product_template_only_form_view"/>
+    <field name="priority" eval="16"/>
     <field name="arch" type="xml">
-      <xpath expr="//div[@name='button_box']" position="inside">
+      <xpath expr="//button[@name='action_product_tmpl_forecast_report']" position="before">
         <button type="object" name="action_jr_ver_saliente"
                 class="oe_stat_button" icon="fa-arrow-circle-up">
           <div class="o_field_widget o_stat_info">
@@ -39,17 +47,16 @@
     </field>
   </record>
 
-  <!-- Mover Pronosticado al final (hereda de la vista stock que lo define) -->
+  <!-- Ocultar Pronosticado original y añadirlo al final -->
   <record id="view_jr_product_template_forecast_last" model="ir.ui.view">
     <field name="name">jr.product.template.forecast.last</field>
     <field name="model">product.template</field>
-    <field name="inherit_id" ref="stock.product_template_form_view_procurement_button"/>
+    <field name="inherit_id" ref="product.product_template_only_form_view"/>
+    <field name="priority" eval="17"/>
     <field name="arch" type="xml">
-      <!-- Ocultar el Pronosticado original -->
       <xpath expr="//button[@name='action_product_tmpl_forecast_report']" position="attributes">
         <attribute name="invisible">1</attribute>
       </xpath>
-      <!-- Añadir copia de Pronosticado al final del button_box -->
       <xpath expr="//div[@name='button_box']" position="inside">
         <button type="object"
                 name="action_product_tmpl_forecast_report"
