@@ -10,15 +10,30 @@
       <xpath expr="//div[@name='button_box']" position="inside">
         <button type="object" name="action_jr_ver_saliente"
                 class="oe_stat_button" icon="fa-arrow-circle-up">
-          <field name="jr_qty_pendiente_entrega" widget="statinfo" string="Saliente"/>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value d-flex gap-1">
+              <field name="jr_qty_pendiente_entrega" nolabel="1" class="oe_inline"/>
+            </span>
+            <span class="o_stat_text">Saliente</span>
+          </div>
         </button>
         <button type="object" name="action_jr_ver_fabricacion"
                 class="oe_stat_button" icon="fa-cogs">
-          <field name="jr_qty_pendiente_of" widget="statinfo" string="En fabricación"/>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value d-flex gap-1">
+              <field name="jr_qty_pendiente_of" nolabel="1" class="oe_inline"/>
+            </span>
+            <span class="o_stat_text">En fabricación</span>
+          </div>
         </button>
         <button type="object" name="action_jr_ver_compras"
                 class="oe_stat_button" icon="fa-shopping-cart">
-          <field name="jr_qty_pendiente_compra" widget="statinfo" string="Compras pdte."/>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value d-flex gap-1">
+              <field name="jr_qty_pendiente_compra" nolabel="1" class="oe_inline"/>
+            </span>
+            <span class="o_stat_text">Compras pdte.</span>
+          </div>
         </button>
       </xpath>
     </field>
