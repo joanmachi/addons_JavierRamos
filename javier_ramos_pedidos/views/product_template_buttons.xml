@@ -10,18 +10,15 @@
       <!-- 1. Insertar los 3 botones justo después de "Stock real" -->
       <xpath expr="//button[@name='action_update_quantity_on_hand']" position="after">
         <button type="object" name="action_jr_ver_saliente"
-                class="oe_stat_button" icon="fa-arrow-circle-up"
-                invisible="jr_qty_pendiente_entrega == 0">
+                class="oe_stat_button" icon="fa-arrow-circle-up">
           <field name="jr_qty_pendiente_entrega" widget="statinfo" string="Saliente"/>
         </button>
         <button type="object" name="action_jr_ver_fabricacion"
-                class="oe_stat_button" icon="fa-cogs"
-                invisible="jr_qty_pendiente_of == 0">
+                class="oe_stat_button" icon="fa-cogs">
           <field name="jr_qty_pendiente_of" widget="statinfo" string="En fabricación"/>
         </button>
         <button type="object" name="action_jr_ver_compras"
-                class="oe_stat_button" icon="fa-shopping-cart"
-                invisible="jr_qty_pendiente_compra == 0">
+                class="oe_stat_button" icon="fa-shopping-cart">
           <field name="jr_qty_pendiente_compra" widget="statinfo" string="Compras pdte."/>
         </button>
       </xpath>
