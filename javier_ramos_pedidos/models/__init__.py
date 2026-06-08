@@ -6,3 +6,5 @@ from . import pedido_linea
 from . import albaran
 from . import production
 from . import account_move
+from . import purchase_linea
+from . import product_template

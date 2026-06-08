@@ -443,3 +443,99 @@ docker compose start odoo
 ```
 
 ---
+
+## [022] Corrección backorder en OFs divididas — `apunts_jr_wip_costes_of`
+
+**Fecha:** 2026-06-05  
+**Módulos:** `apunts_jr_wip_costes_of` (1.1.21)  
+**Ficheros modificados:**
+- `apunts_jr_wip_costes_of/models/mrp_production.py` — override `_cal_price` para capturar `ValueError: Expected singleton`
+
+**Qué hace:**  
+Al crear un albarán parcial desde una OF dividida, Odoo llamaba a `mrp_account._cal_price` que internamente hace `ensure_one()` sobre un conjunto de varios `stock.move`. Esto lanzaba `ValueError: Expected singleton: stock.move(...)` y bloqueaba la entrega.
+
+El override captura ese error específico, lo registra en el log como warning y permite que el backorder continúe. El recálculo de precio estándar se omite solo para OFs divididas con múltiples movimientos de salida.
+
+**Para aplicar cambios:**
+```
+docker compose run --rm odoo odoo -d javierramoslocal -u apunts_jr_wip_costes_of --stop-after-init
+docker compose restart odoo
+```
+
+---
+
+## [023] Bloquear FIN JORNADA con fichajes abiertos — `apunts_taller_control`
+
+**Fecha:** 2026-06-05  
+**Módulos:** `apunts_taller_control`  
+**Ficheros modificados:**
+- `apunts_taller_control/wizards/fin_jornada_wizard.py` — `action_confirmar_fin_jornada()` verifica fichajes abiertos antes de cerrar jornada
+- `apunts_taller_control/wizards/fin_jornada_wizard_view.xml` — texto del aviso actualizado
+- `apunts_taller_control/security/ir.model.access.csv` — restaurada regla de acceso para `apunts.fin.jornada.wizard.linea`
+
+**Qué hace:**  
+Antes, al pulsar "Confirmar y salir" en el wizard de fin de jornada, Odoo cerraba automáticamente los fichajes abiertos. Ahora, si el operario tiene alguna OF con fichaje activo (`date_end = False`), se muestra un `UserError` listando exactamente qué OFs están abiertas:
+
+```
+No puedes cerrar la jornada: tienes OFs con fichaje abierto:
+
+  • WH/MO/00123 — Fase 1
+  • WH/MO/00456 — Montaje
+
+Desfíchate de cada una escaneando su código de barras y vuelve a intentarlo.
+```
+
+El operario debe deslogarse de cada OF manualmente (escaneando su código de barras) antes de poder cerrar jornada.
+
+Nota: la clase `ApuntsFinJornadaWizardLinea` se mantiene vacía para evitar errores de registros huérfanos en BD (`ir.model` persiste aunque se elimine la clase Python).
+
+**Para aplicar cambios:**
+```
+docker compose run --rm odoo odoo -d javierramoslocal -u apunts_taller_control --stop-after-init
+docker compose restart odoo
+```
+
+---
+
+## [024] Ventana desbloquear operario con dos casos — `apunts_taller_control` + `apunts_jr_gestion_taller`
+
+**Fecha:** 2026-06-05  
+**Módulos:** `apunts_taller_control`, `apunts_jr_gestion_taller`  
+**Ficheros modificados:**
+- `apunts_taller_control/models/hr_employee.py` — `action_apunts_desbloquear_taller()` abre el wizard en lugar de desbloquear directamente
+- `apunts_jr_gestion_taller/wizards/corregir_fichaje_wizard.py` — reescrito completo con lógica de dos casos
+- `apunts_jr_gestion_taller/wizards/corregir_fichaje_wizard_view.xml` — vista con secciones condicionales por caso
+
+**Qué hace:**  
+Al pulsar "Desbloquear operario" desde la ficha del empleado, en lugar de desbloquear directamente se abre un wizard que detecta automáticamente el motivo del bloqueo y muestra los campos relevantes:
+
+**Caso 1 — Fichaje demasiado largo** (`tiene_fichaje_abierto = True`):
+- Muestra aviso naranja "Fichaje abierto detectado"
+- Pre-carga la OF del fichaje abierto (editable, con buscador)
+- Al seleccionar la OT muestra "Fichado desde" (readonly, calculado)
+- Campo para corregir la hora de salida
+- Al aplicar: cierra el fichaje con la hora corregida y desbloquea al empleado
+
+**Caso 2 — Inactividad sin fichaje activo** (`tiene_fichaje_abierto = False`):
+- Muestra aviso azul "Operario sin fichaje activo"
+- Buscador de OF (filtrado por OFs del operario, con opción "Buscar en TODAS las OFs")
+- Dentro de la OF, buscador de OT
+- Campos de rango horario (inicio y fin del periodo)
+- Al aplicar: crea un nuevo registro `mrp.workcenter.productivity` con el `loss_id` resuelto dinámicamente
+- Pre-rellena automáticamente el inicio con el `date_end` del último fichaje cerrado
+
+En ambos casos:
+- Muestra los datos del bloqueo (motivo + fecha)
+- Tabla editable con todos los fichajes del operario (últimos 100)
+- Campo "Motivo de la corrección" para auditoría (queda en el chatter del empleado)
+- Desbloquea siempre al aplicar (independientemente de si se corrigió algo)
+
+Nota técnica: `mrp.workcenter.loss` no existe en esta instalación de Odoo 18. El `loss_id` (requerido en `mrp.workcenter.productivity`) se resuelve dinámicamente via `Productivity._fields.get('loss_id').comodel_name` con fallback a copiar el `loss_id` de un registro existente.
+
+**Para aplicar cambios:**
+```
+docker compose run --rm odoo odoo -d javierramoslocal -u apunts_taller_control,apunts_jr_gestion_taller --stop-after-init
+docker compose restart odoo
+```
+
+---
