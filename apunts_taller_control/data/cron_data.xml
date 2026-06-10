@@ -31,4 +31,15 @@
         <field name="active" eval="True"/>
     </record>
 
+    <record id="cron_bloquear_jornada_insuficiente" model="ir.cron">
+        <field name="name">Apunts taller: bloquear jornada insuficiente día anterior</field>
+        <field name="model_id" ref="model_apunts_taller_control"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_bloquear_jornada_insuficiente()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).replace(hour=3, minute=0, second=0)"/>
+        <field name="active" eval="True"/>
+    </record>
+
 </odoo>

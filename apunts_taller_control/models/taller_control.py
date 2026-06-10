@@ -119,3 +119,54 @@ class TallerControl(models.Model):
                     "apunts_taller_fecha_bloqueo": fields.Datetime.now(),
                 }
             )
+
+    @api.model
+    def cron_bloquear_jornada_insuficiente(self):
+        """Bloqueo 3 — jornada del día laborable anterior insuficiente.
+
+        Criterio (acordado con cliente): cuenta la PRESENCIA (hr.attendance) +
+        las AUSENCIAS aprobadas (hr.leave), igual que vería una inspección. Si
+        ese total no alcanza la jornada teórica del calendario del empleado
+        (descontando la tolerancia configurada), se bloquea. Solo se evalúan
+        días laborables L-V sin festivos (ver helpers en hr.employee)."""
+        ICP = self.env["ir.config_parameter"].sudo()
+        if ICP.get_param("apunts_taller_control.bloqueo_jornada_activo", "1") != "1":
+            return
+        tolerancia_h = int(
+            ICP.get_param("apunts_taller_control.jornada_tolerancia_min", "10")
+        ) / 60.0
+
+        # "Ayer" natural; el cron corre a diario, así findes/festivos se
+        # descartan vía _apunts_horas_esperadas (devuelve 0 ⇒ se saltan).
+        dia = fields.Date.context_today(self) - timedelta(days=1)
+
+        empleados = self.env["hr.employee"].search(
+            [("active", "=", True), ("resource_calendar_id", "!=", False)]
+        )
+        for emp in empleados:
+            if emp.apunts_taller_bloqueado:
+                continue
+            esperadas = emp._apunts_horas_esperadas(dia)
+            if not esperadas:
+                continue  # finde / festivo para este empleado
+            pres = emp._apunts_horas_presencia(dia)
+            aus = emp._apunts_horas_ausencia(dia)
+            if pres + aus < esperadas - tolerancia_h:
+                emp.write(
+                    {
+                        "apunts_taller_bloqueado": True,
+                        "apunts_taller_motivo_bloqueo": _(
+                            "Jornada insuficiente el %(dia)s: %(pres).2f h "
+                            "presencia + %(aus).2f h ausencia = %(tot).2f h "
+                            "(esperadas %(esp).2f h)"
+                        )
+                        % {
+                            "dia": fields.Date.to_string(dia),
+                            "pres": pres,
+                            "aus": aus,
+                            "tot": pres + aus,
+                            "esp": esperadas,
+                        },
+                        "apunts_taller_fecha_bloqueo": fields.Datetime.now(),
+                    }
+                )

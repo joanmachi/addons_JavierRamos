@@ -22,6 +22,25 @@ class ResConfigSettings(models.TransientModel):
             "Pon 0 para desactivar este bloqueo."
         ),
     )
+    apunts_taller_bloqueo_jornada_activo = fields.Boolean(
+        string="Bloquear por jornada insuficiente el día anterior",
+        default=True,
+        help=(
+            "Bloquear al operario si el día laborable anterior (L-V, sin "
+            "festivos) la suma de presencia (asistencia) + ausencias aprobadas "
+            "no alcanza la jornada de su calendario, descontando la tolerancia. "
+            "Desmarca para desactivar este bloqueo."
+        ),
+    )
+    apunts_taller_jornada_tolerancia_min = fields.Integer(
+        string="Tolerancia jornada insuficiente (min)",
+        default=10,
+        help=(
+            "Margen en minutos por debajo de la jornada teórica antes de "
+            "bloquear. Ej: jornada 8h y tolerancia 10 ⇒ bloquea si fichó menos "
+            "de 7h50m (presencia + ausencias)."
+        ),
+    )
 
     def set_values(self):
         super().set_values()
@@ -34,6 +53,14 @@ class ResConfigSettings(models.TransientModel):
             "apunts_taller_control.bloqueo_horas_continuas_of",
             str(self.apunts_taller_bloqueo_horas_continuas_of),
         )
+        ICP.set_param(
+            "apunts_taller_control.bloqueo_jornada_activo",
+            "1" if self.apunts_taller_bloqueo_jornada_activo else "0",
+        )
+        ICP.set_param(
+            "apunts_taller_control.jornada_tolerancia_min",
+            str(self.apunts_taller_jornada_tolerancia_min),
+        )
 
     @api.model
     def get_values(self):
@@ -44,5 +71,11 @@ class ResConfigSettings(models.TransientModel):
         )
         res["apunts_taller_bloqueo_horas_continuas_of"] = int(
             ICP.get_param("apunts_taller_control.bloqueo_horas_continuas_of", "12")
+        )
+        res["apunts_taller_bloqueo_jornada_activo"] = (
+            ICP.get_param("apunts_taller_control.bloqueo_jornada_activo", "1") == "1"
+        )
+        res["apunts_taller_jornada_tolerancia_min"] = int(
+            ICP.get_param("apunts_taller_control.jornada_tolerancia_min", "10")
         )
         return res

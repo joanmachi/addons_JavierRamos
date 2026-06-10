@@ -47,6 +47,25 @@ class MrpWorkcenterProductivity(models.Model):
         related='employee_id.apunts_horas_semana', string='Horas semana',
     )
 
+    # ── Trazabilidad de fichajes modificados/creados manualmente ──────────────
+    # Permite ver en el histórico qué operarios fallan en el fichaje (para
+    # formación) y filtrar por fichadas modificadas y por el motivo.
+    apunts_modificado_manual = fields.Boolean(
+        string='Modificado manual', default=False, index=True,
+        help='Marcado cuando el fichaje se creó o corrigió manualmente desde '
+             'oficina (wizard de desbloqueo/corrección).',
+    )
+    apunts_motivo_correccion = fields.Char(
+        string='Motivo corrección',
+        help='Motivo indicado por oficina al corregir o crear el fichaje.',
+    )
+    apunts_modificado_por_id = fields.Many2one(
+        'res.users', string='Modificado por', readonly=True,
+    )
+    apunts_modificado_fecha = fields.Datetime(
+        string='Fecha modificación', readonly=True,
+    )
+
     def action_apunts_desbloquear_emp(self):
         for rec in self:
             if rec.employee_id:

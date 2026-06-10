@@ -148,7 +148,13 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             else:
                 prod = self.productivity_abierta_id
             if prod:
-                prod.write({'date_end': self.salida_real})
+                prod.write({
+                    'date_end': self.salida_real,
+                    'apunts_modificado_manual': True,
+                    'apunts_motivo_correccion': self.motivo or self.motivo_bloqueo or _('Corrección manual'),
+                    'apunts_modificado_por_id': self.env.user.id,
+                    'apunts_modificado_fecha': fields.Datetime.now(),
+                })
                 accion_msg = (
                     f"Fichaje cerrado (id {prod.id}) en "
                     f"{prod.workorder_id.production_id.name} / {prod.workorder_id.name} "
@@ -181,6 +187,10 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                     'date_start': self.date_start_nuevo,
                     'date_end': self.date_end_nuevo or fields.Datetime.now(),
                     'description': f'Fichaje creado manualmente por {self.env.user.name}',
+                    'apunts_modificado_manual': True,
+                    'apunts_motivo_correccion': self.motivo or _('Fichaje creado manualmente'),
+                    'apunts_modificado_por_id': self.env.user.id,
+                    'apunts_modificado_fecha': fields.Datetime.now(),
                 }
                 if loss_id:
                     vals_prod['loss_id'] = loss_id

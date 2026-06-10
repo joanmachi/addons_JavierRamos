@@ -37,7 +37,7 @@ Punto pendiente del email cliente para futuras versiones:
 - Punto 6 (pregunta nº piezas obligatoria): ya existe parcialmente, validar.
 - Punto 9 (vista master gestión oficina): requiere sesión con María José.
     """,
-    "version": "18.0.2.0.5",
+    "version": "18.0.2.2.0",
     "category": "Manufacturing",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
@@ -45,6 +45,7 @@ Punto pendiente del email cliente para futuras versiones:
     "depends": [
         "mrp",
         "hr_attendance",
+        "hr_holidays",
         "apunts_barcode_workorder",
         "javier_ramos_taller_simple",
     ],

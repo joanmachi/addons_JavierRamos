@@ -20,6 +20,8 @@
                 <field name="apunts_emp_horas_hoy" string="Horas HOY" widget="float_time" readonly="1"/>
                 <field name="apunts_emp_horas_semana" string="Horas semana" widget="float_time" readonly="1" optional="show"/>
                 <field name="apunts_emp_motivo_bloqueo" string="Motivo bloqueo" optional="show" readonly="1"/>
+                <field name="apunts_modificado_manual" string="Modificado" optional="hide" readonly="1"/>
+                <field name="apunts_motivo_correccion" string="Motivo corrección" optional="hide" readonly="1"/>
                 <button name="action_apunts_ver_of" type="object"
                         string="Ver OF" icon="fa-external-link"
                         class="btn btn-sm btn-primary"
@@ -46,8 +48,11 @@
                 <field name="workorder_id"/>
                 <field name="apunts_production_id" string="OF"/>
                 <field name="workcenter_id"/>
+                <field name="apunts_motivo_correccion" string="Motivo corrección"/>
                 <filter name="filter_abiertos" string="Solo abiertos"
                         domain="[('date_end', '=', False)]"/>
+                <filter name="filter_modificados" string="Modificados manualmente"
+                        domain="[('apunts_modificado_manual', '=', True)]"/>
                 <filter name="filter_hoy" string="Hoy"
                         domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter name="filter_semana" string="Últimos 7 días"
@@ -63,6 +68,7 @@
                     <filter name="group_semana" string="Semana" context="{'group_by': 'date_start:week'}"/>
                     <filter name="group_mes" string="Mes" context="{'group_by': 'date_start:month'}"/>
                     <filter name="group_centro" string="Centro" context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_modificado" string="Modificado manual" context="{'group_by': 'apunts_modificado_manual'}"/>
                 </group>
             </search>
         </field>
@@ -81,6 +87,31 @@
         </field>
     </record>
 
+    <record id="apunts_productivity_list_historico" model="ir.ui.view">
+        <field name="name">apunts.productivity.list.historico</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="arch" type="xml">
+            <list string="Histórico de fichajes" create="0" delete="0" edit="1"
+                  decoration-warning="apunts_modificado_manual">
+                <field name="apunts_production_id" column_invisible="1"/>
+                <field name="employee_id" string="Operario" readonly="1"/>
+                <field name="apunts_of_short" string="OF" readonly="1"/>
+                <field name="apunts_ot_short" string="OT (fase)" readonly="1"/>
+                <field name="date_start" string="Inicio" readonly="1"/>
+                <field name="date_end" string="Fin" readonly="1"/>
+                <field name="apunts_duracion_viva" string="Duración" widget="float_time" readonly="1"/>
+                <field name="apunts_modificado_manual" string="Modificado" readonly="1"/>
+                <field name="apunts_motivo_correccion" string="Motivo corrección" readonly="1"/>
+                <field name="apunts_modificado_por_id" string="Modificado por" optional="show" readonly="1"/>
+                <field name="apunts_modificado_fecha" string="Fecha modif." optional="hide" readonly="1"/>
+                <button name="action_apunts_ver_of" type="object"
+                        string="Ver OF" icon="fa-external-link"
+                        class="btn btn-sm btn-primary"
+                        invisible="not apunts_production_id"/>
+            </list>
+        </field>
+    </record>
+
     <record id="apunts_action_fichados_ahora" model="ir.actions.act_window">
         <field name="name">Operarios fichados ahora</field>
         <field name="res_model">mrp.workcenter.productivity</field>
@@ -95,6 +126,7 @@
         <field name="name">Histórico fichajes</field>
         <field name="res_model">mrp.workcenter.productivity</field>
         <field name="view_mode">list,pivot</field>
+        <field name="view_id" ref="apunts_productivity_list_historico"/>
         <field name="domain">[('employee_id', '!=', False)]</field>
         <field name="search_view_id" ref="apunts_productivity_search"/>
         <field name="context">{'search_default_filter_semana': 1}</field>

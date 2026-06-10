@@ -17,6 +17,16 @@
                                  help="Bloquear operario que lleva más de X horas continuas fichado en la misma orden de fabricación. Pon 0 para desactivar.">
                             <field name="apunts_taller_bloqueo_horas_continuas_of"/>
                         </setting>
+                        <setting string="Bloquear por jornada insuficiente el día anterior"
+                                 help="Bloquear si el día laborable anterior (L-V, sin festivos) la presencia + ausencias aprobadas no alcanza la jornada del calendario, descontando la tolerancia.">
+                            <field name="apunts_taller_bloqueo_jornada_activo"/>
+                            <div class="content-group mt16"
+                                 invisible="not apunts_taller_bloqueo_jornada_activo">
+                                <label for="apunts_taller_jornada_tolerancia_min"
+                                       string="Tolerancia (minutos)"/>
+                                <field name="apunts_taller_jornada_tolerancia_min" class="oe_inline"/>
+                            </div>
+                        </setting>
                     </block>
                 </app>
             </xpath>

@@ -19,6 +19,9 @@
                     <button name="action_buscar_pin" type="object"
                             string="Ver mi resumen" class="btn-secondary"
                             invisible="employee_id"/>
+                    <field name="aviso_aceptado" invisible="1"/>
+                    <field name="aviso_jornada_html" nolabel="1"
+                           invisible="not aviso_jornada_html"/>
                     <separator string="Resumen del día"/>
                     <field name="resumen_html" nolabel="1"/>
                 </sheet>

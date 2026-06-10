@@ -14,6 +14,8 @@ class ApuntsFinJornadaWizard(models.TransientModel):
     pin = fields.Char(string="PIN del operario", required=True)
     employee_id = fields.Many2one("hr.employee", string="Operario", readonly=True)
     resumen_html = fields.Html(string="Resumen jornada", compute="_compute_resumen_html")
+    aviso_aceptado = fields.Boolean(default=False)
+    aviso_jornada_html = fields.Html(string="Aviso jornada", readonly=True)
 
     def _set_employee_from_pin(self):
         self.ensure_one()
@@ -37,8 +39,16 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 ("employee_id", "=", w.employee_id.id),
                 ("date_start", ">=", hoy.strftime("%Y-%m-%d 00:00:00")),
             ], order="date_start ASC")
+            ausencia_h = w.employee_id._apunts_horas_ausencia(hoy)
             if not registros:
-                w.resumen_html = "<p><em>No tienes fichajes hoy.</em></p>"
+                if ausencia_h:
+                    w.resumen_html = (
+                        f"<p><strong>{w.employee_id.name}</strong> — "
+                        f"sin fichajes de producción hoy · "
+                        f"<strong>{ausencia_h:.2f} h de ausencia justificada</strong></p>"
+                    )
+                else:
+                    w.resumen_html = "<p><em>No tienes fichajes hoy.</em></p>"
                 continue
             filas = []
             total_seg = 0
@@ -59,10 +69,18 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                     f"<td>{horas:.2f} h</td></tr>"
                 )
             total_h = total_seg / 3600.0
+            if ausencia_h:
+                total_txt = (
+                    f"<strong>Total: {total_h:.2f} h fichadas "
+                    f"+ {ausencia_h:.2f} h ausencia "
+                    f"= {total_h + ausencia_h:.2f} h</strong>"
+                )
+            else:
+                total_txt = f"<strong>Total: {total_h:.2f} h</strong>"
             w.resumen_html = (
                 f"<p><strong>{w.employee_id.name}</strong> — "
                 f"{len(registros)} fichajes hoy · "
-                f"<strong>Total: {total_h:.2f} h</strong></p>"
+                f"{total_txt}</p>"
                 "<table class='table table-sm'>"
                 "<thead><tr><th>OF</th><th>OT</th><th>Inicio</th>"
                 "<th>Fin</th><th>Duración</th></tr></thead>"
@@ -80,6 +98,40 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             "target": "new",
             "context": self.env.context,
         }
+
+    def _jornada_hoy_insuficiente(self):
+        """Si al cerrar ahora la jornada de HOY quedaría por debajo del mínimo
+        que activaría el bloqueo (presencia + ausencias < jornada − tolerancia),
+        devuelve (presencia, ausencia, esperadas); si no, None.
+
+        Usa la MISMA base que el cron de bloqueo (presencia de hr.attendance +
+        ausencias), proyectando la sesión de asistencia aún abierta hasta ahora,
+        que es justo lo que el cron evaluará mañana cuando quede cerrada."""
+        self.ensure_one()
+        ICP = self.env["ir.config_parameter"].sudo()
+        if ICP.get_param("apunts_taller_control.bloqueo_jornada_activo", "1") != "1":
+            return None
+        emp = self.employee_id
+        hoy = fields.Date.context_today(self)
+        esperadas = emp._apunts_horas_esperadas(hoy)
+        if not esperadas:
+            return None  # hoy no es laborable (finde/festivo)
+        tol = int(
+            ICP.get_param("apunts_taller_control.jornada_tolerancia_min", "10")
+        ) / 60.0
+        presencia = emp._apunts_horas_presencia(hoy)
+        ini, fin = emp._apunts_rango_utc(hoy)
+        abierta = self.env["hr.attendance"].search([
+            ("employee_id", "=", emp.id),
+            ("check_in", ">=", ini), ("check_in", "<=", fin),
+            ("check_out", "=", False),
+        ], limit=1)
+        if abierta:
+            presencia += (fields.Datetime.now() - abierta.check_in).total_seconds() / 3600.0
+        ausencia = emp._apunts_horas_ausencia(hoy)
+        if presencia + ausencia < esperadas - tol:
+            return (presencia, ausencia, esperadas)
+        return None
 
     def action_confirmar_fin_jornada(self):
         self.ensure_one()
@@ -101,6 +153,40 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 + "\n".join(nombres)
                 + "\n\nDesfíchate de cada una escaneando su código de barras y vuelve a intentarlo."
             )
+        # Doble confirmación: avisar si la jornada de hoy es insuficiente y el
+        # operario quedaría bloqueado mañana. La 1ª pulsación muestra el aviso;
+        # la 2ª (aviso_aceptado=True) cierra igualmente.
+        if not self.aviso_aceptado:
+            datos = self._jornada_hoy_insuficiente()
+            if datos:
+                presencia, ausencia, esperadas = datos
+                total = presencia + ausencia
+                aus_txt = (
+                    f" + <strong>{ausencia:.2f} h</strong> de ausencia"
+                    if ausencia else ""
+                )
+                aviso = (
+                    "<div class='alert alert-danger' role='alert'>"
+                    "<h5 class='mb-1'><i class='fa fa-exclamation-triangle me-1'/>"
+                    "Jornada por debajo del mínimo</h5>"
+                    f"Hoy llevas <strong>{presencia:.2f} h</strong> de presencia{aus_txt} "
+                    f"= <strong>{total:.2f} h</strong>, por debajo de las "
+                    f"<strong>{esperadas:.2f} h</strong> de tu jornada.<br/>"
+                    "Si cierras ahora, mañana quedarás <strong>bloqueado</strong> y "
+                    "tendrás que pasar por oficina para volver a fichar.<br/><br/>"
+                    "Pulsa de nuevo <strong>«Confirmar y salir»</strong> si aun así "
+                    "quieres cerrar la jornada."
+                    "</div>"
+                )
+                self.write({"aviso_aceptado": True, "aviso_jornada_html": aviso})
+                return {
+                    "type": "ir.actions.act_window",
+                    "res_model": self._name,
+                    "res_id": self.id,
+                    "view_mode": "form",
+                    "target": "new",
+                    "context": self.env.context,
+                }
         if emp.attendance_state == "checked_in":
             emp.sudo()._attendance_action_change()
         return {
