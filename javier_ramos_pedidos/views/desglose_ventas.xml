@@ -29,6 +29,7 @@
 
         <field name="price_unit"       string="Precio"       optional="show"/>
         <field name="price_subtotal"   string="Subtotal"     sum="Total"/>
+        <field name="valor_entregado"  string="Valor entregado" sum="Total entregado (€)"/>
 
       </list>
     </field>

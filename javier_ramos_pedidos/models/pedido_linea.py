@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from itertools import groupby
 
-from odoo import fields, models, SUPERUSER_ID, _
+from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.misc import formatLang, get_lang
 from odoo.osv import expression
@@ -27,6 +27,18 @@ class PedidoLinea(models.Model):
         store=True,
         digits='Product Unit of Measure',
     )
+    valor_entregado = fields.Monetary(
+        string='Valor entregado',
+        compute='_compute_valor_entregado',
+        store=True,
+        currency_field='currency_id',
+        help='Uds. entregadas × precio unitario (sin descuento ni impuestos).',
+    )
+
+    @api.depends('qty_delivered', 'price_unit')
+    def _compute_valor_entregado(self):
+        for line in self:
+            line.valor_entregado = line.qty_delivered * line.price_unit
 
     def _prepare_invoice_line(self, **optional_values):
         self.ensure_one()

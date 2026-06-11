@@ -224,9 +224,11 @@ Duración esperada de OF: multiplicar por unidades a producir (Fase1 60' + Fase2
 
 7.- Ocultar las fases terminadas en la vista código de barras. HECHO
 
-8.- Se requiere de una columna específica para pedidos pendientes de entrega. Más especificamente en el detalle por lineas y la cosa es que debemos de realizar un caluclo para cantidades entregadas x precio.
+8.- Columna "Valor entregado" (uds. entregadas × precio unitario, sin dto. ni impuestos) en el DESGLOSE DE LÍNEAS DEL PEDIDO DE VENTA (sale.order.line). HECHO
 
 9.- Informe por empleados: titulo del trabajo=nom operari y nº de identificacion=dni
+
+10.- Costes de la OF: en el coste de la orden de fabricación mostrar SOLO el coste real de los materiales/productos UTILIZADOS (consumidos), tomado del PEDIDO DE COMPRA asociado a esos materiales (coste real de compra), que está vinculado al coste de la OF. PENDIENTE — a desarrollar por separado (confirmado en reunión, sin empezar).
 
 
 
