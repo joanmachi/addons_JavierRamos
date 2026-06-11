@@ -272,14 +272,17 @@
                 <!-- ══ FASES ═══════════════════════════════════════════════════ -->
                 <div class="apunts-section-title">Fases de fabricación</div>
 
+                <!-- Ocultamos las fases sin trabajo: 0 por hacer y 0 pendientes
+                     de validar (ya terminadas o aun sin piezas). -->
                 <t t-foreach="env.model.workorderLines" t-as="orden" t-key="orden.id">
                     <t t-set="is_active"  t-value="env.model.empleadoElegido and orden.employee_ids.includes(env.model.empleadoElegido.id)"/>
+                    <t t-set="apunts_fase_oculta" t-value="(orden.prev_validated_qty - orden.qty_ready_to_validate) &lt;= 0 and orden.qty_ready_to_validate &lt;= 0"/>
                     <t t-set="is_done"    t-value="0 >= orden.qty_remaining"/>
                     <t t-set="is_waiting" t-value="orden.prev_validated_qty == 0"/>
                     <t t-set="total_qty"  t-value="env.model.product_qty"/>
                     <t t-set="pct"        t-value="total_qty > 0 ? Math.round(orden.qty_validated / total_qty * 100) : 0"/>
 
-                    <div class="apunts-wo-card"
+                    <div t-if="!apunts_fase_oculta" class="apunts-wo-card"
                          t-att-class="{
                            'apunts-wo-active':  is_active,
                            'apunts-wo-done':    is_done and !is_active,

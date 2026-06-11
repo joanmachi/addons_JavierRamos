@@ -208,16 +208,27 @@ Corrección del doble fichaje: tiempo de operario dividido entre órdenes activa
 Control de producción en curso — Puntos 2 y 3: sustituir "stock pronosticado" por stock / pendiente de entrega / entregado en la vista de producto - HECHO
 
 Duración esperada de OF: multiplicar por unidades a producir (Fase1 60' + Fase2 180' × 9 uds) 
+-------------
 
-Se requiere de una columna específica para pedidos pendientes de entrega. Más especificamente en el detalle por lineas y la cosa es que debemos de realizar un caluclo para cantidades entregadas x precio.
+1.- Fichaje < Jornada laboral - Tolerancia = Bloqueo. HECHO
 
-Informe por empleados: titulo del trabajo=nom operari y nº de identificacion=dni
+2.- Añadir resumen de las horas que lleva. (Horas presencia + horas ausencias). HECHO
 
-Ocultar en vista de taller las fases que tengan productos 0 y validado 0. En las tareas ya realizadas
+3.- Doble verificación con aviso de ser bloqueado si no cumples el punto 1. HECHO
 
-Mirar para poner el pdf.
+4.- Histórico de correcciones de los fichajes. HECHO
 
-PDF para asistencias diarias.
+5.- Horarios de los empleados - Falta ver con Mª Jose.
+
+6.- Añadir PDF del producto a producir en la vista de código de barras para poder añadir PDA. HECHO
+
+7.- Ocultar las fases terminadas en la vista código de barras. HECHO
+
+8.- Se requiere de una columna específica para pedidos pendientes de entrega. Más especificamente en el detalle por lineas y la cosa es que debemos de realizar un caluclo para cantidades entregadas x precio.
+
+9.- Informe por empleados: titulo del trabajo=nom operari y nº de identificacion=dni
+
+
 
 📅 PENDIENTE DE REUNIÓN
 
