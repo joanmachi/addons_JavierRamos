@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_product_template_form_docs_taller" model="ir.ui.view">
+        <field name="name">product.template.form.apunts.docs.taller</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Documentos taller" name="apunts_docs_taller">
+                    <group>
+                        <field name="apunts_docs_taller_ids"
+                               widget="many2many_binary"
+                               string="Documentos para la tablet"/>
+                    </group>
+                    <div class="text-muted mt-2">
+                        <i class="fa fa-info-circle me-1"/>
+                        Estos documentos (PDF, planos, instrucciones) se podrán abrir
+                        desde la tablet, en la vista de código de barras, pulsando el
+                        nombre del producto.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

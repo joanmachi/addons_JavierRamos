@@ -1,3 +1,32 @@
+🆕 TABLETS EN PLANTA — DOCUMENTOS PDF DEL PRODUCTO EN LA TABLET (11/06/2026)
+
+Objetivo: que cada estación de trabajo tenga una tablet (eliminar papeles).
+En la vista de código de barras, al pulsar el NOMBRE DEL PRODUCTO fabricado se
+abre un visor a pantalla completa con su(s) documento(s) PDF (ficha técnica,
+planos, instrucciones).
+
+Decisiones (reunión 11/06):
+- Documentos: varios adjuntos (ir.attachment) por producto.
+- Apertura: visor embebido a pantalla completa (no sale del kiosko).
+- Alcance: solo el producto fabricado (no componentes, de momento).
+- Tablets recomendadas: Android (el visor <iframe> de PDF va directo; iOS/Safari
+  podría descargar en vez de mostrar → plan B pdf.js/pestaña).
+
+Todo en el módulo apunts_barcode_workorder (no toca la lógica de fichaje).
+
+- [ ] product.template: campo apunts_docs_taller_ids (Many2many ir.attachment)
+      + pestaña "Documentos taller" en la ficha del producto (widget
+      many2many_binary para subir varios).
+- [ ] _get_stock_barcode_data: inyectar product_name + product_docs
+      [{id,name,url:/web/content/<id>}].
+- [ ] barcode_mrp_model.js: cargar product_name/product_docs + estado del visor
+      (docVisorUrl) + abrirDoc()/cerrarDoc().
+- [ ] main.xml: nombre del producto clickable (icono PDF) en cabecera Materiales;
+      1 doc abre directo, varios → mini-lista; overlay visor con <iframe>.
+- [ ] workorder.css: estilos del visor (reutiliza patrón apunts-zoom-overlay).
+- [ ] Validar carga + probar en navegador; validar render PDF en la tablet real.
+
+
 🆕 REVISIÓN REUNIÓN CLIENTE (10/06/2026) — CONTROL DE FICHAJE Y AUSENCIAS
 
 Objetivo global: reforzar el control de que los operarios fichan correctamente

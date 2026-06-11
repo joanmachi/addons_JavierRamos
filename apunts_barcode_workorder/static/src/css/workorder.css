@@ -178,6 +178,70 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   DOCUMENTOS DEL PRODUCTO — título clickable + visor PDF (tablet)
+   ══════════════════════════════════════════════════════════════════════ */
+.apunts-producto-titulo {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; margin-bottom: 10px;
+    background: #1e293b; border-radius: 10px;
+    font-size: 1.05rem; font-weight: 600; color: #e2e8f0;
+}
+.apunts-producto-con-doc {
+    cursor: pointer;
+    background: #243149;
+    border: 1px solid #3b82f6;
+}
+.apunts-producto-con-doc:active { background: #2d3c59; }
+.apunts-producto-nombre { flex: 1 1 auto; line-height: 1.2; }
+.apunts-producto-doc-icon { color: #ef4444; font-size: 1.4rem; }
+.apunts-producto-doc-count {
+    background: #ef4444; color: #fff;
+    min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; font-size: .8rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.apunts-doc-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,.92);
+    z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+}
+.apunts-doc-dialog {
+    width: 96%; height: 96%;
+    background: #fff; border-radius: 8px; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+.apunts-doc-toolbar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: #1e293b; color: #fff;
+}
+.apunts-doc-title { font-weight: 600; }
+.apunts-doc-close {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.apunts-doc-frame { flex: 1 1 auto; width: 100%; border: none; }
+
+.apunts-doclist-dialog {
+    width: 90%; max-width: 520px; max-height: 80%;
+    background: #fff; border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+.apunts-doclist-items { padding: 10px; overflow-y: auto; }
+.apunts-doclist-item {
+    display: flex; align-items: center; width: 100%;
+    padding: 14px 16px; margin-bottom: 8px;
+    background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px;
+    font-size: 1rem; text-align: left; cursor: pointer;
+}
+.apunts-doclist-item:active { background: #e2e8f0; }
+
+/* ══════════════════════════════════════════════════════════════════════
    PANEL MATERIALES — modal dialog
    ══════════════════════════════════════════════════════════════════════ */
 .apunts-mat-backdrop {

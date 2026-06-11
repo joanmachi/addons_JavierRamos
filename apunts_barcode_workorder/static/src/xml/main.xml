@@ -74,6 +74,19 @@
             <t t-if="env.model.resModel == 'mrp.production'">
             <div class="apunts-mrp-wrapper">
 
+                <!-- ══ NOMBRE DEL PRODUCTO — pulsar abre sus documentos (PDF) ══ -->
+                <div t-if="env.model.product_name" class="apunts-producto-titulo"
+                     t-att-class="{'apunts-producto-con-doc': env.model.product_docs.length}"
+                     t-on-click="(ev) => env.model.abrirDocs(ev)">
+                    <span class="apunts-producto-nombre" t-esc="env.model.product_name"/>
+                    <t t-if="env.model.product_docs.length">
+                        <i class="fa fa-file-pdf-o apunts-producto-doc-icon"/>
+                        <span t-if="env.model.product_docs.length > 1"
+                              class="apunts-producto-doc-count"
+                              t-esc="env.model.product_docs.length"/>
+                    </t>
+                </div>
+
                 <!-- ══ SECCIÓN MATERIALES — lista de componentes + miniatura ═══ -->
                 <div class="apunts-componentes-card">
                     <div class="apunts-componentes-header">
@@ -128,6 +141,42 @@
                     <img t-attf-src="data:image/png;base64,{{env.model.product_image}}"
                         class="apunts-zoom-img" t-on-click.stop=""/>
                     <button class="apunts-zoom-close"><i class="fa fa-times"/></button>
+                </div>
+
+                <!-- ══ VISOR DOCUMENTO (PDF) a pantalla completa ═════════════ -->
+                <div t-if="env.model.docVisorUrl" class="apunts-doc-overlay"
+                     t-on-click="(ev) => env.model.cerrarDoc(ev)">
+                    <div class="apunts-doc-dialog" t-on-click.stop="">
+                        <div class="apunts-doc-toolbar">
+                            <span class="apunts-doc-title"><i class="fa fa-file-pdf-o me-2"/>Documento</span>
+                            <button class="apunts-doc-close" t-on-click="(ev) => env.model.cerrarDoc(ev)">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                        <iframe class="apunts-doc-frame" t-att-src="env.model.docVisorUrl"/>
+                    </div>
+                </div>
+
+                <!-- ══ LISTA DE DOCUMENTOS (cuando hay varios) ═══════════════ -->
+                <div t-if="env.model.showDocList" class="apunts-doc-overlay"
+                     t-on-click="(ev) => env.model.cerrarDoc(ev)">
+                    <div class="apunts-doclist-dialog" t-on-click.stop="">
+                        <div class="apunts-doc-toolbar">
+                            <span class="apunts-doc-title"><i class="fa fa-folder-open-o me-2"/>Documentos del producto</span>
+                            <button class="apunts-doc-close" t-on-click="(ev) => env.model.cerrarDoc(ev)">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                        <div class="apunts-doclist-items">
+                            <t t-foreach="env.model.product_docs" t-as="doc" t-key="doc.id">
+                                <button class="apunts-doclist-item"
+                                        t-on-click="(ev) => env.model.verDoc(doc.url, ev)">
+                                    <i class="fa fa-file-pdf-o me-2"/>
+                                    <span t-esc="doc.name"/>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ══ PANEL MATERIALES (modal dialog) ═══════════════════════ -->

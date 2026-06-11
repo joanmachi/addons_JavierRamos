@@ -40,6 +40,10 @@ patch(BarcodeMRPModel.prototype, {
         this.qty_produced = data.data.qty_produced ?? 0;
         this.product_qty = data.data.product_qty ?? 0;
         this.product_uom_name = data.data.product_uom_name || '';
+        this.product_name = data.data.product_name || '';
+        this.product_docs = data.data.product_docs || [];
+        if (this.docVisorUrl === undefined) this.docVisorUrl = null;
+        if (this.showDocList === undefined) this.showDocList = false;
         if (this.showComponentes === undefined) this.showComponentes = false;
         if (this.componentes === undefined) this.componentes = [];
         // Cargamos componentes inline (no solo al abrir modal) para mostrarlos en la card
@@ -66,6 +70,34 @@ patch(BarcodeMRPModel.prototype, {
         }
         this.isEnlarged = !this.isEnlarged;
         // This is the essential signal to refresh the UI
+        this.trigger('update');
+    },
+
+    // ── Documentos del producto (visor PDF en la tablet) ──────────────────
+    abrirDocs(ev) {
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        if (!this.product_docs || !this.product_docs.length) { return; }
+        if (this.product_docs.length === 1) {
+            this.docVisorUrl = this.product_docs[0].url;
+            this.showDocList = false;
+        } else {
+            // Varios documentos: mostrar lista para elegir cuál abrir
+            this.showDocList = true;
+        }
+        this.trigger('update');
+    },
+
+    verDoc(url, ev) {
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        this.docVisorUrl = url;
+        this.showDocList = false;
+        this.trigger('update');
+    },
+
+    cerrarDoc(ev) {
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        this.docVisorUrl = null;
+        this.showDocList = false;
         this.trigger('update');
     },
 

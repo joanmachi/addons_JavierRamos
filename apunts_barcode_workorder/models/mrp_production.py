@@ -89,6 +89,15 @@ class ManufacturingOrder(models.Model):
         data['log_note'] = self.log_note
         data['workorders'] = ordenes.read(ordenes._get_fields_stock_barcode(), load=False)
         data['product_image'] = self.product_id.image_256
+        data['product_name'] = self.product_id.display_name
+        data['product_docs'] = [
+            {
+                'id': att.id,
+                'name': att.name,
+                'url': '/web/content/%s?download=false' % att.id,
+            }
+            for att in self.product_id.product_tmpl_id.apunts_docs_taller_ids
+        ]
         data['qty_produced'] = int(round(self.qty_produced or 0))
         data['product_qty'] = int(round(self.product_qty or 0))
         data['product_uom_name'] = self.product_uom_id.name or ''
