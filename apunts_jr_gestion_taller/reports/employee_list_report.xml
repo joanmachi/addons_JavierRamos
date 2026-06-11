@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Informe: listado de los empleados seleccionados con Nombre + DNI.
+         Se selecciona empleados en la lista y se imprime desde el menú
+         "Imprimir" (binding sobre hr.employee). -->
+    <record id="action_report_apunts_empleados" model="ir.actions.report">
+        <field name="name">Listado de empleados (nombre y DNI)</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">apunts_jr_gestion_taller.report_apunts_empleados</field>
+        <field name="report_file">apunts_jr_gestion_taller.report_apunts_empleados</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_apunts_empleados">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 class="mb-4">Listado de empleados</h2>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Operario</th>
+                                <th>Nº de identificación (DNI)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="docs" t-as="emp">
+                                <td><span t-esc="emp.name"/></td>
+                                <td><span t-esc="emp.identification_id or ''"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

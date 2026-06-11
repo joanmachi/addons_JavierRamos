@@ -226,7 +226,9 @@ Duración esperada de OF: multiplicar por unidades a producir (Fase1 60' + Fase2
 
 8.- Columna "Valor entregado" (uds. entregadas × precio unitario, sin dto. ni impuestos) en el DESGLOSE DE LÍNEAS DEL PEDIDO DE VENTA (sale.order.line). HECHO
 
-9.- Informe por empleados: titulo del trabajo=nom operari y nº de identificacion=dni
+9.- Informe por empleados: imprimir lista de empleados seleccionados con Nombre (operario) + Nº de identificación (DNI). Acción de impresión (binding) sobre hr.employee. HECHO
+
+11.- Informe de fichadas/asistencias tipo "Reporte diario de registros" (CrossChex): seleccionar asistencias, agrupar por empleado y ordenar por fecha; por día mostrar fecha, día semana, hora entrada-salida, nº fichadas y horas trabajadas (working time). EN DESARROLLO
 
 10.- Costes de la OF: coste REAL de materiales = cantidad CONSUMIDA en la OF (move_raw.quantity, lo usado) × precio del PEDIDO DE COMPRA vinculado (campo fabricacion). Cuenta lo usado (no lo comprado) y al precio de compra; fallback a coste estándar si el material no tiene PO. Solo materiales (MO y máquina sin tocar). HECHO
 
