@@ -529,45 +529,34 @@ class MrpProduction(models.Model):
         return total
 
     def _apunts_mp_total_real(self, prod):
-        # Lógica JR para "Material real" por producto:
-        #   real_producto = MAX(recibido_via_PO_con_fabricacion, consumo_físico_móvil)
-        # Cubre los 4 casos:
-        #   • PO recibida = consumo → cuenta una vez (lo mismo)
-        #   • PO recibida > consumo → cuenta lo recibido (material en taller no usado aún)
-        #   • PO recibida < consumo → cuenta el consumo (operario tiró de stock viejo)
-        #   • Sin PO con fabricacion → cuenta solo el consumo físico
+        # Punto 10 JR: coste REAL de materiales = cantidad CONSUMIDA en la OF
+        # (move_raw.quantity, lo realmente UTILIZADO) × PRECIO del pedido de
+        # compra vinculado a la OF (campo `fabricacion`).
+        #   • Cuenta lo usado, no lo comprado: si compras 20 y usas 10, cuenta 10.
+        #   • Valora al precio del PO (lo que costó comprarlo), no al coste estándar.
+        #   • Si un material consumido no tiene PO vinculado, fallback a su coste
+        #     estándar para no dejar el material sin valorar.
         POL = self.env["purchase.order.line"]
-        has_fab = "fabricacion" in POL._fields
-        recibido_por_producto = {}
-        if has_fab:
+        precio_po = {}
+        if "fabricacion" in POL._fields:
             pols = POL.search([
                 ("fabricacion", "=", prod.id),
                 ("order_id.state", "in", ("purchase", "done")),
             ])
             for pol in pols:
-                if not pol.product_qty:
-                    continue
-                ratio = (pol.qty_received or 0.0) / pol.product_qty
-                importe_recibido = (pol.price_subtotal or 0.0) * ratio
-                recibido_por_producto.setdefault(pol.product_id.id, 0.0)
-                recibido_por_producto[pol.product_id.id] += importe_recibido
-        # Sumar también productos que tienen PO pero NO están en move_raw_ids
-        # (caso JR de servicios externos: pavonado, mecanizado…).
-        productos_en_raw = set()
+                if pol.price_unit:
+                    precio_po[pol.product_id.id] = pol.price_unit
         total = 0.0
         for m in prod.move_raw_ids:
             if m.state == "cancel":
                 continue
-            productos_en_raw.add(m.product_id.id)
-            qty_real = m.quantity or 0.0
-            price = self._apunts_get_product_cost(m.product_id, prod)
-            consumo = qty_real * price
-            recibido = recibido_por_producto.get(m.product_id.id, 0.0)
-            total += max(recibido, consumo)
-        # Productos con PO pero sin línea raw (servicios externos típicos JR)
-        for pid, importe in recibido_por_producto.items():
-            if pid not in productos_en_raw:
-                total += importe
+            qty_consumida = m.quantity or 0.0
+            if not qty_consumida:
+                continue
+            price = precio_po.get(m.product_id.id)
+            if price is None:
+                price = self._apunts_get_product_cost(m.product_id, prod)
+            total += qty_consumida * price
         return total
 
     def _apunts_material_real(self):
