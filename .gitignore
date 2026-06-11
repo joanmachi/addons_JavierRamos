@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 *.swp
 *.swo
+
+# Paquetes de módulos (artefactos de despliegue, no fuente)
+*.zip
