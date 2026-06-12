@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Informe de fichadas tipo "Reporte diario de registros":
+         seleccionar asistencias en la lista y Imprimir. Agrupa por empleado y
+         ordena por fecha; por día: fecha, día semana, hora entrada-salida,
+         nº fichadas (veces) y horas trabajadas (working time). -->
+    <record id="action_report_apunts_asistencias" model="ir.actions.report">
+        <field name="name">Reporte diario de registros</field>
+        <field name="model">hr.attendance</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">apunts_jr_gestion_taller.report_apunts_asistencias</field>
+        <field name="report_file">apunts_jr_gestion_taller.report_apunts_asistencias</field>
+        <field name="binding_model_id" ref="hr_attendance.model_hr_attendance"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_apunts_asistencias">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 class="text-center mb-1">Reporte diario de registros</h2>
+                    <p class="text-end text-muted" t-if="fecha_min">
+                        <t t-esc="fecha_min"/> hasta <t t-esc="fecha_max"/>
+                    </p>
+
+                    <t t-foreach="empleados" t-as="emp">
+                        <table class="table table-sm table-bordered mb-4"
+                               style="page-break-inside: avoid;">
+                            <thead>
+                                <tr style="background-color:#d9d9d9;">
+                                    <th colspan="5">
+                                        <strong t-esc="emp['nombre']"/>
+                                        <span t-if="emp['departamento']" class="float-end"
+                                              t-esc="emp['departamento']"/>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Semana</th>
+                                    <th>Hora</th>
+                                    <th class="text-center">Veces</th>
+                                    <th class="text-end">Working Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="emp['filas']" t-as="f">
+                                    <td t-esc="f['fecha']"/>
+                                    <td t-esc="f['dia_semana']"/>
+                                    <td>
+                                        <t t-esc="f['entrada']"/>
+                                        <t t-if="f['salida']"> - <t t-esc="f['salida']"/></t>
+                                    </td>
+                                    <td class="text-center" t-esc="f['veces']"/>
+                                    <td class="text-end" t-esc="'%.2f' % f['working']"/>
+                                </tr>
+                                <tr style="background-color:#f2f2f2;">
+                                    <td colspan="4" class="text-end"><strong>Total</strong></td>
+                                    <td class="text-end">
+                                        <strong t-esc="'%.2f' % emp['total']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <p t-if="not empleados" class="text-muted">
+                        No hay asistencias en la selección.
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

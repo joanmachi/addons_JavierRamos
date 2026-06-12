@@ -228,7 +228,7 @@ Duración esperada de OF: multiplicar por unidades a producir (Fase1 60' + Fase2
 
 9.- Informe por empleados: imprimir lista de empleados seleccionados con Nombre (operario) + Nº de identificación (DNI). Acción de impresión (binding) sobre hr.employee. HECHO
 
-11.- Informe de fichadas/asistencias tipo "Reporte diario de registros" (CrossChex): seleccionar asistencias, agrupar por empleado y ordenar por fecha; por día mostrar fecha, día semana, hora entrada-salida, nº fichadas y horas trabajadas (working time). EN DESARROLLO
+11.- Informe de fichadas/asistencias tipo "Reporte diario de registros" (CrossChex): seleccionar asistencias, agrupar por empleado y ordenar por fecha; por día mostrar fecha, día semana, hora entrada-salida, nº fichadas y horas trabajadas (working time). Acción de impresión (binding) sobre hr.attendance. HECHO (días sin fichaje no salen; pendiente si se quieren en blanco como CrossChex)
 
 10.- Costes de la OF: coste REAL de materiales = cantidad CONSUMIDA en la OF (move_raw.quantity, lo usado) × precio del PEDIDO DE COMPRA vinculado (campo fabricacion). Cuenta lo usado (no lo comprado) y al precio de compra; fallback a coste estándar si el material no tiene PO. Solo materiales (MO y máquina sin tocar). HECHO
 
