@@ -92,6 +92,19 @@ class MrpProduction(models.Model):
             "del proveedor."
         ),
     )
+    apunts_mat_reposicion_extra = fields.Monetary(
+        string="MP extra por reposición (€)",
+        default=0.0,
+        store=True,
+        currency_field="company_currency_id",
+        copy=False,
+        help=(
+            "Material ADICIONAL consumido al reponer piezas no validadas "
+            "(desechadas y vueltas a fabricar) desde el panel de supervisor.\n"
+            "Se acumula proporcional al consumo ya registrado y se SUMA al MP "
+            "real y al coste total. El retrabajo NO suma aquí (solo mano de obra)."
+        ),
+    )
     apunts_mo_real_total = fields.Monetary(
         string="Coste operario real (€)",
         compute="_compute_apunts_wip_costs",
@@ -431,6 +444,7 @@ class MrpProduction(models.Model):
         "workorder_ids.workcenter_id.costs_hour",
         "workorder_ids.workcenter_id.apunts_amort_hour",
         "apunts_productivity_trigger",
+        "apunts_mat_reposicion_extra",
     )
     def _compute_apunts_wip_costs(self):
         for prod in self:
@@ -465,14 +479,15 @@ class MrpProduction(models.Model):
                 self._apunts_workorder_totals_real(prod)
             )
 
+            mat_extra = prod.apunts_mat_reposicion_extra or 0.0
             prod.apunts_qty_pending = qty_pending
             prod.apunts_cost_total_planned = (
                 mp_total_plan + mo_total_plan + machine_total_plan + amort_total_plan
             )
             prod.apunts_cost_total_real = (
-                mp_total_real + mo_total_real + machine_total_real + amort_total_real
+                mp_total_real + mat_extra + mo_total_real + machine_total_real + amort_total_real
             )
-            prod.apunts_mat_real_total = mp_total_real
+            prod.apunts_mat_real_total = mp_total_real + mat_extra
             prod.apunts_mo_real_total = mo_total_real
             prod.apunts_machine_real_total = machine_total_real
             prod.apunts_mat_planned_total = mp_total_plan

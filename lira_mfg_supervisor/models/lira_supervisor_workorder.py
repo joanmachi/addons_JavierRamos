@@ -22,6 +22,8 @@ class LiraSupervisorWorkorder(models.Model):
     lira_validated_by    = fields.Many2one('res.users', string='Validado por', readonly=True)
     lira_validated_date  = fields.Datetime(string='Validado el', readonly=True)
     lira_rejection_date  = fields.Datetime(string='Rechazado el', readonly=True)
+    lira_qty_reposicion  = fields.Float(string='Uds. enviadas a reposición', default=0.0, copy=False, readonly=True)
+    lira_qty_retrabajo   = fields.Float(string='Uds. enviadas a retrabajo', default=0.0, copy=False, readonly=True)
     lira_production_seq      = fields.Char(string='Nº Orden', compute='_compute_lira_production_seq')
     lira_requested_by_names  = fields.Char(string='Solicitado por', readonly=True)
     lira_qty_progress        = fields.Char(string='Val./Total', compute='_compute_lira_qty_progress')

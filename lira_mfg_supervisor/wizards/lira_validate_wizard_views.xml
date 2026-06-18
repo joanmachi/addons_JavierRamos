@@ -48,6 +48,20 @@
               </span>
             </div>
 
+            <!-- NO VALIDADAS → reposición / retrabajo -->
+            <div class="alert alert-warning mt-2"
+                 invisible="wizard_mode != 'validate' or qty_no_validada &lt;= 0">
+              <h6 class="mb-1">
+                <i class="fa fa-exclamation-triangle me-1"/>
+                ¡Cuidado! Hay <field name="qty_no_validada" readonly="1" nolabel="1" class="oe_inline"/> piezas NO validadas
+              </h6>
+              <div class="text-muted mb-2">
+                ¿Qué quieres hacer con ellas? Volverán a producción para completarse.
+              </div>
+              <field name="accion_no_validada" nolabel="1" widget="radio"
+                     required="wizard_mode == 'validate' and qty_no_validada &gt; 0"/>
+            </div>
+
             <!-- RECHAZAR -->
             <div class="lira-wiz-qty-row" invisible="wizard_mode != 'reject'">
               <span class="lira-wiz-qty-label lira-wiz-qty-label-reject">Motivo del rechazo</span>
