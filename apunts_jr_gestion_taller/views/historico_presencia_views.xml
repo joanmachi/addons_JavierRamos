@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_apunts_historico_presencia_list" model="ir.ui.view">
+        <field name="name">apunts.historico.presencia.list</field>
+        <field name="model">apunts.historico.presencia</field>
+        <field name="arch" type="xml">
+            <list string="Histórico de presencia" create="0" delete="0" edit="0"
+                  decoration-warning="tipo == 'ausencia'">
+                <field name="employee_id" string="Operario"/>
+                <field name="department_id" string="Departamento" optional="hide"/>
+                <field name="fecha"/>
+                <field name="tipo" widget="badge"
+                       decoration-success="tipo == 'presencia'"
+                       decoration-warning="tipo == 'ausencia'"/>
+                <field name="hora_inicio" string="Inicio"/>
+                <field name="hora_fin" string="Fin"/>
+                <field name="horas" string="Horas" sum="Total horas" widget="float_time"/>
+                <field name="detalle" string="Detalle (ausencia)"/>
+                <button name="action_open_record" type="object"
+                        string="Abrir" icon="fa-external-link"
+                        class="btn btn-sm btn-primary"
+                        title="Abrir el registro original (asistencia o ausencia)"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_apunts_historico_presencia_search" model="ir.ui.view">
+        <field name="name">apunts.historico.presencia.search</field>
+        <field name="model">apunts.historico.presencia</field>
+        <field name="arch" type="xml">
+            <search string="Histórico presencia">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <filter name="f_presencia" string="Solo presencias" domain="[('tipo', '=', 'presencia')]"/>
+                <filter name="f_ausencia" string="Solo ausencias" domain="[('tipo', '=', 'ausencia')]"/>
+                <separator/>
+                <filter name="f_hoy" string="Hoy"
+                        domain="[('fecha', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="f_semana" string="Últimos 7 días"
+                        domain="[('fecha', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="f_mes" string="Este mes"
+                        domain="[('fecha', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group string="Agrupar por">
+                    <filter name="g_emp" string="Operario" context="{'group_by': 'employee_id'}"/>
+                    <filter name="g_tipo" string="Tipo" context="{'group_by': 'tipo'}"/>
+                    <filter name="g_fecha" string="Fecha" context="{'group_by': 'fecha'}"/>
+                    <filter name="g_mes" string="Mes" context="{'group_by': 'fecha:month'}"/>
+                    <filter name="g_dep" string="Departamento" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_apunts_historico_presencia" model="ir.actions.act_window">
+        <field name="name">Histórico presencia</field>
+        <field name="res_model">apunts.historico.presencia</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_apunts_historico_presencia_search"/>
+        <field name="context">{'search_default_f_semana': 1}</field>
+    </record>
+
+</odoo>

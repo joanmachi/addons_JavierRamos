@@ -72,3 +72,72 @@ class ReportApuntsAsistencias(models.AbstractModel):
     def _fmt_dia(self, dt, emp):
         aware = utc.localize(dt) if dt.tzinfo is None else dt
         return aware.astimezone(self._tz(emp)).date()
+
+
+class ReportApuntsPresencia(models.AbstractModel):
+    _name = 'report.apunts_jr_gestion_taller.report_apunts_presencia'
+    _description = 'Reporte de presencias y ausencias'
+
+    def _tz(self, emp):
+        return timezone(emp.tz or self.env.user.tz or 'Europe/Madrid')
+
+    def _fmt_hora(self, dt, emp):
+        if not dt:
+            return ''
+        aware = utc.localize(dt) if dt.tzinfo is None else dt
+        return aware.astimezone(self._tz(emp)).strftime('%H:%M:%S')
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        from datetime import datetime as _dt
+        lineas = self.env['apunts.historico.presencia'].browse(docids)
+
+        por_emp = {}
+        for ln in lineas:
+            por_emp.setdefault(ln.employee_id, []).append(ln)
+
+        empleados = []
+        fechas = []
+        for emp in sorted(por_emp, key=lambda e: e.name or ''):
+            regs = sorted(
+                por_emp[emp],
+                key=lambda r: (r.fecha or _dt.min.date(), r.hora_inicio or _dt.min),
+            )
+            filas = []
+            total_pres = 0.0
+            total_aus = 0.0
+            for r in regs:
+                if r.fecha:
+                    fechas.append(r.fecha)
+                es_aus = r.tipo == 'ausencia'
+                if es_aus:
+                    total_aus += r.horas or 0.0
+                else:
+                    total_pres += r.horas or 0.0
+                filas.append({
+                    'fecha': r.fecha.strftime('%Y-%m-%d') if r.fecha else '',
+                    'dia_semana': DIAS_SEMANA[r.fecha.weekday()] if r.fecha else '',
+                    'tipo': 'Ausencia' if es_aus else 'Presencia',
+                    'es_ausencia': es_aus,
+                    'inicio': '' if es_aus else self._fmt_hora(r.hora_inicio, emp),
+                    'fin': '' if es_aus else self._fmt_hora(r.hora_fin, emp),
+                    'horas': r.horas or 0.0,
+                    'detalle': r.detalle or '',
+                })
+            empleados.append({
+                'nombre': emp.name,
+                'departamento': emp.department_id.name or '',
+                'filas': filas,
+                'total_pres': total_pres,
+                'total_aus': total_aus,
+                'total': total_pres + total_aus,
+            })
+
+        return {
+            'doc_ids': docids,
+            'doc_model': 'apunts.historico.presencia',
+            'docs': lineas,
+            'empleados': empleados,
+            'fecha_min': min(fechas).strftime('%Y-%m-%d') if fechas else '',
+            'fecha_max': max(fechas).strftime('%Y-%m-%d') if fechas else '',
+        }

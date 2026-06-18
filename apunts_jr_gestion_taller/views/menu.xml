@@ -25,10 +25,16 @@
               action="apunts_action_horas_pivot"
               sequence="3"/>
 
+    <menuitem id="menu_apunts_gestion_historico_presencia"
+              name="Histórico presencia"
+              parent="menu_apunts_gestion_taller_root"
+              action="action_apunts_historico_presencia"
+              sequence="4"/>
+
     <menuitem id="menu_apunts_gestion_corregir_fichaje"
               name="Corregir fichaje / desbloquear"
               parent="menu_apunts_gestion_taller_root"
               action="apunts_corregir_fichaje_action"
-              sequence="3"/>
+              sequence="5"/>
 
 </odoo>

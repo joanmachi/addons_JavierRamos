@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- PDF de presencias + ausencias: seleccionar filas en "Histórico
+         presencia" e Imprimir. Agrupa por empleado, intercala presencias y
+         ausencias por fecha, con totales (presencia / ausencia / total). -->
+    <record id="action_report_apunts_presencia" model="ir.actions.report">
+        <field name="name">Reporte de presencias y ausencias</field>
+        <field name="model">apunts.historico.presencia</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">apunts_jr_gestion_taller.report_apunts_presencia</field>
+        <field name="report_file">apunts_jr_gestion_taller.report_apunts_presencia</field>
+        <field name="binding_model_id" ref="model_apunts_historico_presencia"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_apunts_presencia">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 class="text-center mb-1">Presencias y ausencias</h2>
+                    <p class="text-end text-muted" t-if="fecha_min">
+                        <t t-esc="fecha_min"/> hasta <t t-esc="fecha_max"/>
+                    </p>
+
+                    <t t-foreach="empleados" t-as="emp">
+                        <table class="table table-sm table-bordered mb-4"
+                               style="page-break-inside: avoid;">
+                            <thead>
+                                <tr style="background-color:#d9d9d9;">
+                                    <th colspan="6">
+                                        <strong t-esc="emp['nombre']"/>
+                                        <span t-if="emp['departamento']" class="float-end"
+                                              t-esc="emp['departamento']"/>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Semana</th>
+                                    <th>Tipo</th>
+                                    <th>Hora</th>
+                                    <th class="text-end">Horas</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="emp['filas']" t-as="f"
+                                    t-attf-style="#{f['es_ausencia'] and 'background-color:#fff3cd;' or ''}">
+                                    <td t-esc="f['fecha']"/>
+                                    <td t-esc="f['dia_semana']"/>
+                                    <td t-esc="f['tipo']"/>
+                                    <td>
+                                        <t t-if="not f['es_ausencia']">
+                                            <t t-esc="f['inicio']"/>
+                                            <t t-if="f['fin']"> - <t t-esc="f['fin']"/></t>
+                                        </t>
+                                    </td>
+                                    <td class="text-end" t-esc="'%.2f' % f['horas']"/>
+                                    <td t-esc="f['detalle']"/>
+                                </tr>
+                                <tr style="background-color:#f2f2f2;">
+                                    <td colspan="4" class="text-end"><strong>Totales</strong></td>
+                                    <td class="text-end"><strong t-esc="'%.2f' % emp['total']"/></td>
+                                    <td>
+                                        Pres. <t t-esc="'%.2f' % emp['total_pres']"/> ·
+                                        Aus. <t t-esc="'%.2f' % emp['total_aus']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <p t-if="not empleados" class="text-muted">
+                        No hay registros en la selección.
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>
