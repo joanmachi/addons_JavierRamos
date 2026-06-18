@@ -108,9 +108,15 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
 
     # ── Campos comunes ────────────────────────────────────────────────────────
 
-    motivo = fields.Char(
+    motivo = fields.Selection(
+        selection=[
+            ('falta_of', 'Falta OF'),
+            ('responsabilidad_operario', 'Responsabilidad operario'),
+            ('fuerza_mayor', 'Fuerza mayor'),
+        ],
         string='Motivo de la corrección',
-        help='Texto libre para auditoría en el chatter del empleado.',
+        required=True,
+        help='Motivo de la corrección (obligatorio). Se registra en el histórico.',
     )
     fichajes_editables_ids = fields.Many2many(
         'mrp.workcenter.productivity',
@@ -151,7 +157,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                 prod.write({
                     'date_end': self.salida_real,
                     'apunts_modificado_manual': True,
-                    'apunts_motivo_correccion': self.motivo or self.motivo_bloqueo or _('Corrección manual'),
+                    'apunts_motivo_correccion': self.motivo,
                     'apunts_modificado_por_id': self.env.user.id,
                     'apunts_modificado_fecha': fields.Datetime.now(),
                 })
@@ -188,7 +194,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                     'date_end': self.date_end_nuevo or fields.Datetime.now(),
                     'description': f'Fichaje creado manualmente por {self.env.user.name}',
                     'apunts_modificado_manual': True,
-                    'apunts_motivo_correccion': self.motivo or _('Fichaje creado manualmente'),
+                    'apunts_motivo_correccion': self.motivo,
                     'apunts_modificado_por_id': self.env.user.id,
                     'apunts_modificado_fecha': fields.Datetime.now(),
                 }
@@ -217,6 +223,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             'accion': accion_msg,
         }
         if self.motivo:
-            msg += _("\nMotivo: %s") % self.motivo
+            motivo_label = dict(self._fields['motivo'].selection).get(self.motivo, self.motivo)
+            msg += _("\nMotivo: %s") % motivo_label
         self.employee_id.message_post(body=msg)
         return {'type': 'ir.actions.act_window_close'}

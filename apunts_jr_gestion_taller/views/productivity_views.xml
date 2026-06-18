@@ -53,6 +53,13 @@
                         domain="[('date_end', '=', False)]"/>
                 <filter name="filter_modificados" string="Modificados manualmente"
                         domain="[('apunts_modificado_manual', '=', True)]"/>
+                <separator/>
+                <filter name="filter_motivo_falta_of" string="Motivo: Falta OF"
+                        domain="[('apunts_motivo_correccion', '=', 'falta_of')]"/>
+                <filter name="filter_motivo_resp" string="Motivo: Responsabilidad operario"
+                        domain="[('apunts_motivo_correccion', '=', 'responsabilidad_operario')]"/>
+                <filter name="filter_motivo_fuerza" string="Motivo: Fuerza mayor"
+                        domain="[('apunts_motivo_correccion', '=', 'fuerza_mayor')]"/>
                 <filter name="filter_hoy" string="Hoy"
                         domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter name="filter_semana" string="Últimos 7 días"
@@ -69,6 +76,7 @@
                     <filter name="group_mes" string="Mes" context="{'group_by': 'date_start:month'}"/>
                     <filter name="group_centro" string="Centro" context="{'group_by': 'workcenter_id'}"/>
                     <filter name="group_modificado" string="Modificado manual" context="{'group_by': 'apunts_modificado_manual'}"/>
+                    <filter name="group_motivo" string="Motivo corrección" context="{'group_by': 'apunts_motivo_correccion'}"/>
                 </group>
             </search>
         </field>

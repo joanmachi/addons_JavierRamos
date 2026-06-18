@@ -55,9 +55,14 @@ class MrpWorkcenterProductivity(models.Model):
         help='Marcado cuando el fichaje se creó o corrigió manualmente desde '
              'oficina (wizard de desbloqueo/corrección).',
     )
-    apunts_motivo_correccion = fields.Char(
+    apunts_motivo_correccion = fields.Selection(
+        selection=[
+            ('falta_of', 'Falta OF'),
+            ('responsabilidad_operario', 'Responsabilidad operario'),
+            ('fuerza_mayor', 'Fuerza mayor'),
+        ],
         string='Motivo corrección',
-        help='Motivo indicado por oficina al corregir o crear el fichaje.',
+        help='Motivo de la corrección/creación manual del fichaje.',
     )
     apunts_modificado_por_id = fields.Many2one(
         'res.users', string='Modificado por', readonly=True,

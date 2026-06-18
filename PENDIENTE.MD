@@ -1,3 +1,24 @@
+🆕 GESTIÓN TALLER — CORRECCIONES, KPIs y PRESENCIA (18/06/2026)
+
+Módulo: apunts_jr_gestion_taller.
+
+T1 — Motivos de corrección como SELECTION + filtro (EN DESARROLLO):
+- En la corrección de fichajes (wizard corregir_fichaje_wizard) el motivo pasa a
+  ser un selection con 3 opciones: 1) Falta OF  2) Responsabilidad operario
+  3) Fuerza mayor.
+- Filtros en "Histórico fichajes" para mostrar por cada motivo.
+
+T2 — KPIs de fichadas: porcentajes de las fichadas/correcciones a nivel GLOBAL,
+  por MES, por EMPLEADO, etc. (PENDIENTE)
+
+T3 — Nueva pestaña "Histórico presencia" en Gestión Taller (PENDIENTE):
+- Vista lista de presencias (hr.attendance) + ausencias (hr.leave) de los empleados.
+- PDF tipo el de Asistencias (Reporte diario de registros) pero englobando
+  presencias Y ausencias.
+
+(Reposición/retrabajo + coste OF: HECHO en código, pendiente de validar en reunión.)
+
+
 🆕 TABLETS EN PLANTA — DOCUMENTOS PDF DEL PRODUCTO EN LA TABLET (11/06/2026)
 
 Objetivo: que cada estación de trabajo tenga una tablet (eliminar papeles).
