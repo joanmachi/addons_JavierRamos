@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class ApuntsCorregirFichajeWizard(models.TransientModel):
@@ -115,8 +116,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             ('fuerza_mayor', 'Fuerza mayor'),
         ],
         string='Motivo de la corrección',
-        required=True,
-        help='Motivo de la corrección (obligatorio). Se registra en el histórico.',
+        help='Motivo de la corrección. Obligatorio solo si se corrige o se crea un fichaje.',
     )
     fichajes_editables_ids = fields.Many2many(
         'mrp.workcenter.productivity',
@@ -154,6 +154,9 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             else:
                 prod = self.productivity_abierta_id
             if prod:
+                if not self.motivo:
+                    raise UserError(_(
+                        "Indica el motivo de la corrección para cerrar el fichaje abierto."))
                 prod.write({
                     'date_end': self.salida_real,
                     'apunts_modificado_manual': True,
@@ -173,6 +176,9 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             # CASO 2: crear nuevo fichaje para el periodo sin fichar
             nuevo = False
             if self.workorder_id_nuevo and self.date_start_nuevo:
+                if not self.motivo:
+                    raise UserError(_(
+                        "Indica el motivo de la corrección para crear el nuevo fichaje."))
                 # Resolver loss_id sin depender del nombre del modelo
                 # (mrp.workcenter.loss puede no estar registrado en Odoo 18)
                 loss_id = False

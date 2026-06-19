@@ -58,8 +58,8 @@
                             <field name="salida_real" string="Corregir salida a"
                                    invisible="not workorder_id_abierto"/>
                             <field name="motivo"
-                                   placeholder="Ej. olvidó cerrar al final de jornada"
-                                   invisible="not workorder_id_abierto"/>
+                                   invisible="not workorder_id_abierto"
+                                   required="workorder_id_abierto"/>
                         </group>
                     </div>
 
@@ -87,8 +87,8 @@
                             <field name="date_end_nuevo" string="Fin del periodo"
                                    invisible="not production_id"/>
                             <field name="motivo"
-                                   placeholder="Ej. se distrajo entre fichajes"
-                                   invisible="not production_id"/>
+                                   invisible="not production_id"
+                                   required="production_id"/>
                         </group>
                     </div>
 
