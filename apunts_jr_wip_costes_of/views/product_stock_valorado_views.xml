@@ -13,6 +13,9 @@
                 <field name="apunts_coste_real"/>
                 <field name="apunts_valor_stock" sum="Valor total stock"/>
                 <field name="apunts_coste_fuente" optional="show"/>
+                <field name="apunts_comercializacion" optional="hide"/>
+                <field name="sale_ok" optional="hide"/>
+                <field name="purchase_ok" optional="hide"/>
                 <field name="currency_id" column_invisible="1"/>
                 <button name="action_open_product_form"
                         type="object"
@@ -40,9 +43,16 @@
                 <filter name="con_stock" string="Con stock" domain="[('qty_available','&gt;',0)]"/>
                 <filter name="sin_stock" string="Sin stock" domain="[('qty_available','&lt;=',0)]"/>
                 <filter name="sin_coste" string="Sin coste" domain="[('apunts_coste_fuente','=','sin_coste')]"/>
+                <separator/>
+                <filter name="se_vende" string="Se vende" domain="[('sale_ok','=',True)]"/>
+                <filter name="se_compra" string="Se compra" domain="[('purchase_ok','=',True)]"/>
+                <filter name="vende_y_compra" string="Se vende y se compra"
+                        domain="[('sale_ok','=',True),('purchase_ok','=',True)]"/>
                 <group expand="0" string="Agrupar por">
                     <filter name="group_categ" string="Categoría" context="{'group_by':'categ_id'}"/>
                     <filter name="group_fuente" string="Fuente coste" context="{'group_by':'apunts_coste_fuente'}"/>
+                    <filter name="group_comercializacion" string="Compra y venta"
+                            context="{'group_by':'apunts_comercializacion'}"/>
                 </group>
             </search>
         </field>

@@ -33,6 +33,30 @@ class ProductProduct(models.Model):
         currency_field="currency_id",
         help="Coste real × cantidad disponible. Cuánto vale el stock total de este producto.",
     )
+    apunts_comercializacion = fields.Selection(
+        selection=[
+            ("compra_venta", "Compra y venta"),
+            ("solo_venta", "Solo venta"),
+            ("solo_compra", "Solo compra"),
+            ("ninguno", "Ni compra ni venta"),
+        ],
+        string="Compra y venta",
+        compute="_compute_apunts_comercializacion",
+        store=True,
+        help="Clasificación según los campos del producto: se puede vender (sale_ok) y/o comprar (purchase_ok).",
+    )
+
+    @api.depends("sale_ok", "purchase_ok")
+    def _compute_apunts_comercializacion(self):
+        for product in self:
+            if product.sale_ok and product.purchase_ok:
+                product.apunts_comercializacion = "compra_venta"
+            elif product.sale_ok:
+                product.apunts_comercializacion = "solo_venta"
+            elif product.purchase_ok:
+                product.apunts_comercializacion = "solo_compra"
+            else:
+                product.apunts_comercializacion = "ninguno"
 
     @api.depends("apunts_coste_real", "qty_available")
     def _compute_apunts_valor_stock(self):
