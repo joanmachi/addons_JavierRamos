@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_apunts_corregir_fichaje_wizard,apunts.corregir.fichaje.wizard,model_apunts_corregir_fichaje_wizard,mrp.group_mrp_manager,1,1,1,1
 access_apunts_historico_presencia,apunts.historico.presencia,model_apunts_historico_presencia,mrp.group_mrp_manager,1,0,0,0
+access_apunts_taller_kpi,apunts.taller.kpi,model_apunts_taller_kpi,mrp.group_mrp_manager,1,1,1,1

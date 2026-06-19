@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_apunts_taller_kpi_form" model="ir.ui.view">
+        <field name="name">apunts.taller.kpi.form</field>
+        <field name="model">apunts.taller.kpi</field>
+        <field name="arch" type="xml">
+            <form string="KPIs de fichaje">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>KPIs de fichaje</h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fecha_desde"/>
+                            <field name="fecha_hasta"/>
+                        </group>
+                        <div>
+                            <button name="action_calcular" string="Actualizar"
+                                    type="object" class="btn-primary" icon="fa-refresh"/>
+                        </div>
+                    </group>
+                    <field name="panel_html" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_apunts_taller_kpi" model="ir.actions.server">
+        <field name="name">KPIs de fichaje</field>
+        <field name="model_id" ref="model_apunts_taller_kpi"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+</odoo>

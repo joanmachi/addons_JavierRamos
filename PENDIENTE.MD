@@ -2,16 +2,17 @@
 
 Módulo: apunts_jr_gestion_taller.
 
-T1 — Motivos de corrección como SELECTION + filtro (EN DESARROLLO):
+T1 — Motivos de corrección como SELECTION + filtro (HECHO):
 - En la corrección de fichajes (wizard corregir_fichaje_wizard) el motivo pasa a
   ser un selection con 3 opciones: 1) Falta OF  2) Responsabilidad operario
   3) Fuerza mayor.
 - Filtros en "Histórico fichajes" para mostrar por cada motivo.
 
-T2 — KPIs de fichadas: porcentajes de las fichadas/correcciones a nivel GLOBAL,
-  por MES, por EMPLEADO, etc. (PENDIENTE)
+T2 — KPIs de fichadas: panel "KPIs de fichaje" en Gestión Taller con filtro de
+  periodo, tarjetas (correcciones: % corregidos y por motivo; cumplimiento de
+  jornada %) y tabla por empleado. (HECHO)
 
-T3 — Nueva pestaña "Histórico presencia" en Gestión Taller (PENDIENTE):
+T3 — Nueva pestaña "Histórico presencia" en Gestión Taller (HECHO):
 - Vista lista de presencias (hr.attendance) + ausencias (hr.leave) de los empleados.
 - PDF tipo el de Asistencias (Reporte diario de registros) pero englobando
   presencias Y ausencias.
