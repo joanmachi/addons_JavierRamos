@@ -22,9 +22,14 @@ export class QtyInputDialog extends ConfirmationDialog  {
 
     confirm() {
         const val = parseFloat(this.state.qty);
-        if (isNaN(val) || val <= 0) return;
+        // Hay que teclear un número (0 permitido: el operario puede registrar
+        // que no ha producido nada en esta sesión). Vacío o negativo no vale.
+        if (isNaN(val) || val < 0) {
+            this.state.error = true;
+            return;
+        }
 
-        // Validation against Max Qty
+        // No se puede registrar más de lo pendiente: avisa y obliga a corregir.
         if (val > this.props.maxQty) {
             this.state.error = true;
             return;

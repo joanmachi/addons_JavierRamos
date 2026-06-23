@@ -348,7 +348,7 @@
                         <t t-if="env.model.empleadoElegido and !is_waiting">
                             <button class="apunts-play-btn"
                                     t-att-class="this.isEnableWorkorder(orden) ? 'apunts-play-btn-pause' : 'apunts-play-btn-play'"
-                                    t-on-click="() => this.env.model.iniciar_parar_orden(orden.barcode)">
+                                    t-on-click="() => this.togglePhase(orden)">
                                 <i t-att-class="this.isEnableWorkorder(orden) ? 'fa fa-pause' : 'fa fa-play'"/>
                                 <t t-esc="this.isEnableWorkorder(orden) ? 'PAUSAR' : 'INICIAR'"/>
                             </button>

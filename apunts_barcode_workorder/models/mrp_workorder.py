@@ -36,20 +36,17 @@ class WorkOrder(models.Model):
         for wo in self:
             wo.texto_fichados = ', '.join(wo.employee_ids.mapped('name'))
 
-    @api.constrains('qty_ready_to_validate', 'qty_validated')
-    def _apunts_check_qty_ready_no_excede_pendiente(self):
-        """No se pueden enviar a validar más piezas de las pendientes de la fase.
-        Evita que un operario teclee por error un número grande (p. ej. su código
-        de empleado) como cantidad. `prev_validated_qty` ya descuenta lo validado,
-        así que representa las piezas disponibles aún sin marcar."""
-        for wo in self:
-            disponible = max(wo.prev_validated_qty, 0.0)
-            if float_compare(wo.qty_ready_to_validate, disponible, precision_digits=2) > 0:
-                raise ValidationError(_(
-                    "No puedes enviar a validar %(ready)s piezas en la fase «%(wo)s»: "
-                    "solo hay %(disp)s pendientes de realizar.",
-                    ready=wo.qty_ready_to_validate, wo=wo.name, disp=disponible,
-                ))
+    def _apunts_techo_validable(self, qty_validated=None):
+        """Tope de piezas que esta fase puede tener 'por validar' (qty_ready_to_validate):
+        es la capacidad de la fase menos lo ya validado.
+          - 1ª fase / producto 'conjunto': capacidad = product_qty de la OF.
+          - fases siguientes:              capacidad = uds validadas en la fase previa.
+        `prev_validated_qty` ya es (capacidad - qty_validated), así que recuperamos la
+        capacidad y restamos las uds validadas (las nuevas, si vienen en el write)."""
+        self.ensure_one()
+        val = self.qty_validated if qty_validated is None else qty_validated
+        capacidad = (self.prev_validated_qty or 0.0) + (self.qty_validated or 0.0)
+        return max(capacidad - (val or 0.0), 0.0)
 
     @api.depends('production_id.workorder_ids.qty_validated')
     def _compute_prev_validated_qty(self):
@@ -140,6 +137,23 @@ class WorkOrder(models.Model):
         - La produccion no esta en estado "abierto" (confirmed/progress/to_close).
         - Tras el write, qty_validated == 0 (no se ha avanzado nada).
         """
+        # Blindaje (síncrono, antes de cualquier atajo): no se pueden registrar más
+        # piezas 'por validar' de las pendientes de la fase. Evita que un operario
+        # teclee por error un número enorme (p. ej. su código de empleado) como
+        # cantidad. Se exime el flujo interno de back-order, que escribe con su
+        # propio contexto y ya capa el excedente a la capacidad de la OF hija.
+        if 'qty_ready_to_validate' in vals and not self.env.context.get(APUNTS_AUTO_BACKORDER_CTX):
+            for wo in self:
+                new_ready = vals.get('qty_ready_to_validate') or 0.0
+                new_validated = vals.get('qty_validated', wo.qty_validated)
+                techo = wo._apunts_techo_validable(new_validated)
+                if float_compare(new_ready, techo, precision_digits=2) > 0:
+                    raise ValidationError(_(
+                        "No puedes registrar %(ready)s piezas en la fase «%(wo)s»: "
+                        "solo quedan %(disp)s pendientes de realizar.",
+                        ready=new_ready, wo=wo.name, disp=techo,
+                    ))
+
         # Si no se toca qty_validated o estamos en el propio flujo, atajo.
         if 'qty_validated' not in vals or self.env.context.get(APUNTS_AUTO_BACKORDER_CTX):
             return super().write(vals)

@@ -71,10 +71,13 @@ class ManufacturingOrder(models.Model):
                         'mensaje': 'Iniciado correctamente'
                     }
                 else:
-                    orden.stop_employee([empleado['id']])
+                    # No se desficha por esta vía (p. ej. reescaneo de la OF):
+                    # el desfichaje obliga a registrar las piezas realizadas.
+                    # Se hace desde el botón PAUSAR, que abre el diálogo de
+                    # cantidad y, al confirmar, finaliza el fichaje.
                     return {
-                        'error': False,
-                        'mensaje': 'Finalizado correctamente'
+                        'error': True,
+                        'mensaje': 'Para desficharte de esta fase usa el botón PAUSAR y registra las piezas realizadas.'
                     }
 
         return {

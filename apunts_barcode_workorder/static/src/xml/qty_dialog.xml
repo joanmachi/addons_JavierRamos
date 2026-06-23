@@ -22,6 +22,10 @@
                        inputmode="decimal"
                        autofocus="1"
                        t-on-input="() => state.error = false"/>
+                <div t-if="state.error" class="apunts-dialog-error text-danger fw-bold mt-2">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    Cantidad incorrecta. Registra como máximo <strong><t t-esc="props.maxQty"/></strong> piezas.
+                </div>
             </div>
 
             <t t-set-slot="footer">

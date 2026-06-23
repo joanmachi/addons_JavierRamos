@@ -45,6 +45,19 @@ patch(MainComponent.prototype, {
         return wo.employee_ids.includes(this.env.model.empleadoElegido.id);
       
     },
+    async togglePhase(wo) {
+        // INICIAR/PAUSAR de una fase desde el botón.
+        // Si el operario YA está fichado en la fase, PAUSAR = desfichar, y eso
+        // obliga a registrar las piezas realizadas: abrimos el diálogo de
+        // cantidad. No se desficha hasta confirmar una cantidad válida (el
+        // propio diálogo finaliza el fichaje al confirmar). Si cancela, sigue
+        // fichado. Si solo va a INICIAR, arranca el fichaje normal.
+        if (this.isEnableWorkorder(wo)) {
+            await this.openQtyDialog(wo);
+        } else {
+            await this.env.model.iniciar_parar_orden(wo.barcode);
+        }
+    },
     async openQtyDialog(wo) {
         const woName = (wo && wo.name) ? wo.name : "Orden de trabajo";
         const max = wo.prev_validated_qty - wo.qty_ready_to_validate;
