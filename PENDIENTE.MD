@@ -282,3 +282,37 @@ Planificación y carga de trabajo: saneado general del apartado
 
 Pedido P00087 (Mafelec) — ya no aparece pendiente de facturar
 Pedido P00116 (Stadler) — líneas abiertas cerradas
+
+
+PENDIENTE DESDE REUNIÓN 17/06
+
+GESTION TALLER:
+
+Filtro motivo corrección - HECHO
+Division de historicos (presencia y planta) en la misma vista - HECHO
+Informe histórico presencia (presencia + aunsencias) y PDF - HECHO
+Selection del motivo corrección: falta of, responsablidad operario, fuerza mayor. - HECHO
+
+
+BARCODE (vista empleados):
+Informar en que centro se realiza cada fase - HECHO
+Realizar posibilidad de mostrar y ocultar células conforme queramos. - HECHO
+Comprobar que las piezas que hemos realizado no sean superiores a las pendientes de realizar en una fase de una OF - HECHO
+
+WIP:
+Filtro de productos en stock según compra y venta - HECHO
+Avance y factor en vista general y detallada por of - PENDIENTE
+Ver porque hay of que no salen correctamente, recoge precio por kg y no por m. - PENDIENTE
+
+Supervisor planta:
+Trazabilidad de validaciones incorrectas. - HECHO
+Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
+Registro del empleado que ha enviado a validar piezas - HECHO
+
+Fabricación:
+Para generar una OF, puedes pedir el material como tratamientos y empezar antes de realizarlo. Mi idea es que para que deje realizar la OF no se tenga que pedir ni nada. Mas que nada porque no se debería de realizar un seguimiento de dichos productos. No estan ni en el almacén. Se envían fuera.
+
+Para los productos de galbanizar, se hace un pedido de compra a un proveedor. Se debe de realizar algo para poder albaranizar sin cerrar la produccion y que luego se actualize el WIP.
+
+
+

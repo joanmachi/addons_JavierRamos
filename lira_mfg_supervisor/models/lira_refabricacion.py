@@ -6,6 +6,7 @@ MOTIVOS_REFABRICACION = [
     ('mala_interpretacion', 'Mala interpretación de instrucciones'),
     ('fallos_medios', 'Fallos medios producción'),
     ('mala_ejecucion', 'Mala ejecución'),
+    ('error_programacion', 'Error de programación'),
 ]
 
 
@@ -20,9 +21,11 @@ class LiraRefabricacionLinea(models.Model):
         'mrp.production', string='Orden de Fabricación', required=True, ondelete='cascade', index=True)
     product_id = fields.Many2one(
         'product.product', string='Producto', related='production_id.product_id', store=True)
-    employee_id = fields.Many2one(
-        'hr.employee', string='Operario responsable', index=True,
-        help='Operario al que se atribuyen las piezas rectificadas.')
+    employee_ids = fields.Many2many(
+        'hr.employee', string='Operarios',
+        help='Operarios que registraron piezas en esta fase (los que estaban '
+             'fichados). Pueden ser varios; el responsable de validación '
+             'determina a quién atribuir la rectificación.')
     qty = fields.Float(string='Uds. rectificadas', digits=(16, 2))
     accion = fields.Selection([
         ('retrabajo', 'Retrabajo'),

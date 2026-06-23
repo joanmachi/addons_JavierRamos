@@ -12,7 +12,13 @@ class LiraValidateWizard(models.TransientModel):
     production_name = fields.Char(related='workorder_id.lira_production_seq', readonly=True)
     product_name    = fields.Char(related='workorder_id.production_id.product_id.display_name', readonly=True)
     workorder_name  = fields.Char(related='workorder_id.name', readonly=True)
-    operator_names  = fields.Char(related='workorder_id.texto_fichados', readonly=True)
+    # Operarios que ficharon en la fase. Se leen de los registros de
+    # productividad (time_ids), que persisten aunque ya se hayan desfichado;
+    # NO de employee_ids (fichados en vivo), que al validar ya está vacío.
+    # Se rellenan en default_get (al abrir el wizard), no por compute: el
+    # compute no se dispara de forma fiable al abrir el transitorio desde la
+    # acción (workorder_id es readonly y llega por contexto).
+    operator_names  = fields.Char(string='Operarios de la fase', readonly=True)
 
     # Float normal con default desde contexto — evita el problema de related en TransientModel
     qty_pending     = fields.Float(string='Solicitado por operario', readonly=True, digits=(16, 2))
@@ -39,21 +45,32 @@ class LiraValidateWizard(models.TransientModel):
     # Motivo de calidad — obligatorio al enviar piezas a retrabajo/reposición.
     motivo = fields.Selection(
         MOTIVOS_REFABRICACION, string='Motivo de la rectificación')
-    # Operario al que se atribuyen las piezas rectificadas (para la trazabilidad).
-    employee_responsable_id = fields.Many2one(
-        'hr.employee', string='Operario responsable',
-        compute='_compute_empleados_disponibles', store=True, readonly=False,
+    # Operarios implicados (los que ficharon en la fase). Pueden ser varios:
+    # se rellenan automáticamente y el supervisor puede ajustarlos. El
+    # responsable de validación decide a quién atribuir la rectificación.
+    # Campo editable: se rellena por defecto (default_get) con todos los
+    # operarios de la fase; el supervisor puede quitar a quien no corresponda.
+    employee_responsable_ids = fields.Many2many(
+        'hr.employee', 'lira_validate_wizard_emp_rel', 'wizard_id', 'employee_id',
+        string='Operarios implicados',
         domain="[('id', 'in', empleados_disponibles_ids)]")
+    # Solo para el dominio del campo de arriba (operarios seleccionables).
     empleados_disponibles_ids = fields.Many2many(
-        'hr.employee', compute='_compute_empleados_disponibles')
+        'hr.employee', 'lira_validate_wizard_emp_disp_rel', 'wizard_id', 'employee_id')
 
-    @api.depends('workorder_id')
-    def _compute_empleados_disponibles(self):
-        for w in self:
-            emps = w.workorder_id.employee_ids
-            w.empleados_disponibles_ids = emps
-            # Si solo hay un operario fichado, lo proponemos por defecto.
-            w.employee_responsable_id = emps if len(emps) == 1 else w.employee_responsable_id
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        wo_id = res.get('workorder_id') or self.env.context.get('default_workorder_id')
+        if wo_id:
+            # sudo: el supervisor puede no tener lectura directa sobre la
+            # productividad; aun así debemos poder listar los operarios.
+            wo = self.env['mrp.workorder'].sudo().browse(wo_id)
+            emps = wo.time_ids.filtered('employee_id').employee_id
+            res['empleados_disponibles_ids'] = [(6, 0, emps.ids)]
+            res['employee_responsable_ids'] = [(6, 0, emps.ids)]
+            res['operator_names'] = ', '.join(emps.mapped('name'))
+        return res
 
     @api.depends('qty_pending', 'qty_to_validate')
     def _compute_qty_no_validada(self):
@@ -127,11 +144,11 @@ class LiraValidateWizard(models.TransientModel):
                 # El coste sube solo por la mano de obra del reproceso (fichaje).
 
             motivo_label = dict(MOTIVOS_REFABRICACION).get(self.motivo, self.motivo)
-            # Línea de trazabilidad: qué operario, cuántas piezas, acción y motivo.
+            # Línea de trazabilidad: qué operarios, cuántas piezas, acción y motivo.
             self.env['lira.refabricacion.linea'].create({
                 'workorder_id': wo.id,
                 'production_id': prod.id,
-                'employee_id': self.employee_responsable_id.id or False,
+                'employee_ids': [(6, 0, self.employee_responsable_ids.ids)],
                 'qty': no_val,
                 'accion': self.accion_no_validada,
                 'motivo': self.motivo,
@@ -140,12 +157,12 @@ class LiraValidateWizard(models.TransientModel):
             wo.production_id.message_post(body=(
                 "Supervisor %(user)s — fase %(wo)s: %(val)s uds validadas, "
                 "%(no)s uds NO validadas → <b>%(et)s</b>. Motivo: <b>%(mot)s</b>. "
-                "Operario: %(emp)s. Las no validadas vuelven a producción para completarse."
+                "Operarios: %(emp)s. Las no validadas vuelven a producción para completarse."
             ) % {
                 'user': self.env.user.name, 'wo': wo.name,
                 'val': qty, 'no': no_val, 'et': etiqueta,
                 'mot': motivo_label,
-                'emp': self.employee_responsable_id.name or '—',
+                'emp': ', '.join(self.employee_responsable_ids.mapped('name')) or '—',
             })
 
         activities = self.env['mail.activity'].search([

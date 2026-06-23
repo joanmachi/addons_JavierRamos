@@ -67,9 +67,10 @@
                        required="wizard_mode == 'validate' and qty_no_validada &gt; 0"/>
               </div>
               <div class="mt-2">
-                <label for="employee_responsable_id" string="Operario responsable"/>
-                <field name="employee_responsable_id"
-                       options="{'no_create': True}"/>
+                <label for="employee_responsable_ids" string="Operarios implicados"/>
+                <field name="employee_responsable_ids" widget="many2many_tags"
+                       options="{'no_create': True}"
+                       placeholder="Operarios que ficharon en la fase"/>
               </div>
             </div>
 

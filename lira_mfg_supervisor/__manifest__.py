@@ -1,6 +1,6 @@
 {
     'name':    'Lira — Panel Supervisor Fabricación',
-    'version': '18.0.1.3.0',
+    'version': '18.0.1.4.0',
     'summary': 'Vista de supervisión: valida cantidades de planta en 3 clicks',
     'author':  'Apunts Informàtica',
     'website': 'http://www.grupapunts.es',

@@ -7,7 +7,7 @@
     <field name="arch" type="xml">
       <list string="Piezas rectificadas" create="0" edit="0">
         <field name="fecha"/>
-        <field name="employee_id"/>
+        <field name="employee_ids" widget="many2many_tags"/>
         <field name="production_id"/>
         <field name="workorder_id"/>
         <field name="product_id" optional="show"/>
@@ -24,7 +24,7 @@
     <field name="model">lira.refabricacion.linea</field>
     <field name="arch" type="xml">
       <search string="Piezas rectificadas">
-        <field name="employee_id"/>
+        <field name="employee_ids"/>
         <field name="production_id"/>
         <field name="product_id"/>
         <filter name="retrabajo" string="Retrabajo" domain="[('accion','=','retrabajo')]"/>
@@ -36,8 +36,10 @@
                 domain="[('motivo','=','fallos_medios')]"/>
         <filter name="mala_ejecucion" string="Mala ejecución"
                 domain="[('motivo','=','mala_ejecucion')]"/>
+        <filter name="error_programacion" string="Error de programación"
+                domain="[('motivo','=','error_programacion')]"/>
         <group expand="0" string="Agrupar por">
-          <filter name="group_employee" string="Operario" context="{'group_by':'employee_id'}"/>
+          <filter name="group_employee" string="Operario" context="{'group_by':'employee_ids'}"/>
           <filter name="group_motivo" string="Motivo" context="{'group_by':'motivo'}"/>
           <filter name="group_accion" string="Acción" context="{'group_by':'accion'}"/>
           <filter name="group_product" string="Producto" context="{'group_by':'product_id'}"/>
@@ -52,7 +54,7 @@
     <field name="model">lira.refabricacion.linea</field>
     <field name="arch" type="xml">
       <pivot string="Piezas rectificadas">
-        <field name="employee_id" type="row"/>
+        <field name="employee_ids" type="row"/>
         <field name="motivo" type="col"/>
         <field name="qty" type="measure"/>
       </pivot>
