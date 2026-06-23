@@ -300,6 +300,11 @@
                             <span t-elif="is_waiting" class="apunts-badge apunts-badge-waiting"><i class="fa fa-clock-o me-1"/>ESPERA</span>
                         </div>
 
+                        <!-- Centro de trabajo de la fase -->
+                        <div t-if="orden.workcenter_name" class="apunts-wo-workcenter">
+                            <i class="fa fa-industry me-1"/><t t-esc="orden.workcenter_name"/>
+                        </div>
+
                         <!-- Fila 2: progreso -->
                         <div class="apunts-wo-progress">
                             <div class="apunts-progress-track">

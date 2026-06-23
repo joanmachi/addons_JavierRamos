@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_refabricacion_list" model="ir.ui.view">
+    <field name="name">lira.refabricacion.linea.list</field>
+    <field name="model">lira.refabricacion.linea</field>
+    <field name="arch" type="xml">
+      <list string="Piezas rectificadas" create="0" edit="0">
+        <field name="fecha"/>
+        <field name="employee_id"/>
+        <field name="production_id"/>
+        <field name="workorder_id"/>
+        <field name="product_id" optional="show"/>
+        <field name="qty" sum="Total rectificadas"/>
+        <field name="accion"/>
+        <field name="motivo"/>
+        <field name="supervisor_id" optional="hide"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_refabricacion_search" model="ir.ui.view">
+    <field name="name">lira.refabricacion.linea.search</field>
+    <field name="model">lira.refabricacion.linea</field>
+    <field name="arch" type="xml">
+      <search string="Piezas rectificadas">
+        <field name="employee_id"/>
+        <field name="production_id"/>
+        <field name="product_id"/>
+        <filter name="retrabajo" string="Retrabajo" domain="[('accion','=','retrabajo')]"/>
+        <filter name="reposicion" string="Reposición" domain="[('accion','=','reposicion')]"/>
+        <separator/>
+        <filter name="mala_interpretacion" string="Mala interpretación instrucciones"
+                domain="[('motivo','=','mala_interpretacion')]"/>
+        <filter name="fallos_medios" string="Fallos medios producción"
+                domain="[('motivo','=','fallos_medios')]"/>
+        <filter name="mala_ejecucion" string="Mala ejecución"
+                domain="[('motivo','=','mala_ejecucion')]"/>
+        <group expand="0" string="Agrupar por">
+          <filter name="group_employee" string="Operario" context="{'group_by':'employee_id'}"/>
+          <filter name="group_motivo" string="Motivo" context="{'group_by':'motivo'}"/>
+          <filter name="group_accion" string="Acción" context="{'group_by':'accion'}"/>
+          <filter name="group_product" string="Producto" context="{'group_by':'product_id'}"/>
+          <filter name="group_fecha" string="Fecha" context="{'group_by':'fecha:day'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="view_lira_refabricacion_pivot" model="ir.ui.view">
+    <field name="name">lira.refabricacion.linea.pivot</field>
+    <field name="model">lira.refabricacion.linea</field>
+    <field name="arch" type="xml">
+      <pivot string="Piezas rectificadas">
+        <field name="employee_id" type="row"/>
+        <field name="motivo" type="col"/>
+        <field name="qty" type="measure"/>
+      </pivot>
+    </field>
+  </record>
+
+  <record id="action_lira_refabricacion" model="ir.actions.act_window">
+    <field name="name">Trazabilidad rectificaciones</field>
+    <field name="res_model">lira.refabricacion.linea</field>
+    <field name="view_mode">list,pivot</field>
+    <field name="search_view_id" ref="view_lira_refabricacion_search"/>
+  </record>
+
+</odoo>

@@ -7,6 +7,13 @@ _logger = logging.getLogger(__name__)
 class StockPickingType(models.Model):
     _inherit = 'stock.picking.type'
 
+    apunts_visible_barcode = fields.Boolean(
+        string="Visible en Código de barras",
+        default=True,
+        help="Si se desmarca, este tipo de operación no aparece en la pantalla "
+             "principal de Código de barras (Operaciones). Por defecto todos visibles.",
+    )
+
     def get_action_picking_tree_ready_kanban(self):
         _logger.info('----------- get_action_picking_tree_ready_kanban')
         res = super().get_action_picking_tree_ready_kanban()

@@ -104,6 +104,7 @@ class ManufacturingOrder(models.Model):
         for wo_data in data['workorders']:
             wo_record = self.env['mrp.workorder'].browse(wo_data['id'])
             wo_data['prev_validated_qty'] = wo_record.prev_validated_qty
+            wo_data['workcenter_name'] = wo_record.workcenter_id.display_name or ''
             mins = int(round(wo_record.duration_expected or 0))
             if mins >= 60:
                 h, m = divmod(mins, 60)

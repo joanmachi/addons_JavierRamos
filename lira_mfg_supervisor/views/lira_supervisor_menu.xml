@@ -20,4 +20,10 @@
             sequence="2"
             action="lira_mfg_supervisor.action_lira_supervisor_history"/>
 
+  <menuitem id="menu_lira_refabricacion"
+            name="Trazabilidad rectificaciones"
+            parent="menu_lira_supervisor_root"
+            sequence="3"
+            action="lira_mfg_supervisor.action_lira_refabricacion"/>
+
 </odoo>

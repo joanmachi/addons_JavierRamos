@@ -60,6 +60,17 @@
               </div>
               <field name="accion_no_validada" nolabel="1" widget="radio"
                      required="wizard_mode == 'validate' and qty_no_validada &gt; 0"/>
+              <field name="empleados_disponibles_ids" invisible="1"/>
+              <div class="mt-2">
+                <label for="motivo" string="Motivo de la rectificación"/>
+                <field name="motivo"
+                       required="wizard_mode == 'validate' and qty_no_validada &gt; 0"/>
+              </div>
+              <div class="mt-2">
+                <label for="employee_responsable_id" string="Operario responsable"/>
+                <field name="employee_responsable_id"
+                       options="{'no_create': True}"/>
+              </div>
             </div>
 
             <!-- RECHAZAR -->

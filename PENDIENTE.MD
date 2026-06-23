@@ -219,6 +219,19 @@ ORDEN SUGERIDO DE IMPLEMENTACIÓN
 
 🔧 EN DESARROLLO / PROGRAMACIÓN
 
+[PENDIENTE / A VIGILAR] Error de acceso "sale.order.line" al validar piezas desde la PDA
+(usuario Planta id=7). Causa: campos calculados del WIP en mrp.production
+(apunts_jr_wip_costes_of/models/mrp_production.py — apunts_sale_amount,
+apunts_partner_id, margen…) leen sale_line_id -> sale.order.line; aunque son
+store=True se recalculan en la transacción del operario al validar, y este no
+tenía permiso de lectura sobre sale.order.line.
+WORKAROUND aplicado (23/06/2026): se ha dado lectura a sale.order(.line) a los
+grupos Fabricación/Usuario e Inventario/Usuario desde Ajustes (ir.model.access),
+NO desde el módulo. A vigilar si resuelve el error en planta.
+SI NO BASTA -> meter código: usar .sudo() en los _compute_ que leen sale_line_id
+(opción de mínimo privilegio) y dejar la ACL solo en lectura. Revisar además que
+la fila "sale.order.line manufacturing.user" no tenga write/create/unlink.
+
 Corregir el PDF de entrega (albarán JR-SAL-00228) para que coincida con lo que se ve en pantalla - HECHO
 
 Bloquear el cierre de jornada si hay OFs abiertas, mostrando mensaje de error con las OFs fichadas - HECHO

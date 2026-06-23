@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
+from odoo.addons.lira_mfg_supervisor.models.lira_refabricacion import MOTIVOS_REFABRICACION
+
 
 class LiraValidateWizard(models.TransientModel):
     _name = 'lira.validate.wizard'
@@ -34,6 +36,25 @@ class LiraValidateWizard(models.TransientModel):
         ('reposicion', 'Reposición — desechar y volver a fabricar (material nuevo)'),
     ], string='¿Qué hacer con las no validadas?')
 
+    # Motivo de calidad — obligatorio al enviar piezas a retrabajo/reposición.
+    motivo = fields.Selection(
+        MOTIVOS_REFABRICACION, string='Motivo de la rectificación')
+    # Operario al que se atribuyen las piezas rectificadas (para la trazabilidad).
+    employee_responsable_id = fields.Many2one(
+        'hr.employee', string='Operario responsable',
+        compute='_compute_empleados_disponibles', store=True, readonly=False,
+        domain="[('id', 'in', empleados_disponibles_ids)]")
+    empleados_disponibles_ids = fields.Many2many(
+        'hr.employee', compute='_compute_empleados_disponibles')
+
+    @api.depends('workorder_id')
+    def _compute_empleados_disponibles(self):
+        for w in self:
+            emps = w.workorder_id.employee_ids
+            w.empleados_disponibles_ids = emps
+            # Si solo hay un operario fichado, lo proponemos por defecto.
+            w.employee_responsable_id = emps if len(emps) == 1 else w.employee_responsable_id
+
     @api.depends('qty_pending', 'qty_to_validate')
     def _compute_qty_no_validada(self):
         for w in self:
@@ -56,6 +77,10 @@ class LiraValidateWizard(models.TransientModel):
         if no_val > 0 and not self.accion_no_validada:
             raise ValidationError(
                 "Hay %s piezas no validadas: indica si van a Retrabajo o Reposición." % no_val
+            )
+        if no_val > 0 and not self.motivo:
+            raise ValidationError(
+                "Indica el motivo de la rectificación (Retrabajo/Reposición)."
             )
 
         # El write de qty_validated dispara el auto-trigger de
@@ -100,13 +125,27 @@ class LiraValidateWizard(models.TransientModel):
                 etiqueta = "RETRABAJO (reprocesar las mismas piezas)"
                 # Retrabajo: NO consume material nuevo (se reaprovecha la pieza).
                 # El coste sube solo por la mano de obra del reproceso (fichaje).
+
+            motivo_label = dict(MOTIVOS_REFABRICACION).get(self.motivo, self.motivo)
+            # Línea de trazabilidad: qué operario, cuántas piezas, acción y motivo.
+            self.env['lira.refabricacion.linea'].create({
+                'workorder_id': wo.id,
+                'production_id': prod.id,
+                'employee_id': self.employee_responsable_id.id or False,
+                'qty': no_val,
+                'accion': self.accion_no_validada,
+                'motivo': self.motivo,
+                'supervisor_id': self.env.user.id,
+            })
             wo.production_id.message_post(body=(
                 "Supervisor %(user)s — fase %(wo)s: %(val)s uds validadas, "
-                "%(no)s uds NO validadas → <b>%(et)s</b>. "
-                "Las no validadas vuelven a producción para completarse."
+                "%(no)s uds NO validadas → <b>%(et)s</b>. Motivo: <b>%(mot)s</b>. "
+                "Operario: %(emp)s. Las no validadas vuelven a producción para completarse."
             ) % {
                 'user': self.env.user.name, 'wo': wo.name,
                 'val': qty, 'no': no_val, 'et': etiqueta,
+                'mot': motivo_label,
+                'emp': self.employee_responsable_id.name or '—',
             })
 
         activities = self.env['mail.activity'].search([

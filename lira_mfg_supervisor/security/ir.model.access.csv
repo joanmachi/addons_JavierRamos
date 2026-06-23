@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_lira_validate_wizard,lira.validate.wizard,model_lira_validate_wizard,base.group_user,1,1,1,1
+access_lira_refabricacion_linea_user,lira.refabricacion.linea,model_lira_refabricacion_linea,base.group_user,1,0,1,0
+access_lira_refabricacion_linea_manager,lira.refabricacion.linea,model_lira_refabricacion_linea,mrp.group_mrp_manager,1,1,1,1

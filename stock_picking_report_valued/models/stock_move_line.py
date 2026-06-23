@@ -4,7 +4,7 @@
 # Copyright 2016-2022 Tecnativa - Carlos Dauden
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.tools import float_compare
 
 
@@ -14,9 +14,25 @@ class StockMoveLine(models.Model):
     sale_line = fields.Many2one(
         related="move_id.sale_line_id", string="Related order line"
     )
+    # Antes era related="sale_line.currency_id"; cuando la línea no tiene pedido
+    # de venta (o no se resuelve la moneda) quedaba vacío y el informe de albarán
+    # valorado petaba al formatear los Monetary (ensure_one sobre res.currency()
+    # vacío). Lo hacemos computado con fallback a la moneda de la compañía para
+    # garantizar que SIEMPRE hay una moneda.
     currency_id = fields.Many2one(
-        related="sale_line.currency_id", string="Sale Currency"
+        "res.currency",
+        compute="_compute_report_valued_currency_id",
+        string="Sale Currency",
     )
+
+    @api.depends("sale_line.currency_id", "company_id")
+    def _compute_report_valued_currency_id(self):
+        for line in self:
+            line.currency_id = (
+                line.sale_line.currency_id
+                or line.company_id.currency_id
+                or line.env.company.currency_id
+            )
     sale_tax_id = fields.Many2many(related="sale_line.tax_id", string="Sale Tax")
     sale_price_unit = fields.Float(
         compute="_compute_sale_order_line_fields",

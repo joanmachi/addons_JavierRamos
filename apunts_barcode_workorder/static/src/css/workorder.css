@@ -446,6 +446,14 @@
     background: var(--ap-slate); padding: 2px 7px; border-radius: 10px;
 }
 
+/* Centro de trabajo de la fase */
+.apunts-wo-workcenter {
+    padding: 0 12px 6px 48px;
+    font-size: .74rem; font-weight: 600; color: var(--ap-muted);
+    display: flex; align-items: center; gap: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 /* Badges */
 .apunts-badge {
     font-size: .6rem; font-weight: 700; letter-spacing: .04em;

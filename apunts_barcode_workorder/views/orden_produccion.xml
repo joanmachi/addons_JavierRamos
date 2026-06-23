@@ -117,6 +117,24 @@
             </field>
         </record>
 
+<record id="view_picking_type_form_visible_barcode" model="ir.ui.view">
+        <field name="name">stock.picking.type.form.visible.barcode</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence_code']" position="after">
+                <field name="apunts_visible_barcode"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- La home del Barcode (Operaciones) muestra los tipos de operación.
+         Filtramos por el booleano apunts_visible_barcode para poder ocultar
+         centros sin tocar código (por defecto todos visibles). -->
+    <record id="stock_barcode.stock_picking_type_action_kanban" model="ir.actions.act_window">
+        <field name="domain">[('code', 'in', ('incoming', 'outgoing', 'internal', 'mrp_operation')), ('apunts_visible_barcode', '=', True)]</field>
+    </record>
+
 <record id="mrp_workorder_fichajes_kanban_view_inherit" model="ir.ui.view">
         <field name="name">stock.picking.type.kanban.inherit</field>
         <field name="model">stock.picking.type</field>

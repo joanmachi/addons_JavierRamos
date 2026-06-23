@@ -36,6 +36,21 @@ class WorkOrder(models.Model):
         for wo in self:
             wo.texto_fichados = ', '.join(wo.employee_ids.mapped('name'))
 
+    @api.constrains('qty_ready_to_validate', 'qty_validated')
+    def _apunts_check_qty_ready_no_excede_pendiente(self):
+        """No se pueden enviar a validar más piezas de las pendientes de la fase.
+        Evita que un operario teclee por error un número grande (p. ej. su código
+        de empleado) como cantidad. `prev_validated_qty` ya descuenta lo validado,
+        así que representa las piezas disponibles aún sin marcar."""
+        for wo in self:
+            disponible = max(wo.prev_validated_qty, 0.0)
+            if float_compare(wo.qty_ready_to_validate, disponible, precision_digits=2) > 0:
+                raise ValidationError(_(
+                    "No puedes enviar a validar %(ready)s piezas en la fase «%(wo)s»: "
+                    "solo hay %(disp)s pendientes de realizar.",
+                    ready=wo.qty_ready_to_validate, wo=wo.name, disp=disponible,
+                ))
+
     @api.depends('production_id.workorder_ids.qty_validated')
     def _compute_prev_validated_qty(self):
         for wo in self:
