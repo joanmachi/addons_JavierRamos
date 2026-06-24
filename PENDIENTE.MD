@@ -301,15 +301,15 @@ Comprobar que las piezas que hemos realizado no sean superiores a las pendientes
 
 WIP:
 Filtro de productos en stock según compra y venta - HECHO
-Avance y factor en vista general y detallada por of - PENDIENTE
+Avance y factor en vista general y detallada por of - HECHO
 Ver porque hay of que no salen correctamente, recoge precio por kg y no por m. - PENDIENTE
 
-Supervisor planta:
+SUPERVISOR PLANTA:
 Trazabilidad de validaciones incorrectas. - HECHO
 Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
 Registro del empleado que ha enviado a validar piezas - HECHO
 
-Fabricación:
+FABRICACIÓN:
 Para generar una OF, puedes pedir el material como tratamientos y empezar antes de realizarlo. Mi idea es que para que deje realizar la OF no se tenga que pedir ni nada. Mas que nada porque no se debería de realizar un seguimiento de dichos productos. No estan ni en el almacén. Se envían fuera.
 
 Para los productos de galbanizar, se hace un pedido de compra a un proveedor. Se debe de realizar algo para poder albaranizar sin cerrar la produccion y que luego se actualize el WIP.

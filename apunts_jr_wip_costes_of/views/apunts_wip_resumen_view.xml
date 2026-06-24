@@ -27,8 +27,8 @@
 
                     <field name="n_ofs_bom_incompleta" invisible="1"/>
 
-                    <div class="row g-3">
-                        <div class="col-md-3 col-sm-6">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
+                        <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
                                     <div class="text-uppercase fw-semibold small text-muted mb-1">Órdenes en curso</div>
@@ -43,7 +43,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-6">
+                        <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
                                     <div class="text-uppercase fw-semibold small text-muted mb-1">Venta total</div>
@@ -57,7 +57,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-6">
+                        <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
                                     <div class="text-uppercase fw-semibold small text-muted mb-1">En curso (real)</div>
@@ -71,7 +71,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-6">
+                        <div class="col">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Coste teórico total</div>
+                                    <div class="display-6 fw-bold text-primary">
+                                        <field name="total_cost_planned" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Material teórico + mano de obra teórica + máquina teórica,
+                                        según lista de materiales y operaciones.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
                                     <div class="text-uppercase fw-semibold small text-muted mb-1">Margen estimado</div>
@@ -81,6 +95,12 @@
                                     <div class="small text-muted mt-1">
                                         Venta total menos coste teórico total.
                                         Es el margen esperado si todo va según lo previsto.
+                                    </div>
+                                    <div class="small fw-bold mt-2">
+                                        Factor: <field name="factor_global" nolabel="1" readonly="1" widget="float" digits="[16,2]" class="oe_inline"/>×
+                                    </div>
+                                    <div class="small fw-bold">
+                                        Avance: <field name="grado_avance" nolabel="1" readonly="1" widget="float" digits="[16,1]" class="oe_inline"/>%
                                     </div>
                                 </div>
                             </div>

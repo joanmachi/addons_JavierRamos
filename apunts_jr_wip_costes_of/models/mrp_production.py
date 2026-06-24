@@ -274,6 +274,14 @@ class MrpProduction(models.Model):
         digits=(6, 2),
         help="Venta / Coste real. Objetivo JR: ≥ 1,35. Valor < 1 = pérdidas.",
     )
+    apunts_avance_coste_pct = fields.Float(
+        string="Avance (coste) %",
+        compute="_compute_apunts_margen",
+        store=True,
+        digits=(16, 1),
+        help="Coste real / Coste teórico × 100. Mide cuánto del coste previsto "
+             "de la OF ya se ha incurrido (avance económico, no de piezas).",
+    )
 
     @api.depends(
         "sale_line_id",
@@ -313,6 +321,9 @@ class MrpProduction(models.Model):
             prod.apunts_margen_real_dudoso = (coste_real <= 0.0) and (venta > 0.0)
             # Factor de cobertura: venta / coste_real (objetivo JR: >= 1,35)
             prod.apunts_factor_cobertura = (venta / coste_real) if coste_real > 0 else 0.0
+            # Avance económico: coste real / coste teórico × 100 (cuánto del coste
+            # previsto ya se ha incurrido). Puede pasar de 100% si se sobrepasa.
+            prod.apunts_avance_coste_pct = (coste_real / coste_teo * 100.0) if coste_teo > 0 else 0.0
 
     apunts_min_total_plan = fields.Float(
         string="Min totales (plan)",

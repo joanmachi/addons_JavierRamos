@@ -44,6 +44,10 @@ class ApuntsWipResumen(models.TransientModel):
     total_cost_real = fields.Monetary(string="EN CURSO real", compute="_compute_resumen", currency_field="currency_id")
     margen_estimado = fields.Monetary(string="Margen estimado", compute="_compute_resumen", currency_field="currency_id",
         help="Venta total - Coste teórico total. Es el margen esperado si todo va según plan.")
+    grado_avance = fields.Float(string="Grado de avance", compute="_compute_resumen", digits=(16, 1),
+        help="Coste real total / coste teórico total × 100 sobre todas las OFs en curso. Avance económico global (cuánto del coste previsto ya se ha incurrido).")
+    factor_global = fields.Float(string="Factor", compute="_compute_resumen", digits=(16, 2),
+        help="Venta total / EN CURSO real. Mismo factor de cobertura que por OF, pero global. Objetivo JR: ≥ 1,35.")
     currency_id = fields.Many2one("res.currency", compute="_compute_resumen")
 
     @api.depends_context("uid")
@@ -90,6 +94,11 @@ class ApuntsWipResumen(models.TransientModel):
                 for m in wip
             )
             rec.margen_estimado = rec.total_venta - rec.total_cost_planned
+            # Grado de avance global = coste real / coste teórico × 100 (avance
+            # económico: cuánto del coste previsto ya se ha incurrido).
+            rec.grado_avance = (rec.total_cost_real / rec.total_cost_planned * 100.0) if rec.total_cost_planned else 0.0
+            # Factor global = venta / coste real (mismo criterio que por OF).
+            rec.factor_global = (rec.total_venta / rec.total_cost_real) if rec.total_cost_real else 0.0
             rec.currency_id = company_currency
             # MP pendiente de recibir = (product_qty - qty_received) × price_unit
             # de POs vinculadas a OFs WIP via `fabricacion` en estado purchase.

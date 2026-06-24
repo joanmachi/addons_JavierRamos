@@ -75,6 +75,10 @@
                                            decoration-warning="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.35"
                                            decoration-danger="apunts_factor_cobertura &gt; 0 and apunts_factor_cobertura &lt; 1.0"/>x
                                 </div>
+                                <div class="small fw-bold">
+                                    Avance:
+                                    <field name="apunts_avance_coste_pct" nolabel="1" readonly="1" class="oe_inline"/>%
+                                </div>
                             </div>
                         </div>
                     </div>

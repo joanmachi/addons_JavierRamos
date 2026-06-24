@@ -13,6 +13,9 @@
                 <field name="product_qty" string="Cantidad" sum="Total" widget="integer"/>
                 <field name="apunts_qty_done" string="Hecho" sum="Hecho" widget="integer"/>
                 <field name="apunts_qty_pending" string="Pendiente" sum="Pendiente" widget="integer"/>
+                <field name="apunts_avance_coste_pct" string="Avance %" widget="float" digits="[16,1]" optional="show"
+                       decoration-success="apunts_avance_coste_pct &gt;= 100"
+                       decoration-muted="apunts_avance_coste_pct &lt;= 0"/>
                 <field name="apunts_min_total_plan" string="Min plan" widget="float_time" optional="hide" sum="Total min plan"/>
                 <field name="apunts_min_unit_plan" string="Min/pieza plan" widget="float_time" optional="hide"/>
                 <field name="apunts_min_real_total" string="Min real" widget="float_time" optional="hide" sum="Total min real"/>
@@ -106,7 +109,9 @@
                     <strong>OF en curso (WIP)</strong> ·
                     Venta: <field name="apunts_sale_amount" readonly="1" nolabel="1" class="oe_inline"/> ·
                     Coste teórico: <field name="apunts_cost_total_planned" readonly="1" nolabel="1" class="oe_inline"/> ·
-                    EN CURSO real: <field name="apunts_cost_total_real" readonly="1" nolabel="1" class="oe_inline"/>
+                    EN CURSO real: <field name="apunts_cost_total_real" readonly="1" nolabel="1" class="oe_inline"/> ·
+                    Avance: <field name="apunts_avance_coste_pct" readonly="1" nolabel="1" class="oe_inline"/>% ·
+                    Factor: <field name="apunts_factor_cobertura" readonly="1" nolabel="1" class="oe_inline"/>×
                     <br/>
                     Min plan: <field name="apunts_min_total_plan" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/> ·
                     Min/pieza plan: <field name="apunts_min_unit_plan" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/> ·
