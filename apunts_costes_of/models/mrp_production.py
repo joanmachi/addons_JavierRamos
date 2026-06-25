@@ -94,11 +94,18 @@ class MrpProduction(models.Model):
         """
         self.ensure_one()
         SaleOrder = self.env['sale.order']
-        if 'sale_id' in self._fields and self.sale_id:
-            return self.sale_id
+        # sudo: este helper alimenta cálculos (revenue/margen) que comparten
+        # método con campos ALMACENADOS (coste material/MO real). Esos campos se
+        # recalculan al escribir en la OF desde un operario de planta SIN acceso
+        # a ventas, ejecutando todo el método y leyendo el pedido de venta. Lo
+        # leemos como superusuario para no exigirle ese permiso (evita el error
+        # de acceso a sale.order.line en la PDA).
+        s = self.sudo()
+        if 'sale_id' in self._fields and s.sale_id:
+            return s.sale_id
         fname = self._apunts_get_studio_sale_field()
         if fname and fname in self._fields:
-            so = self[fname]
+            so = s[fname]
             if so:
                 return so
         return SaleOrder

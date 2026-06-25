@@ -289,15 +289,20 @@ class MrpProduction(models.Model):
     )
     def _compute_apunts_partner_id(self):
         for prod in self:
+            # sudo: este campo (almacenado) se recalcula al escribir en la OF,
+            # incluso desde un operario de planta que NO tiene acceso a las
+            # líneas/pedidos de venta. Leemos la venta como superusuario para
+            # no exigirle ese permiso (evita el error de acceso en la PDA).
+            ps = prod.sudo()
             partner = False
-            if "sale_line_id" in prod._fields and prod.sale_line_id:
-                partner = prod.sale_line_id.order_id.partner_id
-            elif "sale_id" in prod._fields and prod.sale_id:
-                partner = prod.sale_id.partner_id
-            elif "x_studio_venta" in prod._fields and prod.x_studio_venta:
-                partner = prod.x_studio_venta.partner_id
-            elif prod.procurement_group_id and prod.procurement_group_id.sale_id:
-                partner = prod.procurement_group_id.sale_id.partner_id
+            if "sale_line_id" in prod._fields and ps.sale_line_id:
+                partner = ps.sale_line_id.order_id.partner_id
+            elif "sale_id" in prod._fields and ps.sale_id:
+                partner = ps.sale_id.partner_id
+            elif "x_studio_venta" in prod._fields and ps.x_studio_venta:
+                partner = ps.x_studio_venta.partner_id
+            elif ps.procurement_group_id and ps.procurement_group_id.sale_id:
+                partner = ps.procurement_group_id.sale_id.partner_id
             prod.apunts_partner_id = partner or False
 
     @api.depends("apunts_sale_amount", "apunts_cost_total_planned", "apunts_cost_total_real")
@@ -409,11 +414,15 @@ class MrpProduction(models.Model):
             if not isinstance(prod.id, int):
                 prod.apunts_sale_amount = 0.0
                 continue
+            # sudo: campo almacenado que se recalcula al escribir en la OF desde
+            # planta. Leemos el pedido/línea de venta como superusuario para no
+            # exigir al operario acceso a ventas (evita el error en la PDA).
+            ps = prod.sudo()
             so = False
-            if "sale_line_id" in prod._fields and prod.sale_line_id:
-                so = prod.sale_line_id.order_id
+            if "sale_line_id" in prod._fields and ps.sale_line_id:
+                so = ps.sale_line_id.order_id
                 if so.state in VALID_STATES and so.delivery_status != "full":
-                    sol = prod.sale_line_id
+                    sol = ps.sale_line_id
                     qty_so = sol.product_uom_qty or 0.0
                     if qty_so > 0:
                         prod.apunts_sale_amount = (sol.price_subtotal or 0.0) * (prod.product_qty / qty_so)
@@ -422,12 +431,12 @@ class MrpProduction(models.Model):
                 else:
                     prod.apunts_sale_amount = 0.0
                 continue
-            if "sale_id" in prod._fields and prod.sale_id:
-                so = prod.sale_id
-            elif "x_studio_venta" in prod._fields and prod.x_studio_venta:
-                so = prod.x_studio_venta
-            elif prod.procurement_group_id and prod.procurement_group_id.sale_id:
-                so = prod.procurement_group_id.sale_id
+            if "sale_id" in prod._fields and ps.sale_id:
+                so = ps.sale_id
+            elif "x_studio_venta" in prod._fields and ps.x_studio_venta:
+                so = ps.x_studio_venta
+            elif ps.procurement_group_id and ps.procurement_group_id.sale_id:
+                so = ps.procurement_group_id.sale_id
             if so and so.state in VALID_STATES and so.delivery_status != "full":
                 sols = so.order_line.filtered(lambda l: l.product_id == prod.product_id)
                 prod.apunts_sale_amount = sum(sols.mapped("price_subtotal")) if sols else (so.amount_untaxed or 0.0)
