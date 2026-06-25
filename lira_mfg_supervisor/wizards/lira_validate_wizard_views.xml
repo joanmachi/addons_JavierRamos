@@ -73,30 +73,44 @@
                        placeholder="Operarios que ficharon en la fase"/>
               </div>
 
-              <!-- ── Fases de retrabajo (solo retrabajo) ── -->
+              <!-- ── Destino del retrabajo (solo retrabajo) ── -->
               <div class="mt-3 p-2 border rounded bg-light"
                    invisible="accion_no_validada != 'retrabajo'">
                 <h6 class="mb-2">
                   <i class="fa fa-wrench me-1 text-primary"/>
-                  Fases de retrabajo a crear
+                  ¿Dónde van las piezas a retrabajar?
                 </h6>
-                <div class="mb-2 text-muted" style="font-size:0.875rem;">
-                  Define las operaciones que necesitan las piezas para ser reprocesadas.
-                  Usa una plantilla o rellena la tabla manualmente.
-                </div>
-                <div class="mb-2">
-                  <label for="plantilla_retrabajo_id" string="Usar plantilla"/>
-                  <field name="plantilla_retrabajo_id"
+                <field name="production_id" invisible="1"/>
+                <field name="destino_retrabajo" widget="radio" nolabel="1"/>
+
+                <!-- Fase existente -->
+                <div class="mt-2" invisible="destino_retrabajo != 'existente'">
+                  <label for="workorder_retrabajo_destino_id" string="Fase de retrabajo existente"/>
+                  <field name="workorder_retrabajo_destino_id"
                          options="{'no_create': True}"
-                         placeholder="Selecciona plantilla o define manualmente…"/>
+                         placeholder="Selecciona la fase…"/>
                 </div>
-                <field name="fases_retrabajo_ids">
-                  <list editable="bottom">
-                    <field name="secuencia" widget="handle"/>
-                    <field name="nombre" placeholder="Ej: Soldadura correctora"/>
-                    <field name="workcenter_id" placeholder="Centro de trabajo"/>
-                  </list>
-                </field>
+
+                <!-- Nueva(s) fase(s) -->
+                <div class="mt-2" invisible="destino_retrabajo != 'nueva'">
+                  <div class="mb-2 text-muted" style="font-size:0.875rem;">
+                    Define las operaciones que necesitan las piezas para ser reprocesadas.
+                    Usa una plantilla o rellena la tabla manualmente.
+                  </div>
+                  <div class="mb-2">
+                    <label for="plantilla_retrabajo_id" string="Usar plantilla"/>
+                    <field name="plantilla_retrabajo_id"
+                           options="{'no_create': True}"
+                           placeholder="Selecciona plantilla o define manualmente…"/>
+                  </div>
+                  <field name="fases_retrabajo_ids">
+                    <list editable="bottom">
+                      <field name="secuencia" widget="handle"/>
+                      <field name="nombre" placeholder="Ej: Soldadura correctora"/>
+                      <field name="workcenter_id" placeholder="Centro de trabajo"/>
+                    </list>
+                  </field>
+                </div>
               </div>
             </div>
 

@@ -45,7 +45,51 @@ class LiraSupervisorWorkorder(models.Model):
                 if not recibido:
                     pdte += linea.qty
             wo.apunts_qty_pdte_recepcion = pdte
-    lira_es_retrabajo    = fields.Boolean(string='Fase de retrabajo', default=False, copy=False)
+    lira_es_retrabajo      = fields.Boolean(string='Fase de retrabajo', default=False, copy=False)
+    # Cantidad de piezas asignadas a esta fase de retrabajo. No puede usarse
+    # qty_production porque es un related de production_id.product_qty (siempre
+    # vale el total de la OF). Este campo es la capacidad real de la fase.
+    lira_qty_retrabajo_fase = fields.Float(
+        string='Piezas a retrabajar', default=0.0, copy=False)
+
+    @api.depends(
+        'production_id.workorder_ids.qty_validated',
+        'production_id.workorder_ids.lira_qty_retrabajo_fase',
+        'production_id.workorder_ids.lira_es_retrabajo',
+        'lira_qty_retrabajo_fase',
+        'lira_es_retrabajo',
+    )
+    def _compute_prev_validated_qty(self):
+        retrabajo = self.filtered('lira_es_retrabajo')
+        for wo in retrabajo:
+            # Capacidad = piezas asignadas a retrabajar menos las ya validadas.
+            wo.prev_validated_qty = max(
+                (wo.lira_qty_retrabajo_fase or 0.0) - (wo.qty_validated or 0.0), 0.0
+            )
+        normales = self - retrabajo
+        if not normales:
+            return
+        for wo in normales:
+            all_wos = wo.production_id.workorder_ids.sorted('sequence')
+            prev_wos = all_wos.filtered(
+                lambda w: w.sequence < wo.sequence and not w.lira_es_retrabajo
+            )
+            es_conjunto = wo.production_id.product_id.product_tmpl_id.tipo_producto == 'conjunto'
+            if es_conjunto or not prev_wos:
+                # Primera fase: descontar piezas pendientes en fases de retrabajo
+                # (están siendo reprocesadas en paralelo, no disponibles aquí).
+                retrabajo_wos = wo.production_id.workorder_ids.filtered('lira_es_retrabajo')
+                retrabajo_pendiente = sum(
+                    max((w.lira_qty_retrabajo_fase or 0.0) - (w.qty_validated or 0.0), 0.0)
+                    for w in retrabajo_wos
+                )
+                base = (wo.production_id.product_qty or 0.0) - (wo.qty_validated or 0.0)
+                wo.prev_validated_qty = max(base - retrabajo_pendiente, 0.0)
+            else:
+                wo.prev_validated_qty = max(
+                    (prev_wos[-1].qty_validated or 0.0) - (wo.qty_validated or 0.0), 0.0
+                )
+
     lira_supervisor_note = fields.Char(string='Motivo rechazo')
     lira_validated_by    = fields.Many2one('res.users', string='Validado por', readonly=True)
     lira_validated_date  = fields.Datetime(string='Validado el', readonly=True)

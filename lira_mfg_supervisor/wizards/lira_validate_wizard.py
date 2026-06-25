@@ -42,7 +42,20 @@ class LiraValidateWizard(models.TransientModel):
         ('reposicion', 'Reposición — desechar y volver a fabricar (material nuevo)'),
     ], string='¿Qué hacer con las no validadas?')
 
-    # ── Retrabajo: fases adicionales a crear ──────────────────────────────
+    # ── Retrabajo: destino y fases ─────────────────────────────────────────
+    production_id = fields.Many2one('mrp.production', related='workorder_id.production_id')
+
+    destino_retrabajo = fields.Selection([
+        ('nueva',      'Nueva(s) fase(s) de retrabajo'),
+        ('existente',  'Añadir a fase de retrabajo existente'),
+        ('original',   'Misma fase original (sin nueva fase)'),
+    ], string='Destino de las piezas a retrabajar', default='nueva')
+
+    workorder_retrabajo_destino_id = fields.Many2one(
+        'mrp.workorder', string='Fase de retrabajo existente',
+        domain="[('production_id', '=', production_id), ('lira_es_retrabajo', '=', True), ('state', 'not in', ['done', 'cancel'])]",
+        help='Añade las piezas a esta fase de retrabajo ya creada.')
+
     plantilla_retrabajo_id = fields.Many2one(
         'lira.retrabajo.plantilla', string='Plantilla de retrabajo',
         help='Rellena la tabla de fases automáticamente desde una plantilla guardada.')
@@ -118,10 +131,16 @@ class LiraValidateWizard(models.TransientModel):
             raise ValidationError(
                 "Indica el motivo de la rectificación (Retrabajo/Reposición)."
             )
-        if no_val > 0 and self.accion_no_validada == 'retrabajo' and not self.fases_retrabajo_ids:
-            raise ValidationError(
-                "Define al menos una fase de retrabajo (nombre + centro de trabajo)."
-            )
+        if no_val > 0 and self.accion_no_validada == 'retrabajo':
+            destino = self.destino_retrabajo or 'nueva'
+            if destino == 'nueva' and not self.fases_retrabajo_ids:
+                raise ValidationError(
+                    "Define al menos una fase de retrabajo (nombre + centro de trabajo)."
+                )
+            if destino == 'existente' and not self.workorder_retrabajo_destino_id:
+                raise ValidationError(
+                    "Selecciona una fase de retrabajo existente a la que añadir las piezas."
+                )
 
         # El write de qty_validated dispara el auto-trigger de
         # apunts_barcode_workorder (cierre OF + back-order con transferencia
@@ -163,10 +182,18 @@ class LiraValidateWizard(models.TransientModel):
                     compras_info += " ⚠ Sin proveedor (añádelos a mano): %s." % ', '.join(sin_prov)
             else:
                 wo.lira_qty_retrabajo = (wo.lira_qty_retrabajo or 0.0) + no_val
-                etiqueta = "RETRABAJO (reprocesar las mismas piezas)"
-                # Retrabajo: NO consume material nuevo. Se crean fases extra en la
-                # misma OF para que los operarios puedan reprocesar las piezas.
-                wos_retrabajo = self._crear_workorders_retrabajo(wo, no_val)
+                destino = self.destino_retrabajo or 'nueva'
+                if destino == 'nueva':
+                    wos_retrabajo = self._crear_workorders_retrabajo(wo, no_val)
+                    etiqueta = "RETRABAJO → nueva(s) fase(s): %s" % ', '.join(wos_retrabajo.mapped('name'))
+                elif destino == 'existente':
+                    wo_dest = self.workorder_retrabajo_destino_id
+                    wo_dest.lira_qty_retrabajo_fase += no_val
+                    wos_retrabajo = wo_dest
+                    etiqueta = "RETRABAJO → fase existente: %s" % wo_dest.name
+                else:  # 'original'
+                    wos_retrabajo = self.env['mrp.workorder']
+                    etiqueta = "RETRABAJO → misma fase original (sin nueva fase)"
 
             motivo_label = dict(MOTIVOS_REFABRICACION).get(self.motivo, self.motivo)
             # Línea de trazabilidad: qué operarios, cuántas piezas, acción, motivo
@@ -263,6 +290,7 @@ class LiraValidateWizard(models.TransientModel):
         para que las piezas estén disponibles de inmediato en la PDA.
         Devuelve el recordset de mrp.workorder creados."""
         prod = wo.production_id
+        uom_id = prod.product_uom_id.id or prod.product_id.uom_id.id
         max_seq = max(prod.workorder_ids.mapped('sequence') or [0])
         fases = self.fases_retrabajo_ids.sorted('secuencia')
         created = self.env['mrp.workorder']
@@ -272,14 +300,14 @@ class LiraValidateWizard(models.TransientModel):
                 'name': fase.nombre,
                 'workcenter_id': fase.workcenter_id.id,
                 'production_id': prod.id,
-                'qty_production': qty,
+                'product_uom_id': uom_id,
                 'sequence': max_seq + (i + 1) * 10,
                 'lira_es_retrabajo': True,
             })
-            if prev_wo is None:
-                # Primera fase: piezas disponibles de inmediato
-                new_wo.prev_validated_qty = qty
-            else:
+            # lira_qty_retrabajo_fase determina la capacidad de la fase;
+            # qty_production es always el total de la OF (related), no sirve.
+            new_wo.lira_qty_retrabajo_fase = qty
+            if prev_wo is not None:
                 new_wo.previous_workorder_id = prev_wo
             prev_wo = new_wo
             created |= new_wo
