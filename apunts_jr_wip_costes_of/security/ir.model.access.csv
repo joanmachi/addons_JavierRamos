@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_apunts_buscar_coste_of_user,apunts.buscar.coste.of.user,model_apunts_buscar_coste_of,base.group_user,1,1,1,1
 access_apunts_wip_resumen_user,apunts.wip.resumen.user,model_apunts_wip_resumen,base.group_user,1,1,1,1
+access_sale_order_planta_read,sale.order.planta.read,sale.model_sale_order,base.group_user,1,0,0,0
+access_sale_order_line_planta_read,sale.order.line.planta.read,sale.model_sale_order_line,base.group_user,1,0,0,0
