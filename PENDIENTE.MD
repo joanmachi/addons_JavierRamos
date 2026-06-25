@@ -302,7 +302,11 @@ Comprobar que las piezas que hemos realizado no sean superiores a las pendientes
 WIP:
 Filtro de productos en stock según compra y venta - HECHO
 Avance y factor en vista general y detallada por of - HECHO
-Ver porque hay of que no salen correctamente, recoge precio por kg y no por m. - PENDIENTE
+Ver porque hay of que no salen correctamente, recoge precio por kg y no por m. - HECHO
+  (Coste REAL de material: cuando la línea de compra está valorada por unidad
+  secundaria (€/kg en barras/perfiles que se consumen en m), se convertía mal
+  (m × €/kg). Ahora se convierte a €/UoM-base con el factor: €/m = €/kg ÷ factor.
+  El teórico ya era correcto (usa price_subtotal/product_qty).)
 
 SUPERVISOR PLANTA:
 Trazabilidad de validaciones incorrectas. - HECHO
@@ -314,5 +318,5 @@ Para generar una OF, puedes pedir el material como tratamientos y empezar antes 
 
 Para los productos de galbanizar, se hace un pedido de compra a un proveedor. Se debe de realizar algo para poder albaranizar sin cerrar la produccion y que luego se actualize el WIP.
 
-
+Refabricación en caso de nuevas piezas deberemos de realizar una nueva compra etc. Subir el coste (ahora se sube, pero si hacemos la compra se hará doble) vamos la operativa real que se hará a la hora de refabricar comprando. - PENDIENTE
 

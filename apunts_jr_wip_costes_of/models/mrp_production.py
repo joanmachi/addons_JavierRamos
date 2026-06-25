@@ -571,7 +571,18 @@ class MrpProduction(models.Model):
             ])
             for pol in pols:
                 if pol.price_unit:
-                    precio_po[pol.product_id.id] = pol.price_unit
+                    precio = pol.price_unit
+                    # Si la línea de compra está valorada por UNIDAD SECUNDARIA
+                    # (p. ej. €/kg en barras/perfiles que se consumen en m), el
+                    # price_unit es €/kg pero el consumo (move.quantity) está en m.
+                    # Convertimos a €/UoM-base con el factor de la unidad
+                    # secundaria (factor = base por secundaria, es decir m/kg):
+                    #   €/m = €/kg ÷ (m/kg)
+                    # Evita el error de multiplicar metros por un precio por kilo.
+                    su = pol.secondary_uom_id
+                    if su and su.factor:
+                        precio = pol.price_unit / su.factor
+                    precio_po[pol.product_id.id] = precio
         total = 0.0
         for m in prod.move_raw_ids:
             if m.state == "cancel":
