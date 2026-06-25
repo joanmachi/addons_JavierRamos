@@ -219,18 +219,30 @@ ORDEN SUGERIDO DE IMPLEMENTACIÓN
 
 🔧 EN DESARROLLO / PROGRAMACIÓN
 
-[PENDIENTE / A VIGILAR] Error de acceso "sale.order.line" al validar piezas desde la PDA
-(usuario Planta id=7). Causa: campos calculados del WIP en mrp.production
-(apunts_jr_wip_costes_of/models/mrp_production.py — apunts_sale_amount,
-apunts_partner_id, margen…) leen sale_line_id -> sale.order.line; aunque son
-store=True se recalculan en la transacción del operario al validar, y este no
-tenía permiso de lectura sobre sale.order.line.
-WORKAROUND aplicado (23/06/2026): se ha dado lectura a sale.order(.line) a los
-grupos Fabricación/Usuario e Inventario/Usuario desde Ajustes (ir.model.access),
-NO desde el módulo. A vigilar si resuelve el error en planta.
-SI NO BASTA -> meter código: usar .sudo() en los _compute_ que leen sale_line_id
-(opción de mínimo privilegio) y dejar la ACL solo en lectura. Revisar además que
-la fila "sale.order.line manufacturing.user" no tenga write/create/unlink.
+[HECHO 25/06/2026] Error de acceso "sale.order.line" al fichar/finalizar trabajo en
+una OF desde la PDA ("Planta no tiene permiso de leer sale.order.line" — página
+de las galletas).
+CAUSA: al escribir en la OF (registrar cantidad / finalizar fichaje) se recalculan
+campos almacenados de coste en mrp.production (WIP: apunts_sale_amount,
+apunts_partner_id; Coste OF: coste material/MO real) que leen el pedido de venta
+(sale_line_id -> sale.order.line) EN LA TRANSACCIÓN DEL OPERARIO. Si el operario no
+tiene lectura sobre sale.order.line -> error. En local no se reproducía porque el
+usuario de pruebas tiene grupos de administrador; en PRODUCCIÓN el operario tiene
+menos grupos y sí fallaba.
+SOLUCIÓN (doble, versionada en módulo):
+  1) sudo en los cálculos que leen la venta, para no exigir el permiso:
+     - apunts_jr_wip_costes_of: _compute_apunts_partner_id y _compute_apunts_sale_amount
+       usan prod.sudo().
+     - apunts_costes_of: el helper canónico _apunts_get_sale_order() devuelve el
+       pedido en sudo (cubre revenue/margen y traza forward).
+  2) ir.model.access en apunts_jr_wip_costes_of/security/ir.model.access.csv:
+     LECTURA (solo read) sobre sale.order y sale.order.line para base.group_user
+     -> cualquier usuario interno puede finalizar, tenga los grupos que tenga.
+NOTA DESPLIEGUE: requiere actualizar el módulo en producción (-u apunts_jr_wip_costes_of)
+y reiniciar Odoo; subir a git no basta.
+NOTA: las reglas estándar sale.order.line manufacturing.user/stock worker (módulos
+sale_mrp/sale_stock) ya dan lectura+escritura a usuarios de fabricación/inventario;
+son de serie, NO tocarlas/borrarlas (se regeneran al actualizar).
 
 Corregir el PDF de entrega (albarán JR-SAL-00228) para que coincida con lo que se ve en pantalla - HECHO
 
@@ -298,6 +310,8 @@ BARCODE (vista empleados):
 Informar en que centro se realiza cada fase - HECHO
 Realizar posibilidad de mostrar y ocultar células conforme queramos. - HECHO
 Comprobar que las piezas que hemos realizado no sean superiores a las pendientes de realizar en una fase de una OF - HECHO
+¿Se ha solucionado lo del sale.orderline permisos?
+
 
 WIP:
 Filtro de productos en stock según compra y venta - HECHO
@@ -312,6 +326,7 @@ SUPERVISOR PLANTA:
 Trazabilidad de validaciones incorrectas. - HECHO
 Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
 Registro del empleado que ha enviado a validar piezas - HECHO
+Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo.
 
 FABRICACIÓN:
 Para generar una OF, puedes pedir el material como tratamientos y empezar antes de realizarlo. Mi idea es que para que deje realizar la OF no se tenga que pedir ni nada. Mas que nada porque no se debería de realizar un seguimiento de dichos productos. No estan ni en el almacén. Se envían fuera.
