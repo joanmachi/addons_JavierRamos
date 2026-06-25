@@ -1,6 +1,6 @@
 {
     'name':    'Lira — Panel Supervisor Fabricación',
-    'version': '18.0.1.6.0',
+    'version': '18.0.1.8.0',
     'summary': 'Vista de supervisión: valida cantidades de planta en 3 clicks',
     'author':  'Apunts Informàtica',
     'website': 'http://www.grupapunts.es',
@@ -12,6 +12,7 @@
         'wizards/lira_validate_wizard_views.xml',
         'views/lira_supervisor_views.xml',
         'views/lira_refabricacion_views.xml',
+        'views/lira_retrabajo_plantilla_views.xml',
         'views/lira_supervisor_menu.xml',
     ],
     'assets': {

@@ -22,8 +22,8 @@ class LiraSupervisorWorkorder(models.Model):
     def _lira_recompute_pdte_recepcion(self):
         """Recalcula apunts_qty_pdte_recepcion (campo del PDA, módulo barcode):
         suma de piezas de las reposiciones de la fase cuyo material comprado aún
-        NO ha llegado (línea de refabricación no 'recibido'). Al recibirse la
-        compra, esa reposición deja de sumar y las piezas pasan a 'por hacer'."""
+        NO ha llegado. Calcula el estado de recepción inline (sin leer el campo
+        stored 'recibido', que puede estar stale en la misma transacción)."""
         Lin = self.env['lira.refabricacion.linea']
         for wo in self:
             if 'apunts_qty_pdte_recepcion' not in wo._fields:
@@ -32,9 +32,20 @@ class LiraSupervisorWorkorder(models.Model):
                 ('workorder_id', '=', wo.id),
                 ('accion', '=', 'reposicion'),
             ])
-            # `recibido` se lee en Python (compute fresco) para no depender del
-            # valor almacenado aún sin volcar tras una recepción.
-            wo.apunts_qty_pdte_recepcion = sum(l.qty for l in lineas if not l.recibido)
+            pdte = 0.0
+            for linea in lineas:
+                pos = linea.purchase_order_ids.filtered(lambda p: p.state != 'cancel')
+                if not pos:
+                    continue  # sin compra vinculada → no bloquea
+                po_lines = pos.order_line
+                recibido = bool(po_lines) and all(
+                    (ln.qty_received or 0.0) >= (ln.product_qty or 0.0)
+                    for ln in po_lines
+                )
+                if not recibido:
+                    pdte += linea.qty
+            wo.apunts_qty_pdte_recepcion = pdte
+    lira_es_retrabajo    = fields.Boolean(string='Fase de retrabajo', default=False, copy=False)
     lira_supervisor_note = fields.Char(string='Motivo rechazo')
     lira_validated_by    = fields.Many2one('res.users', string='Validado por', readonly=True)
     lira_validated_date  = fields.Datetime(string='Validado el', readonly=True)

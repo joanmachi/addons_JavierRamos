@@ -42,6 +42,13 @@ class LiraValidateWizard(models.TransientModel):
         ('reposicion', 'Reposición — desechar y volver a fabricar (material nuevo)'),
     ], string='¿Qué hacer con las no validadas?')
 
+    # ── Retrabajo: fases adicionales a crear ──────────────────────────────
+    plantilla_retrabajo_id = fields.Many2one(
+        'lira.retrabajo.plantilla', string='Plantilla de retrabajo',
+        help='Rellena la tabla de fases automáticamente desde una plantilla guardada.')
+    fases_retrabajo_ids = fields.One2many(
+        'lira.validate.wizard.fase', 'wizard_id', string='Fases de retrabajo')
+
     # Motivo de calidad — obligatorio al enviar piezas a retrabajo/reposición.
     motivo = fields.Selection(
         MOTIVOS_REFABRICACION, string='Motivo de la rectificación')
@@ -72,6 +79,18 @@ class LiraValidateWizard(models.TransientModel):
             res['operator_names'] = ', '.join(emps.mapped('name'))
         return res
 
+    @api.onchange('plantilla_retrabajo_id')
+    def _onchange_plantilla_retrabajo_id(self):
+        if self.plantilla_retrabajo_id:
+            self.fases_retrabajo_ids = [(5,)] + [
+                (0, 0, {
+                    'nombre': l.nombre,
+                    'workcenter_id': l.workcenter_id.id,
+                    'secuencia': l.secuencia,
+                })
+                for l in self.plantilla_retrabajo_id.linea_ids
+            ]
+
     @api.depends('qty_pending', 'qty_to_validate')
     def _compute_qty_no_validada(self):
         for w in self:
@@ -98,6 +117,10 @@ class LiraValidateWizard(models.TransientModel):
         if no_val > 0 and not self.motivo:
             raise ValidationError(
                 "Indica el motivo de la rectificación (Retrabajo/Reposición)."
+            )
+        if no_val > 0 and self.accion_no_validada == 'retrabajo' and not self.fases_retrabajo_ids:
+            raise ValidationError(
+                "Define al menos una fase de retrabajo (nombre + centro de trabajo)."
             )
 
         # El write de qty_validated dispara el auto-trigger de
@@ -141,13 +164,14 @@ class LiraValidateWizard(models.TransientModel):
             else:
                 wo.lira_qty_retrabajo = (wo.lira_qty_retrabajo or 0.0) + no_val
                 etiqueta = "RETRABAJO (reprocesar las mismas piezas)"
-                # Retrabajo: NO consume material nuevo (se reaprovecha la pieza).
-                # El coste sube solo por la mano de obra del reproceso (fichaje).
+                # Retrabajo: NO consume material nuevo. Se crean fases extra en la
+                # misma OF para que los operarios puedan reprocesar las piezas.
+                wos_retrabajo = self._crear_workorders_retrabajo(wo, no_val)
 
             motivo_label = dict(MOTIVOS_REFABRICACION).get(self.motivo, self.motivo)
             # Línea de trazabilidad: qué operarios, cuántas piezas, acción, motivo
             # y las compras de reposición vinculadas (para liberar al recibir).
-            self.env['lira.refabricacion.linea'].create({
+            refab_vals = {
                 'workorder_id': wo.id,
                 'production_id': prod.id,
                 'employee_ids': [(6, 0, self.employee_responsable_ids.ids)],
@@ -156,7 +180,10 @@ class LiraValidateWizard(models.TransientModel):
                 'motivo': self.motivo,
                 'supervisor_id': self.env.user.id,
                 'purchase_order_ids': [(6, 0, pos.ids)],
-            })
+            }
+            if self.accion_no_validada == 'retrabajo':
+                refab_vals['workorder_retrabajo_ids'] = [(6, 0, wos_retrabajo.ids)]
+            self.env['lira.refabricacion.linea'].create(refab_vals)
             # Reposición: las piezas quedan PENDIENTES DE RECEPCIÓN (no se pueden
             # fabricar) hasta que llegue el material comprado.
             if self.accion_no_validada == 'reposicion':
@@ -229,6 +256,34 @@ class LiraValidateWizard(models.TransientModel):
                 'order_line': lineas,
             })
         return pos, sin_proveedor
+
+    def _crear_workorders_retrabajo(self, wo, qty):
+        """Crea fases de retrabajo en la misma OF para reprocesar `qty` piezas.
+        Las fases se encadenan entre sí; la primera recibe `prev_validated_qty=qty`
+        para que las piezas estén disponibles de inmediato en la PDA.
+        Devuelve el recordset de mrp.workorder creados."""
+        prod = wo.production_id
+        max_seq = max(prod.workorder_ids.mapped('sequence') or [0])
+        fases = self.fases_retrabajo_ids.sorted('secuencia')
+        created = self.env['mrp.workorder']
+        prev_wo = None
+        for i, fase in enumerate(fases):
+            new_wo = self.env['mrp.workorder'].create({
+                'name': fase.nombre,
+                'workcenter_id': fase.workcenter_id.id,
+                'production_id': prod.id,
+                'qty_production': qty,
+                'sequence': max_seq + (i + 1) * 10,
+                'lira_es_retrabajo': True,
+            })
+            if prev_wo is None:
+                # Primera fase: piezas disponibles de inmediato
+                new_wo.prev_validated_qty = qty
+            else:
+                new_wo.previous_workorder_id = prev_wo
+            prev_wo = new_wo
+            created |= new_wo
+        return created
 
     def action_reject(self):
         self.ensure_one()

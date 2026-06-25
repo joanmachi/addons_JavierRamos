@@ -26,4 +26,10 @@
             sequence="3"
             action="lira_mfg_supervisor.action_lira_refabricacion"/>
 
+  <menuitem id="menu_lira_retrabajo_plantillas"
+            name="Plantillas de retrabajo"
+            parent="menu_lira_supervisor_root"
+            sequence="10"
+            action="lira_mfg_supervisor.action_lira_retrabajo_plantilla"/>
+
 </odoo>

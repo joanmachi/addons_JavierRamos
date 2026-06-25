@@ -55,6 +55,10 @@ class LiraRefabricacionLinea(models.Model):
             rec.recibido = bool(lineas) and all(
                 (l.qty_received or 0.0) >= (l.product_qty or 0.0) for l in lineas
             )
+    # Fases de retrabajo creadas para estas piezas (solo si accion=retrabajo).
+    workorder_retrabajo_ids = fields.Many2many(
+        'mrp.workorder', 'lira_refab_wo_rel', 'refab_id', 'wo_id',
+        string='Fases de retrabajo', copy=False)
     motivo = fields.Selection(
         MOTIVOS_REFABRICACION, string='Motivo', required=True, index=True)
     supervisor_id = fields.Many2one(
