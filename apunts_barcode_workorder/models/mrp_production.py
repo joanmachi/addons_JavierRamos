@@ -264,6 +264,33 @@ class ManufacturingOrder(models.Model):
                     bo_wo.id, bo_wo.name, vals,
                 )
 
+    def _apunts_reficher_en_backorder(self, backorder, fichados_por_clave):
+        """Re-ficha en el back-order los empleados que estaban fichados en la OF madre.
+
+        Cuando cerramos la OF (button_mark_done), los fichajes abiertos se cierran.
+        Si hay backorder, recreamos el fichaje en la fase equivalente para que el
+        operario pueda seguir trabajando o al menos cerrar su jornada correctamente.
+        """
+        self.ensure_one()
+        for bo_wo in backorder.workorder_ids:
+            clave = self._apunts_wo_match_key(bo_wo)
+            emp_ids = fichados_por_clave.get(clave, [])
+            for emp_id in emp_ids:
+                try:
+                    bo_wo.with_context(**{APUNTS_AUTO_BACKORDER_CTX: True}).start_employee(
+                        employee_id=emp_id
+                    )
+                    _logger.info(
+                        "[apunts_auto_backorder] Empleado %s re-fichado en WO %s (%s) del back-order %s",
+                        emp_id, bo_wo.id, bo_wo.name, backorder.name,
+                    )
+                except Exception:
+                    _logger.warning(
+                        "[apunts_auto_backorder] No se pudo re-fichar empleado %s en WO %s del back-order %s",
+                        emp_id, bo_wo.id, backorder.name,
+                        exc_info=True,
+                    )
+
     def _apunts_resolver_cadena_wizards(self, action, max_loops=5):
         """Sigue la cadena de wizards lanzados por button_mark_done hasta que
         la accion sea None (cierre completado) o se exceda el limite.
@@ -388,6 +415,29 @@ class ManufacturingOrder(models.Model):
             if move.move_line_ids:
                 move.move_line_ids.with_context(**{APUNTS_AUTO_BACKORDER_CTX: True}).unlink()
 
+        # Capturar empleados fichados ANTES de que button_mark_done los cierre.
+        # En nuestro flujo personalizado no podemos garantizar que Odoo llame
+        # _stop_all_employees correctamente (depende de _do_finish en cada WO).
+        # Los cerramos explícitamente aquí para que no queden fichajes huérfanos,
+        # y guardamos los ids para re-ficharlos en el back-order después.
+        now = fields.Datetime.now()
+        fichados_por_clave = {}
+        for wo in self.workorder_ids:
+            open_times = wo.time_ids.filtered(lambda t: not t.date_end)
+            if not open_times:
+                continue
+            clave = self._apunts_wo_match_key(wo)
+            fichados_por_clave[clave] = open_times.mapped('employee_id').ids
+            # Cerrar explícitamente el registro de productividad y desfichar
+            open_times.write({'date_end': now})
+            wo.with_context(**{APUNTS_AUTO_BACKORDER_CTX: True}).write(
+                {'employee_ids': [(5,)]}
+            )
+            _logger.info(
+                "[apunts_auto_backorder] OF %s WO %s: cerrados %d fichajes abiertos antes de cerrar",
+                self.name, wo.name, len(open_times),
+            )
+
         # Decidir cierre con o sin back-order
         cmp = float_compare(qty_a_producir, product_qty, precision_rounding=rounding)
         ctx_base = {APUNTS_AUTO_BACKORDER_CTX: True}
@@ -413,6 +463,10 @@ class ManufacturingOrder(models.Model):
                     backorder = self._apunts_localizar_backorder()
                     if backorder:
                         self._apunts_transferir_excedente_backorder(backorder, snapshot)
+                        # Re-fichar en el back-order a los operarios que estaban
+                        # trabajando en la OF madre para que puedan seguir.
+                        if fichados_por_clave:
+                            self._apunts_reficher_en_backorder(backorder, fichados_por_clave)
                         _logger.info(
                             "[apunts_auto_backorder] Back-order generada: %s (id=%s, qty=%s)",
                             backorder.name, backorder.id, backorder.product_qty,

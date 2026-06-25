@@ -311,7 +311,7 @@ BARCODE (vista empleados):
 Informar en que centro se realiza cada fase - HECHO
 Realizar posibilidad de mostrar y ocultar células conforme queramos. - HECHO
 Comprobar que las piezas que hemos realizado no sean superiores a las pendientes de realizar en una fase de una OF - HECHO
-- Se ha solucionado el problema de los permisos (galletas)
+- Se ha solucionado el problema de los permisos (galletas) - HECHO
 
 
 WIP:
@@ -327,7 +327,16 @@ SUPERVISOR PLANTA:
 Trazabilidad de validaciones incorrectas. - HECHO
 Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
 Registro del empleado que ha enviado a validar piezas - HECHO
-Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo. - PENDIENTE
+Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo. - HECHO (25/06/2026)
+  CAUSA: button_mark_done cierra la OF madre pero en el flujo auto-backorder
+  personalizado no se garantizaba que _stop_all_employees() llamase correctamente
+  en todas las WOs -> fichajes (mrp.workcenter.productivity) quedaban sin date_end.
+  SOLUCIÓN (apunts_barcode_workorder/_apunts_auto_producir_y_backorder):
+  1) Antes de button_mark_done: capturar empleados fichados (time_ids sin date_end),
+     cerrar sus registros de productividad (date_end=now) y vaciar employee_ids.
+  2) Después de crear el back-order: re-fichar esos empleados en las WOs
+     equivalentes del back-order (_apunts_reficher_en_backorder) para que puedan
+     continuar trabajando o cerrar su jornada sin interrupciones.
 Hay una opción de rechazar las piezas que no hace exactamente el mismo flujo de trabajo que si las validamos y ponemos a 0. - HECHO (25/06/2026)
   Botón "Rechazar" abre el mismo wizard que "Validar" con qty_to_validate=0,
   forzando que todas las piezas pasen por el flujo retrabajo/reposición + motivo.
