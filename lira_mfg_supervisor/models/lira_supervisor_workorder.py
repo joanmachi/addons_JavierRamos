@@ -180,17 +180,19 @@ class LiraSupervisorWorkorder(models.Model):
         }
 
     def action_open_reject_wizard(self):
+        # Abre el mismo flujo que "validar 0": todas las piezas van a no-validadas
+        # y el supervisor decide retrabajo/reposición + motivo + fases.
         return {
-            'name': 'Rechazar cantidad',
+            'name': 'Rechazar — indicar qué hacer con las piezas',
             'type': 'ir.actions.act_window',
             'res_model': 'lira.validate.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {
                 'default_workorder_id': self.id,
-                'default_qty_to_validate': self.qty_ready_to_validate,
+                'default_qty_to_validate': 0,
                 'default_qty_pending': self.qty_ready_to_validate,
-                'default_wizard_mode': 'reject',
+                'default_wizard_mode': 'validate',
             },
         }
 

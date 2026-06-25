@@ -311,7 +311,7 @@ BARCODE (vista empleados):
 Informar en que centro se realiza cada fase - HECHO
 Realizar posibilidad de mostrar y ocultar células conforme queramos. - HECHO
 Comprobar que las piezas que hemos realizado no sean superiores a las pendientes de realizar en una fase de una OF - HECHO
-¿Se ha solucionado lo del sale.orderline permisos?
+- Se ha solucionado el problema de los permisos (galletas)
 
 
 WIP:
@@ -328,6 +328,9 @@ Trazabilidad de validaciones incorrectas. - HECHO
 Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
 Registro del empleado que ha enviado a validar piezas - HECHO
 Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo. - PENDIENTE
+Hay una opción de rechazar las piezas que no hace exactamente el mismo flujo de trabajo que si las validamos y ponemos a 0. - HECHO (25/06/2026)
+  Botón "Rechazar" abre el mismo wizard que "Validar" con qty_to_validate=0,
+  forzando que todas las piezas pasen por el flujo retrabajo/reposición + motivo.
 
 FABRICACIÓN:
 Para generar una OF, puedes pedir el material como tratamientos y empezar antes de realizarlo. Mi idea es que para que deje realizar la OF no se tenga que pedir ni nada. Mas que nada porque no se debería de realizar un seguimiento de dichos productos. No estan ni en el almacén. Se envían fuera.
@@ -363,4 +366,16 @@ Refabricación en caso de nuevas piezas deberemos de realizar una nueva compra e
     lira/models/purchase_order.py). Liberación = compra TOTALMENTE recibida.
   - Acotado a reposición (lo dispara el supervisor); NO es fabricación parcial
     general (evita el caos de compras/recepciones parciales en todas las OFs).
+
+RETRABAJO con fases de reproceso - HECHO (25/06/2026)
+  Al confirmar RETRABAJO en el panel supervisor, se puede elegir:
+  - Nueva(s) fase(s): crea mrp.workorder nuevos en la misma OF con plantilla o manual.
+    Las piezas aparecen disponibles en la PDA con la cantidad correcta (lira_qty_retrabajo_fase).
+  - Fase existente: añade piezas a una fase de retrabajo ya creada.
+  - Misma fase original: sin nueva fase, las piezas vuelven al flujo normal.
+  La "Por hacer" de la fase original descuenta automáticamente las piezas pendientes
+  en fases de retrabajo activas.
+  Plantillas de retrabajo: menú "Plantillas de retrabajo" en Supervisor Planta para
+  guardar conjuntos de fases reutilizables.
+  Módulo: lira_mfg_supervisor. Requiere -u para lira_qty_retrabajo_fase.
 
