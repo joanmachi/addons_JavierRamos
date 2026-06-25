@@ -304,6 +304,7 @@ Filtro motivo corrección - HECHO
 Division de historicos (presencia y planta) en la misma vista - HECHO
 Informe histórico presencia (presencia + aunsencias) y PDF - HECHO
 Selection del motivo corrección: falta of, responsablidad operario, fuerza mayor. - HECHO
+Si en la lista de los operarios bloqueados ahora mismo, no le ponemos ningun motivo ni ninguna of me deja desbloquear sin dar ninguna explicación - PENDIENTE
 
 
 BARCODE (vista empleados):
@@ -326,7 +327,7 @@ SUPERVISOR PLANTA:
 Trazabilidad de validaciones incorrectas. - HECHO
 Motivo de validación incorrecta (mala interpretación intruc,. fallos medios produc., mala ejecucion) - HECHO
 Registro del empleado que ha enviado a validar piezas - HECHO
-Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo.
+Cuando se validan las piezas, al crearse otra of, si hay un operario fichado es como que nunca ha acabado ese fichaje y además no le dará la oportunidad de cerrar ese fichaje. Esto es un error grave y debemos de solucionarlo. - PENDIENTE
 
 FABRICACIÓN:
 Para generar una OF, puedes pedir el material como tratamientos y empezar antes de realizarlo. Mi idea es que para que deje realizar la OF no se tenga que pedir ni nada. Mas que nada porque no se debería de realizar un seguimiento de dichos productos. No estan ni en el almacén. Se envían fuera.
@@ -348,4 +349,18 @@ Refabricación en caso de nuevas piezas deberemos de realizar una nueva compra e
   - Productos sin proveedor: se avisan en el chatter para añadirlos a mano.
   Mantenimiento: campo apunts_es_reposicion en purchase.order.line
   (apunts_jr_wip_costes_of); helper _apunts_reposicion_po_total en mrp.production.
+
+  [REFINAMIENTO 25/06] PENDIENTE DE RECEPCIÓN: las piezas en reposición NO tienen
+  material físico (se compra), así que NO se pueden fabricar/validar hasta que
+  llegue la compra. Mecanismo:
+  - Campo apunts_qty_pdte_recepcion en mrp.workorder (apunts_barcode_workorder):
+    se resta de "por hacer", baja el tope de validación, sale como columna
+    "Pdte. recepción" en la PDA y EVITA que la fase se oculte si es > 0.
+  - lira: la línea de refabricación guarda las compras (purchase_order_ids) y un
+    campo recibido (todas las compras totalmente recibidas). El método
+    mrp.workorder._lira_recompute_pdte_recepcion suma las reposiciones no
+    recibidas. Se libera al recibir (hook en purchase.order.line.write qty_received,
+    lira/models/purchase_order.py). Liberación = compra TOTALMENTE recibida.
+  - Acotado a reposición (lo dispara el supervisor); NO es fabricación parcial
+    general (evita el caos de compras/recepciones parciales en todas las OFs).
 

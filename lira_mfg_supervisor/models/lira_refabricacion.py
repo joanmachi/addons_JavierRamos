@@ -31,6 +31,30 @@ class LiraRefabricacionLinea(models.Model):
         ('retrabajo', 'Retrabajo'),
         ('reposicion', 'Reposición'),
     ], string='Acción', required=True)
+    # Compras de material generadas para reponer estas piezas (una por proveedor).
+    purchase_order_ids = fields.Many2many(
+        'purchase.order', 'lira_refab_po_rel', 'refab_id', 'po_id',
+        string='Compras de reposición', copy=False)
+    recibido = fields.Boolean(
+        string='Material recibido', compute='_compute_recibido', store=True,
+        help='El material comprado para reponer estas piezas ya ha llegado '
+             '(todas las compras de reposición están totalmente recibidas). '
+             'Hasta entonces las piezas quedan pendientes de recepción.')
+
+    @api.depends('purchase_order_ids.order_line.qty_received',
+                 'purchase_order_ids.order_line.product_qty',
+                 'purchase_order_ids.state')
+    def _compute_recibido(self):
+        for rec in self:
+            pos = rec.purchase_order_ids.filtered(lambda p: p.state != 'cancel')
+            if rec.accion != 'reposicion' or not pos:
+                # Retrabajo (sin compra) o sin compras vinculadas: no bloquea.
+                rec.recibido = True
+                continue
+            lineas = pos.order_line
+            rec.recibido = bool(lineas) and all(
+                (l.qty_received or 0.0) >= (l.product_qty or 0.0) for l in lineas
+            )
     motivo = fields.Selection(
         MOTIVOS_REFABRICACION, string='Motivo', required=True, index=True)
     supervisor_id = fields.Many2one(

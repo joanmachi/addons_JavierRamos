@@ -60,7 +60,7 @@ patch(MainComponent.prototype, {
     },
     async openQtyDialog(wo) {
         const woName = (wo && wo.name) ? wo.name : "Orden de trabajo";
-        const max = wo.prev_validated_qty - wo.qty_ready_to_validate;
+        const max = wo.prev_validated_qty - wo.qty_ready_to_validate - (wo.apunts_qty_pdte_recepcion || 0);
         this.env.services.dialog.add(QtyInputDialog, { 
             maxQty: max,
             title: woName,

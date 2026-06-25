@@ -20,6 +20,14 @@ class WorkOrder(models.Model):
 
     qty_ready_to_validate = fields.Float(string="Cant. por validar", default=0.0, copy=False)
     qty_validated = fields.Float(string="Cant. validada", default=0.0, copy=False)
+    # Piezas de esta fase pendientes de RECIBIR el material comprado para
+    # reponerlas (refabricación): no tienen material físico todavía, así que NO
+    # cuentan como "por hacer" ni se pueden validar hasta que llegue la compra.
+    # Lo rellena/libera lira_mfg_supervisor (reposición). Aquí solo es el mecanismo.
+    apunts_qty_pdte_recepcion = fields.Float(
+        string="Pdte. recepción", default=0.0, copy=False,
+        help="Piezas a reponer cuyo material comprado aún no se ha recibido. "
+             "Bloqueadas para producir/validar hasta la recepción de la compra.")
     prev_validated_qty = fields.Float(
         string="Qty from Previous Stage", 
         compute="_compute_prev_validated_qty"
@@ -46,7 +54,10 @@ class WorkOrder(models.Model):
         self.ensure_one()
         val = self.qty_validated if qty_validated is None else qty_validated
         capacidad = (self.prev_validated_qty or 0.0) + (self.qty_validated or 0.0)
-        return max(capacidad - (val or 0.0), 0.0)
+        # Las piezas pendientes de recibir material (reposición) NO se pueden
+        # registrar todavía: se descuentan del tope.
+        pdte = self.apunts_qty_pdte_recepcion or 0.0
+        return max(capacidad - (val or 0.0) - pdte, 0.0)
 
     @api.depends('production_id.workorder_ids.qty_validated')
     def _compute_prev_validated_qty(self):
@@ -111,6 +122,7 @@ class WorkOrder(models.Model):
             'qty_ready_to_validate',
             'qty_validated',
             'prev_validated_qty',
+            'apunts_qty_pdte_recepcion',
             'texto_fichados',
         ]
     def _get_stock_barcode_data(self):

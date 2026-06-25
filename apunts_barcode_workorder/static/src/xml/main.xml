@@ -246,7 +246,7 @@
                 <t t-if="env.model.empleadoElegido">
                     <t t-set="orden_activa" t-value="env.model.workorderLines.find(o => o.employee_ids.includes(env.model.empleadoElegido.id))"/>
                     <t t-if="orden_activa">
-                        <t t-set="piezas_restantes" t-value="orden_activa.prev_validated_qty - orden_activa.qty_ready_to_validate"/>
+                        <t t-set="piezas_restantes" t-value="orden_activa.prev_validated_qty - orden_activa.qty_ready_to_validate - (orden_activa.apunts_qty_pdte_recepcion || 0)"/>
                         <div class="apunts-active-bar">
                             <div class="apunts-active-left">
                                 <span class="apunts-active-pulse"/>
@@ -276,7 +276,7 @@
                      de validar (ya terminadas o aun sin piezas). -->
                 <t t-foreach="env.model.workorderLines" t-as="orden" t-key="orden.id">
                     <t t-set="is_active"  t-value="env.model.empleadoElegido and orden.employee_ids.includes(env.model.empleadoElegido.id)"/>
-                    <t t-set="apunts_fase_oculta" t-value="(orden.prev_validated_qty - orden.qty_ready_to_validate) &lt;= 0 and orden.qty_ready_to_validate &lt;= 0"/>
+                    <t t-set="apunts_fase_oculta" t-value="(orden.prev_validated_qty - orden.qty_ready_to_validate - (orden.apunts_qty_pdte_recepcion || 0)) &lt;= 0 and orden.qty_ready_to_validate &lt;= 0 and (orden.apunts_qty_pdte_recepcion || 0) &lt;= 0"/>
                     <t t-set="is_done"    t-value="0 >= orden.qty_remaining"/>
                     <t t-set="is_waiting" t-value="orden.prev_validated_qty == 0"/>
                     <t t-set="total_qty"  t-value="env.model.product_qty"/>
@@ -321,12 +321,12 @@
                                     <button class="apunts-qty2-num apunts-qty2-tapable"
                                             t-att-disabled="is_waiting"
                                             t-on-click="() => this.openQtyDialog(orden)">
-                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate"/>
+                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate - (orden.apunts_qty_pdte_recepcion || 0)"/>
                                     </button>
                                 </t>
                                 <t t-else="">
                                     <span class="apunts-qty2-num apunts-qty2-disabled">
-                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate"/>
+                                        <t t-esc="orden.prev_validated_qty - orden.qty_ready_to_validate - (orden.apunts_qty_pdte_recepcion || 0)"/>
                                     </span>
                                 </t>
                             </div>
@@ -337,6 +337,15 @@
                                     <t t-esc="orden.qty_ready_to_validate"/>
                                 </span>
                             </div>
+                            <t t-if="(orden.apunts_qty_pdte_recepcion || 0) > 0">
+                                <div class="apunts-qty2-sep"/>
+                                <div class="apunts-qty2-block">
+                                    <span class="apunts-qty2-lbl">Pdte. recepción</span>
+                                    <span class="apunts-qty2-num" style="color:#b36b00;">
+                                        <t t-esc="orden.apunts_qty_pdte_recepcion"/>
+                                    </span>
+                                </div>
+                            </t>
                         </div>
 
                         <!-- Fichados (solo si no es la activa) -->

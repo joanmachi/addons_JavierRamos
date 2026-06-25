@@ -124,6 +124,7 @@ class LiraValidateWizard(models.TransientModel):
         if no_val > 0:
             prod = wo.production_id
             compras_info = ""
+            pos = self.env['purchase.order']
             if self.accion_no_validada == 'reposicion':
                 wo.lira_qty_reposicion = (wo.lira_qty_reposicion or 0.0) + no_val
                 etiqueta = "REPOSICIÓN (desechar y volver a fabricar)"
@@ -144,7 +145,8 @@ class LiraValidateWizard(models.TransientModel):
                 # El coste sube solo por la mano de obra del reproceso (fichaje).
 
             motivo_label = dict(MOTIVOS_REFABRICACION).get(self.motivo, self.motivo)
-            # Línea de trazabilidad: qué operarios, cuántas piezas, acción y motivo.
+            # Línea de trazabilidad: qué operarios, cuántas piezas, acción, motivo
+            # y las compras de reposición vinculadas (para liberar al recibir).
             self.env['lira.refabricacion.linea'].create({
                 'workorder_id': wo.id,
                 'production_id': prod.id,
@@ -153,7 +155,12 @@ class LiraValidateWizard(models.TransientModel):
                 'accion': self.accion_no_validada,
                 'motivo': self.motivo,
                 'supervisor_id': self.env.user.id,
+                'purchase_order_ids': [(6, 0, pos.ids)],
             })
+            # Reposición: las piezas quedan PENDIENTES DE RECEPCIÓN (no se pueden
+            # fabricar) hasta que llegue el material comprado.
+            if self.accion_no_validada == 'reposicion':
+                wo._lira_recompute_pdte_recepcion()
             wo.production_id.message_post(body=(
                 "Supervisor %(user)s — fase %(wo)s: %(val)s uds validadas, "
                 "%(no)s uds NO validadas → <b>%(et)s</b>. Motivo: <b>%(mot)s</b>. "

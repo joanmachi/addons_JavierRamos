@@ -18,6 +18,23 @@ class LiraSupervisorWorkorder(models.Model):
 
     lira_date_ready      = fields.Datetime(string='Entregado el', readonly=True)
     lira_waiting_minutes = fields.Integer(string='Espera (min)', compute='_compute_lira_waiting_minutes')
+
+    def _lira_recompute_pdte_recepcion(self):
+        """Recalcula apunts_qty_pdte_recepcion (campo del PDA, módulo barcode):
+        suma de piezas de las reposiciones de la fase cuyo material comprado aún
+        NO ha llegado (línea de refabricación no 'recibido'). Al recibirse la
+        compra, esa reposición deja de sumar y las piezas pasan a 'por hacer'."""
+        Lin = self.env['lira.refabricacion.linea']
+        for wo in self:
+            if 'apunts_qty_pdte_recepcion' not in wo._fields:
+                continue
+            lineas = Lin.search([
+                ('workorder_id', '=', wo.id),
+                ('accion', '=', 'reposicion'),
+            ])
+            # `recibido` se lee en Python (compute fresco) para no depender del
+            # valor almacenado aún sin volcar tras una recepción.
+            wo.apunts_qty_pdte_recepcion = sum(l.qty for l in lineas if not l.recibido)
     lira_supervisor_note = fields.Char(string='Motivo rechazo')
     lira_validated_by    = fields.Many2one('res.users', string='Validado por', readonly=True)
     lira_validated_date  = fields.Datetime(string='Validado el', readonly=True)
