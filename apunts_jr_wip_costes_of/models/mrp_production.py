@@ -94,15 +94,16 @@ class MrpProduction(models.Model):
     )
     apunts_mat_reposicion_extra = fields.Monetary(
         string="MP extra por reposición (€)",
-        default=0.0,
+        compute="_compute_apunts_wip_costs",
         store=True,
         currency_field="company_currency_id",
         copy=False,
         help=(
-            "Material ADICIONAL consumido al reponer piezas no validadas "
-            "(desechadas y vueltas a fabricar) desde el panel de supervisor.\n"
-            "Se acumula proporcional al consumo ya registrado y se SUMA al MP "
-            "real y al coste total. El retrabajo NO suma aquí (solo mano de obra)."
+            "Material ADICIONAL por reponer piezas no validadas (desechadas y "
+            "vueltas a fabricar) desde el panel de supervisor. Es el importe REAL "
+            "de los pedidos de compra de reposición vinculados a la OF "
+            "(líneas con 'Compra por reposición'), NO una estimación. Se SUMA al "
+            "MP real y al coste total. El retrabajo NO suma aquí (solo mano de obra)."
         ),
     )
     apunts_mo_real_total = fields.Monetary(
@@ -464,7 +465,6 @@ class MrpProduction(models.Model):
         "workorder_ids.workcenter_id.costs_hour",
         "workorder_ids.workcenter_id.apunts_amort_hour",
         "apunts_productivity_trigger",
-        "apunts_mat_reposicion_extra",
     )
     def _compute_apunts_wip_costs(self):
         for prod in self:
@@ -499,7 +499,12 @@ class MrpProduction(models.Model):
                 self._apunts_workorder_totals_real(prod)
             )
 
-            mat_extra = prod.apunts_mat_reposicion_extra or 0.0
+            # MP extra por reposición = importe REAL de los pedidos de compra de
+            # reposición vinculados a la OF (no una estimación). Se cuenta desde
+            # que existe la compra; las líneas de reposición se excluyen del
+            # material consumido (en _apunts_mp_total_real) para no duplicar.
+            mat_extra = self._apunts_reposicion_po_total(prod)
+            prod.apunts_mat_reposicion_extra = mat_extra
             prod.apunts_qty_pending = qty_pending
             prod.apunts_cost_total_planned = (
                 mp_total_plan + mo_total_plan + machine_total_plan + amort_total_plan
@@ -574,10 +579,15 @@ class MrpProduction(models.Model):
         POL = self.env["purchase.order.line"]
         precio_po = {}
         if "fabricacion" in POL._fields:
-            pols = POL.search([
+            dom = [
                 ("fabricacion", "=", prod.id),
                 ("order_id.state", "in", ("purchase", "done")),
-            ])
+            ]
+            # Excluir compras de reposición: su coste se cuenta aparte
+            # (apunts_mat_reposicion_extra) para no duplicarlo.
+            if "apunts_es_reposicion" in POL._fields:
+                dom.append(("apunts_es_reposicion", "=", False))
+            pols = POL.search(dom)
             for pol in pols:
                 if pol.price_unit:
                     precio = pol.price_unit
@@ -604,6 +614,21 @@ class MrpProduction(models.Model):
                 price = self._apunts_get_product_cost(m.product_id, prod)
             total += qty_consumida * price
         return total
+
+    def _apunts_reposicion_po_total(self, prod):
+        """Importe (price_subtotal) de las líneas de compra de REPOSICIÓN
+        vinculadas a la OF. Cuenta desde que la compra existe (cualquier estado
+        salvo cancelada). Es el coste REAL de material extra por rehacer piezas
+        no validadas — sustituye a la estimación anterior."""
+        POL = self.env["purchase.order.line"]
+        if "fabricacion" not in POL._fields or "apunts_es_reposicion" not in POL._fields:
+            return 0.0
+        pols = POL.search([
+            ("fabricacion", "=", prod.id),
+            ("apunts_es_reposicion", "=", True),
+            ("state", "not in", ("cancel",)),
+        ])
+        return sum(pols.mapped("price_subtotal"))
 
     def _apunts_material_real(self):
         # Override del módulo apunts_costes_of: una sola fuente de verdad

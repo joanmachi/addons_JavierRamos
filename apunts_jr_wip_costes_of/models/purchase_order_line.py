@@ -1,4 +1,4 @@
-from odoo import models
+from odoo import fields, models
 
 _WIP_FIELDS = [
     "apunts_is_wip",
@@ -12,9 +12,10 @@ _WIP_FIELDS = [
     "apunts_machine_planned_total",
     "apunts_bom_incompleta",
     "apunts_qty_pending",
+    "apunts_mat_reposicion_extra",
 ]
 
-_TRIGGER_FIELDS = {"qty_received", "fabricacion", "price_unit", "price_subtotal", "product_qty"}
+_TRIGGER_FIELDS = {"qty_received", "fabricacion", "price_unit", "price_subtotal", "product_qty", "apunts_es_reposicion"}
 
 _PRODUCT_COST_TRIGGER_FIELDS = {"qty_received", "price_unit", "price_subtotal", "product_id"}
 _PRODUCT_COST_FIELDS = ["apunts_coste_real", "apunts_coste_fuente"]
@@ -41,6 +42,17 @@ def _of_ids_from_pols(pols):
 
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
+
+    apunts_es_reposicion = fields.Boolean(
+        string="Compra por reposición",
+        default=False,
+        copy=False,
+        index=True,
+        help="Marca las líneas de compra generadas para REPONER piezas no validadas "
+             "de una OF (refabricación). Su importe se suma al coste real de la OF como "
+             "MP extra por reposición, y se EXCLUYE del precio de material consumido para "
+             "no contar el coste dos veces.",
+    )
 
     def write(self, vals):
         wip_triggered = bool(_TRIGGER_FIELDS.intersection(vals))

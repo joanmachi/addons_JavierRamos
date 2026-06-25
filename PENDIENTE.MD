@@ -333,5 +333,19 @@ Para generar una OF, puedes pedir el material como tratamientos y empezar antes 
 
 Para los productos de galbanizar, se hace un pedido de compra a un proveedor. Se debe de realizar algo para poder albaranizar sin cerrar la produccion y que luego se actualize el WIP.
 
-Refabricación en caso de nuevas piezas deberemos de realizar una nueva compra etc. Subir el coste (ahora se sube, pero si hacemos la compra se hará doble) vamos la operativa real que se hará a la hora de refabricar comprando. - PENDIENTE
+Refabricación en caso de nuevas piezas deberemos de realizar una nueva compra etc. Subir el coste (ahora se sube, pero si hacemos la compra se hará doble) vamos la operativa real que se hará a la hora de refabricar comprando. - HECHO (25/06/2026)
+  Al confirmar REPOSICIÓN en el panel supervisor (lira_validate_wizard):
+  - Se crea pedido(s) de compra en BORRADOR con los componentes de la OF
+    (move_raw) proporcionales a las piezas a reponer, agrupados por proveedor
+    preferido, vinculados a la OF (campo fabricacion) y marcados con el flag
+    apunts_es_reposicion. Se crea con sudo (el supervisor puede no tener compras).
+  - El coste real del WIP (apunts_mat_reposicion_extra) YA NO se estima: es el
+    importe (price_subtotal) de esas compras de reposición, contado desde que la
+    compra existe (cualquier estado salvo cancelada).
+  - Sin doble conteo: las líneas de reposición se EXCLUYEN del material consumido
+    (_apunts_mp_total_real / precio_po). Verificado: consumido no cambia, el coste
+    sube exactamente el importe de la compra.
+  - Productos sin proveedor: se avisan en el chatter para añadirlos a mano.
+  Mantenimiento: campo apunts_es_reposicion en purchase.order.line
+  (apunts_jr_wip_costes_of); helper _apunts_reposicion_po_total en mrp.production.
 

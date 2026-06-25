@@ -123,20 +123,20 @@ class LiraValidateWizard(models.TransientModel):
 
         if no_val > 0:
             prod = wo.production_id
+            compras_info = ""
             if self.accion_no_validada == 'reposicion':
                 wo.lira_qty_reposicion = (wo.lira_qty_reposicion or 0.0) + no_val
                 etiqueta = "REPOSICIÓN (desechar y volver a fabricar)"
-                # Material extra: se consume material nuevo para rehacer las
-                # piezas desechadas. Proporcional al consumo ya registrado:
-                #   extra (€) = material_base_OF × (piezas_repuestas / entregadas)
-                # Se acumula en la OF y el módulo de coste lo suma al MP real.
-                if 'apunts_mat_reposicion_extra' in prod._fields and self.qty_pending:
-                    mat_base = prod._apunts_mp_total_real(prod)
-                    extra = mat_base * (no_val / self.qty_pending)
-                    if extra:
-                        prod.apunts_mat_reposicion_extra = (
-                            prod.apunts_mat_reposicion_extra or 0.0
-                        ) + extra
+                # Operativa real: para rehacer las piezas desechadas hay que
+                # COMPRAR material nuevo. Creamos pedido(s) de compra en borrador
+                # con los componentes proporcionales, vinculados a la OF. El coste
+                # real lo coge el WIP del importe de esas compras (no se estima),
+                # así que NO se duplica.
+                pos, sin_prov = self._crear_compra_reposicion(prod, no_val)
+                if pos:
+                    compras_info = " Compra(s) de reposición creada(s) (borrador): %s." % ', '.join(pos.mapped('name'))
+                if sin_prov:
+                    compras_info += " ⚠ Sin proveedor (añádelos a mano): %s." % ', '.join(sin_prov)
             else:
                 wo.lira_qty_retrabajo = (wo.lira_qty_retrabajo or 0.0) + no_val
                 etiqueta = "RETRABAJO (reprocesar las mismas piezas)"
@@ -158,11 +158,13 @@ class LiraValidateWizard(models.TransientModel):
                 "Supervisor %(user)s — fase %(wo)s: %(val)s uds validadas, "
                 "%(no)s uds NO validadas → <b>%(et)s</b>. Motivo: <b>%(mot)s</b>. "
                 "Operarios: %(emp)s. Las no validadas vuelven a producción para completarse."
+                "%(compras)s"
             ) % {
                 'user': self.env.user.name, 'wo': wo.name,
                 'val': qty, 'no': no_val, 'et': etiqueta,
                 'mot': motivo_label,
                 'emp': ', '.join(self.employee_responsable_ids.mapped('name')) or '—',
+                'compras': compras_info,
             })
 
         activities = self.env['mail.activity'].search([
@@ -177,6 +179,49 @@ class LiraValidateWizard(models.TransientModel):
 
         self.env.user._bus_send("barcode_refresh_requested", {'production_id': wo.production_id.id})
         return {'type': 'ir.actions.act_window_close'}
+
+    def _crear_compra_reposicion(self, prod, no_val):
+        """Crea pedido(s) de compra en BORRADOR para reponer `no_val` piezas:
+        componentes de la OF (move_raw) en cantidad proporcional, agrupados por
+        proveedor preferido, vinculados a la OF (fabricacion) y marcados como
+        reposición (apunts_es_reposicion). El WIP suma su importe como MP extra.
+
+        Devuelve (purchase.orders creados, [nombres de productos sin proveedor]).
+        Se crea con sudo: el supervisor puede no tener permisos de compras."""
+        POrders = self.env['purchase.order'].sudo()
+        if not prod.product_qty:
+            return POrders.browse(), []
+        ratio = no_val / prod.product_qty
+        por_proveedor = {}   # partner_id -> [líneas]
+        sin_proveedor = []
+        for m in prod.move_raw_ids:
+            if m.state == 'cancel' or not m.product_id:
+                continue
+            qty = (m.product_qty or 0.0) * ratio
+            if qty <= 0:
+                continue
+            seller = m.product_id.seller_ids[:1]
+            if not seller or not seller.partner_id:
+                sin_proveedor.append(m.product_id.display_name)
+                continue
+            por_proveedor.setdefault(seller.partner_id.id, []).append((0, 0, {
+                'product_id': m.product_id.id,
+                'product_qty': qty,
+                'product_uom': m.product_uom.id or m.product_id.uom_po_id.id,
+                'price_unit': seller.price or m.product_id.standard_price or 0.0,
+                'name': m.product_id.display_name,
+                'date_planned': fields.Datetime.now(),
+                'fabricacion': prod.id,
+                'apunts_es_reposicion': True,
+            }))
+        pos = POrders.browse()
+        for partner_id, lineas in por_proveedor.items():
+            pos |= POrders.create({
+                'partner_id': partner_id,
+                'origin': '%s (reposición)' % (prod.name or ''),
+                'order_line': lineas,
+            })
+        return pos, sin_proveedor
 
     def action_reject(self):
         self.ensure_one()
