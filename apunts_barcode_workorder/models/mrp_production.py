@@ -99,7 +99,7 @@ class ManufacturingOrder(models.Model):
                 'name': att.name,
                 'url': '/web/content/%s?download=false' % att.id,
             }
-            for att in self.product_id.product_tmpl_id.apunts_docs_taller_ids
+            for att in self.product_id.product_tmpl_id.sudo().apunts_docs_taller_ids
         ]
         data['qty_produced'] = int(round(self.qty_produced or 0))
         data['product_qty'] = int(round(self.product_qty or 0))
