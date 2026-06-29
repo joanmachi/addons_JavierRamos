@@ -388,3 +388,15 @@ RETRABAJO con fases de reproceso - HECHO (25/06/2026)
   guardar conjuntos de fases reutilizables.
   Módulo: lira_mfg_supervisor. Requiere -u para lira_qty_retrabajo_fase.
 
+
+138,6 x 3,08 = precio por kilo total
+precio por kilo total % 18 = precio m unitario
+precio m unitario x cantidad m of = resultado
+
+Unificación de los 5 minutos de las of. 
+
+Nueva fase en of. (tratamientos)
+
+Contabilidad -> analisis de ventas (diferenciar ventas y facturación)
+
+Etiqueta cambiar cosas (mas tarde detallo)
