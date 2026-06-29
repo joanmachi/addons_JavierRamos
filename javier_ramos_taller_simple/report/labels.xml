@@ -78,13 +78,11 @@
                         </div>
                     </div>
 
-                    <!-- FECHA ENTREGA -->
+                    <!-- REF. CLIENTE -->
                     <div style="padding: 3px 5px; min-height: 9mm;">
-                        <div style="font-size: 8pt; font-weight: bold; color: #555;">FECHA ENTREGA</div>
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">REF. CLIENTE</div>
                         <div style="font-size: 11pt; font-weight: bold;">
-                            <t t-if="linea_albaran.sale_line_id and linea_albaran.sale_line_id.order_id.commitment_date">
-                                <t t-esc="linea_albaran.sale_line_id.order_id.commitment_date.strftime('%d/%m/%Y')"/>
-                            </t>
+                            <t t-esc="cliente_expedicion.ref or ''"/>
                         </div>
                     </div>
 
