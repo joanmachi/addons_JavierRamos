@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 from dateutil.relativedelta import relativedelta
 from odoo.addons.resource.models.utils import Intervals, sum_intervals
@@ -72,6 +74,47 @@ class WorkOrder(models.Model):
                 wo.prev_validated_qty = prev_wos[-1].qty_validated - wo.qty_validated
 
   
+    def start_employee(self, employee_id):
+        """Override para retrotraer el inicio del fichaje al último desfichaje del
+        empleado cuando el tiempo transcurrido es menor que el umbral de inactividad.
+        Así se elimina el tiempo muerto entre OF sin coste contable."""
+        now = fields.Datetime.now()
+        super().start_employee(employee_id)
+
+        # No backdatear en el flujo de auto-back-order: el fichaje ya viene
+        # correctamente desde el cierre de la OF madre.
+        if self.env.context.get(APUNTS_AUTO_BACKORDER_CTX):
+            return
+
+        ICP = self.env['ir.config_parameter'].sudo()
+        min_inact = int(
+            ICP.get_param('apunts_taller_control.bloqueo_inactividad_min', '30')
+        )
+        if not min_inact:
+            return
+
+        # Último desfichaje de este empleado en cualquier WO
+        ultima = self.env['mrp.workcenter.productivity'].search(
+            [('employee_id', '=', employee_id), ('date_end', '!=', False)],
+            order='date_end DESC',
+            limit=1,
+        )
+        if not ultima or ultima.date_end < now - timedelta(minutes=min_inact):
+            return
+
+        # Ajustar date_start del registro recién creado al último date_end
+        nueva = self.env['mrp.workcenter.productivity'].search(
+            [
+                ('employee_id', '=', employee_id),
+                ('workorder_id', '=', self.id),
+                ('date_end', '=', False),
+            ],
+            order='id DESC',
+            limit=1,
+        )
+        if nueva:
+            nueva.write({'date_start': ultima.date_end})
+
     def finalizar_fichaje(self,empleado, qty=0):
         if empleado and empleado['id']:
             for orden in self:
