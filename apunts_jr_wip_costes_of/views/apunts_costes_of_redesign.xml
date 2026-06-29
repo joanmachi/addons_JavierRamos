@@ -162,6 +162,20 @@
                                 <field name="apunts_machine_real_total" nolabel="1" readonly="1" widget="monetary"/>
                             </td>
                         </tr>
+                        <tr invisible="not apunts_mat_servicio_externo">
+                            <td class="text-start">
+                                <div class="fw-bold">Servicios externos</div>
+                                <div class="small text-muted">
+                                    Galvanizado, pintura, tratamientos térmicos u otros servicios
+                                    externos vinculados a esta OF mediante pedido de compra
+                                    marcado como "Servicio externo".
+                                </div>
+                            </td>
+                            <td class="text-end h4 mb-0 text-muted">—</td>
+                            <td class="text-end h4 mb-0">
+                                <field name="apunts_mat_servicio_externo" nolabel="1" readonly="1" widget="monetary"/>
+                            </td>
+                        </tr>
                         <tr class="table-active">
                             <td class="text-start fw-bold">TOTAL</td>
                             <td class="text-end h4 mb-0 fw-bold">

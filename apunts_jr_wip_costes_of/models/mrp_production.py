@@ -106,6 +106,19 @@ class MrpProduction(models.Model):
             "MP real y al coste total. El retrabajo NO suma aquí (solo mano de obra)."
         ),
     )
+    apunts_mat_servicio_externo = fields.Monetary(
+        string="Servicios externos (€)",
+        compute="_compute_apunts_wip_costs",
+        store=True,
+        currency_field="company_currency_id",
+        copy=False,
+        help=(
+            "Coste de servicios externos vinculados a esta OF (galvanizado, pintura, "
+            "tratamientos térmicos, etc.). Es el importe de los pedidos de compra "
+            "marcados como 'Servicio externo' con el campo Fabricación = esta OF. "
+            "Se suma al coste real aunque la OF ya esté cerrada."
+        ),
+    )
     apunts_mo_real_total = fields.Monetary(
         string="Coste operario real (€)",
         compute="_compute_apunts_wip_costs",
@@ -504,15 +517,20 @@ class MrpProduction(models.Model):
             # que existe la compra; las líneas de reposición se excluyen del
             # material consumido (en _apunts_mp_total_real) para no duplicar.
             mat_extra = self._apunts_reposicion_po_total(prod)
+            # Servicios externos = importe de PO marcadas como servicio externo
+            # (galvanizado, pintura, tratamientos). Se actualiza aunque la OF
+            # esté cerrada (done), gracias al trigger en purchase_order_line.
+            mat_ext = self._apunts_servicios_externos_total(prod)
             prod.apunts_mat_reposicion_extra = mat_extra
+            prod.apunts_mat_servicio_externo = mat_ext
             prod.apunts_qty_pending = qty_pending
             prod.apunts_cost_total_planned = (
                 mp_total_plan + mo_total_plan + machine_total_plan + amort_total_plan
             )
             prod.apunts_cost_total_real = (
-                mp_total_real + mat_extra + mo_total_real + machine_total_real + amort_total_real
+                mp_total_real + mat_extra + mat_ext + mo_total_real + machine_total_real + amort_total_real
             )
-            prod.apunts_mat_real_total = mp_total_real + mat_extra
+            prod.apunts_mat_real_total = mp_total_real + mat_extra + mat_ext
             prod.apunts_mo_real_total = mo_total_real
             prod.apunts_machine_real_total = machine_total_real
             prod.apunts_mat_planned_total = mp_total_plan
@@ -626,6 +644,21 @@ class MrpProduction(models.Model):
         pols = POL.search([
             ("fabricacion", "=", prod.id),
             ("apunts_es_reposicion", "=", True),
+            ("state", "not in", ("cancel",)),
+        ])
+        return sum(pols.mapped("price_subtotal"))
+
+    def _apunts_servicios_externos_total(self, prod):
+        """Importe (price_subtotal) de las líneas de compra de SERVICIO EXTERNO
+        vinculadas a la OF (galvanizado, pintura, tratamientos, etc.). Se actualiza
+        aunque la OF esté en estado done, ya que el trigger en purchase_order_line
+        llama a _compute_apunts_wip_costs directamente."""
+        POL = self.env["purchase.order.line"]
+        if "fabricacion" not in POL._fields or "apunts_es_servicio_externo" not in POL._fields:
+            return 0.0
+        pols = POL.search([
+            ("fabricacion", "=", prod.id),
+            ("apunts_es_servicio_externo", "=", True),
             ("state", "not in", ("cancel",)),
         ])
         return sum(pols.mapped("price_subtotal"))

@@ -11,8 +11,8 @@
         <field name="inherit_id" ref="purchase.purchase_order_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='qty_received_method']" position="before">
-          
                     <field name="fabricacion" optional="show"/>
+                    <field name="apunts_es_servicio_externo" optional="show" string="Serv. externo"/>
             </xpath>
          
     

@@ -13,9 +13,10 @@ _WIP_FIELDS = [
     "apunts_bom_incompleta",
     "apunts_qty_pending",
     "apunts_mat_reposicion_extra",
+    "apunts_mat_servicio_externo",
 ]
 
-_TRIGGER_FIELDS = {"qty_received", "fabricacion", "price_unit", "price_subtotal", "product_qty", "apunts_es_reposicion"}
+_TRIGGER_FIELDS = {"qty_received", "fabricacion", "price_unit", "price_subtotal", "product_qty", "apunts_es_reposicion", "apunts_es_servicio_externo"}
 
 _PRODUCT_COST_TRIGGER_FIELDS = {"qty_received", "price_unit", "price_subtotal", "product_id"}
 _PRODUCT_COST_FIELDS = ["apunts_coste_real", "apunts_coste_fuente"]
@@ -52,6 +53,16 @@ class PurchaseOrderLine(models.Model):
              "de una OF (refabricación). Su importe se suma al coste real de la OF como "
              "MP extra por reposición, y se EXCLUYE del precio de material consumido para "
              "no contar el coste dos veces.",
+    )
+
+    apunts_es_servicio_externo = fields.Boolean(
+        string="Servicio externo",
+        default=False,
+        copy=False,
+        index=True,
+        help="Marca las líneas de compra correspondientes a servicios externos vinculados "
+             "a una OF (galvanizado, pintura, tratamiento térmico, etc.). Su importe se suma "
+             "al coste real de la OF aunque esta ya esté cerrada (state=done).",
     )
 
     def write(self, vals):
