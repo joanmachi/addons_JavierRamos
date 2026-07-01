@@ -120,6 +120,37 @@ class MrpWorkcenterProductivity(models.Model):
             'target': 'current',
         }
 
+    def create(self, vals_list):
+        """Si al crear un fichaje de OF en vivo el empleado no tiene asistencia
+        abierta, crea una automáticamente con check_in = date_start.
+
+        El write() sync se encargará de ajustar el check_in si el barcode
+        module retrotrae el date_start (backdating por inactividad breve).
+        No aplica a registros retroactivos (date_start > 1 h en el pasado)
+        ni cuando ya hay una asistencia abierta."""
+        records = super().create(vals_list)
+        _SYNC = '_apunts_sync_fichaje'
+        if not self.env.context.get(_SYNC):
+            Att = self.env['hr.attendance'].sudo()
+            ahora = fields.Datetime.now()
+            for rec in records:
+                if not rec.employee_id or not rec.date_start:
+                    continue
+                # Ignorar fichajes retroactivos (wizard de corrección, etc.)
+                if (ahora - rec.date_start).total_seconds() > 3600:
+                    continue
+                # Solo crear si no hay asistencia abierta
+                open_att = Att.search([
+                    ('employee_id', '=', rec.employee_id.id),
+                    ('check_out', '=', False),
+                ], limit=1)
+                if not open_att:
+                    Att.create({
+                        'employee_id': rec.employee_id.id,
+                        'check_in': rec.date_start,
+                    })
+        return records
+
     def write(self, vals):
         """Sincroniza hr.attendance.check_in cuando date_start cambia.
 
