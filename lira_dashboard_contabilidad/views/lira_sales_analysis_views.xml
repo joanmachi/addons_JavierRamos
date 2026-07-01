@@ -12,34 +12,37 @@
           <!-- ══ CABECERA ═══════════════════════════════════════════════════════ -->
           <div class="ld_header">
             <div class="ld_header_left">
-              <div class="ld_main_title ld_title_row">Análisis de Ventas <widget name="lira_print_button" title="Análisis de Ventas" line_model="lira.sales.line"/></div>
-              <div class="ld_main_subtitle">Ranking de productos, clientes o familias por volumen de ventas y margen. Los datos provienen de los pedidos de venta confirmados en el periodo seleccionado.</div>
+              <div class="ld_main_title ld_title_row">Análisis de Ventas y Facturación <widget name="lira_print_button" title="Análisis de Ventas" line_model="lira.sales.line"/></div>
+              <div class="ld_main_subtitle" invisible="fuente != 'pedidos'">Ranking por volumen sobre <strong>pedidos de venta confirmados</strong> (lo comprometido comercialmente, esté o no facturado). Fecha = fecha del pedido.</div>
+              <div class="ld_main_subtitle" invisible="fuente != 'facturas'">Ranking por volumen sobre <strong>facturas de cliente contabilizadas</strong> (ingreso reconocido; las rectificativas restan). Fecha = fecha de factura.</div>
               <div class="ld_period_bar">
                 <span class="fa fa-calendar-o ld_icon_muted"/>
                 <field name="date_from" class="ld_date_input" nolabel="1"/>
                 <span class="ld_sep">→</span>
                 <field name="date_to" class="ld_date_input" nolabel="1"/>
+                <span class="ld_sep ms-2">Fuente</span>
+                <field name="fuente" nolabel="1" class="ld_date_input"/>
                 <span class="ld_sep ms-2">Agrupar por</span>
                 <field name="agrupar_por" nolabel="1" class="ld_date_input"/>
               </div>
             </div>
             <div class="ld_header_kpis">
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Total ventas <i class="fa fa-info-circle text-muted ms-1" title="Suma de pedidos confirmados del período en base imponible (sin IVA)."/></div>
+                <div class="ld_hkpi_label">Total (s/IVA) <i class="fa fa-info-circle text-muted ms-1" title="Suma del período en base imponible (sin IVA). En Ventas: pedidos confirmados. En Facturación: facturas contabilizadas menos rectificativas."/></div>
                 <div class="ld_hkpi_value">
                   <field name="total_ventas" readonly="1"/>
                 </div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Clientes activos <i class="fa fa-info-circle text-muted ms-1" title="Número de clientes distintos con al menos una factura en el período."/></div>
+                <div class="ld_hkpi_label">Clientes activos <i class="fa fa-info-circle text-muted ms-1" title="Número de clientes distintos con al menos un documento (pedido o factura) en el período."/></div>
                 <div class="ld_hkpi_value">
                   <field name="num_clientes" readonly="1"/>
                 </div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Productos vendidos <i class="fa fa-info-circle text-muted ms-1" title="Número de productos o servicios distintos en las facturas del período."/></div>
+                <div class="ld_hkpi_label">Productos vendidos <i class="fa fa-info-circle text-muted ms-1" title="Número de productos o servicios distintos en los documentos del período."/></div>
                 <div class="ld_hkpi_value">
                   <field name="num_productos" readonly="1"/>
                 </div>
@@ -91,16 +94,16 @@
                help="Nombre del grupo según agrupación elegida (producto, cliente, categoría o mes)."/>
         <field name="qty" string="Unidades" sum="Total uds" readonly="1"
                help="Total unidades vendidas en el periodo."/>
-        <field name="importe" string="Ventas (€ s/IVA)" sum="Total ventas" readonly="1"
-               help="Importe total de ventas sin IVA en el periodo."/>
-        <field name="num_facturas" string="Pedidos" sum="Total pedidos" readonly="1"
-               help="Número de pedidos de venta distintos."/>
+        <field name="importe" string="Importe (€ s/IVA)" sum="Total" readonly="1"
+               help="Importe total sin IVA en el periodo (ventas o facturación según la fuente)."/>
+        <field name="num_facturas" string="Documentos" sum="Total docs" readonly="1"
+               help="Número de documentos distintos (pedidos de venta o facturas según la fuente)."/>
         <field name="ticket_medio" string="Ticket medio (€)" avg="Ticket medio" readonly="1"
-               help="Importe medio por pedido = Ventas / Nº pedidos."/>
+               help="Importe medio por documento = Importe / Nº documentos."/>
         <field name="pct_ventas" string="% s/total" avg="% medio" readonly="1"
-               help="Porcentaje sobre el total de ventas del periodo."/>
-        <field name="ultima_fecha" string="Último pedido" readonly="1"
-               help="Fecha del pedido más reciente. Fuente: max(sale.order.date_order)."/>
+               help="Porcentaje sobre el total del periodo."/>
+        <field name="ultima_fecha" string="Última fecha" readonly="1"
+               help="Fecha del documento más reciente del grupo."/>
         <field name="abc" string="ABC" widget="badge"
                decoration-success="abc == 'A'"
                decoration-warning="abc == 'B'"
@@ -109,9 +112,10 @@
         <field name="user_id" column_invisible="1"/>
         <field name="kpi_date_from" column_invisible="1"/>
         <field name="kpi_date_to" column_invisible="1"/>
+        <field name="kpi_fuente" column_invisible="1"/>
         <button name="action_open_source" type="object" icon="fa-external-link"
-                string="Ver pedidos en Ventas"
-                title="Abrir los pedidos de venta filtrados según la agrupación y periodo"/>
+                string="Ver documentos origen"
+                title="Abrir los pedidos de venta o las facturas filtrados según la agrupación y periodo"/>
       </list>
     </field>
   </record>

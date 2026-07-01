@@ -391,12 +391,20 @@ RETRABAJO con fases de reproceso - HECHO (25/06/2026)
 
 138,6 x 3,08 = precio por kilo total
 precio por kilo total % 18 = precio m unitario
-precio m unitario x cantidad m of = resultado
+precio m unitario x cantidad m of = resultado - HECHO
 
-Unificación de los 5 minutos de las of. 
+Unificación de los 5 minutos de las of. - HECHO
 
-Nueva fase en of. (tratamientos)
+Nueva fase en of. (tratamientos) -> Al final se ha permitido que se pueda subir el precio de la of a estos productos que han sido galbanizado - HECHO
 
-Contabilidad -> analisis de ventas (diferenciar ventas y facturación)
+Contabilidad -> analisis de ventas (diferenciar ventas y facturación) - HECHO
 
-Etiqueta cambiar cosas (mas tarde detallo)
+WIP -> Realización de históricos. - HECHO
+
+Etiqueta cambiar cosas (mas tarde detallo) - HECHO
+
+Ausencia en bloqueo de jornada injustificado - HECHO
+
+Explicación de fecha confirmación y fecha de recepción.
+
+Sincronización horas del primer fichaje del día. - HECHO
