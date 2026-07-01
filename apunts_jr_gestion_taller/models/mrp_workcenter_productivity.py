@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 
 
@@ -117,6 +119,40 @@ class MrpWorkcenterProductivity(models.Model):
             'view_mode': 'form',
             'target': 'current',
         }
+
+    def write(self, vals):
+        """Sincroniza hr.attendance.check_in cuando date_start cambia.
+
+        Si el fichaje que se modifica es el primero del día (su date_start
+        coincidía con el check_in de la asistencia ±1 min), actualiza el
+        check_in para mantener coherencia. Tolera modificaciones de días
+        anteriores. Flag _apunts_sync_fichaje evita bucles."""
+        _SYNC = '_apunts_sync_fichaje'
+        old_starts = {}
+        if 'date_start' in vals and not self.env.context.get(_SYNC):
+            for rec in self:
+                if rec.date_start and rec.employee_id:
+                    old_starts[rec.id] = rec.date_start
+
+        result = super().write(vals)
+
+        if old_starts:
+            tol = timedelta(seconds=60)
+            Att = self.env['hr.attendance'].sudo()
+            for rec in self:
+                old = old_starts.get(rec.id)
+                if not old or not rec.date_start or old == rec.date_start:
+                    continue
+                att = Att.search([
+                    ('employee_id', '=', rec.employee_id.id),
+                    ('check_in', '>=', old - tol),
+                    ('check_in', '<=', old + tol),
+                ], order='check_in asc', limit=1)
+                if att:
+                    att.with_context(**{_SYNC: True}).write(
+                        {'check_in': rec.date_start}
+                    )
+        return result
 
     def action_apunts_cerrar_ahora(self):
         ahora = fields.Datetime.now()

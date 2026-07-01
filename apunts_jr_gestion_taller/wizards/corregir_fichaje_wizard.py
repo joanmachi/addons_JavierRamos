@@ -1,3 +1,7 @@
+import re
+from datetime import datetime, time, timedelta
+from pytz import timezone, utc
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -136,15 +140,134 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                 limit=100,
             )
 
+    # ── Ausencias automáticas ─────────────────────────────────────────────────
+
+    def _leave_type(self):
+        """Busca el tipo de ausencia más adecuado: primero por horas sin
+        asignación, luego sin asignación, luego cualquiera activo."""
+        LeaveType = self.env['hr.leave.type'].sudo()
+        for domain in [
+            [('active', '=', True), ('requires_allocation', '=', 'no'), ('request_unit', '=', 'hour')],
+            [('active', '=', True), ('requires_allocation', '=', 'no')],
+            [('active', '=', True)],
+        ]:
+            lt = LeaveType.search(domain, order='sequence asc, id asc', limit=1)
+            if lt:
+                return lt
+        return LeaveType
+
+    def _crear_leave(self, emp, dia, horas_faltantes, sufijo=''):
+        """Crea el hr.leave en borrador anclado al día y horas correctas.
+
+        date_from/date_to son readonly+computed en Odoo 18 → se pasan
+        request_date_from/request_date_to (anclan el día) y se fuerza
+        request_unit_hours=True ("Horas personalizadas") con el rango de
+        horas exacto, independientemente del tipo de ausencia (día/hora)."""
+        leave_type = self._leave_type()
+        if not leave_type:
+            return None
+
+        # Limitar a 23:59 para no superar el día
+        hora_fin = min(round(8.0 + horas_faltantes, 2), 23.99)
+
+        vals = {
+            'employee_id': emp.id,
+            'holiday_status_id': leave_type.id,
+            'request_date_from': dia,
+            'request_date_to': dia,
+            'request_unit_hours': True,      # "Horas personalizadas" → ignora tipo día/hora
+            'request_hour_from': 8.0,        # 08:00 local como inicio referencial
+            'request_hour_to': hora_fin,     # 08:00 + horas_faltantes
+            'private_name': _(
+                'Jornada incompleta %s — creada automáticamente al desbloquear%s'
+            ) % (fields.Date.to_string(dia), sufijo),
+        }
+
+        try:
+            return self.env['hr.leave'].sudo().create(vals)
+        except Exception:
+            return None
+
+    def _crear_ausencia_caso1(self, prod):
+        """CASO 1 (fichaje continuo / OF abierta): tras corregir el fichaje,
+        calcula las horas fichadas en el día del incidente y crea ausencia en
+        borrador si la jornada quedó incompleta.
+
+        El día de referencia es la fecha local del date_start del fichaje abierto.
+        Las horas fichadas se suman de todos los registros de productividad cerrados
+        ese día (incluyendo el que se acaba de cerrar con salida_real)."""
+        if not prod:
+            return None
+        emp = self.employee_id
+        emp_tz = timezone(emp._apunts_tz())
+
+        # Día local del inicio del fichaje (cuándo empezó a trabajar el operario)
+        dia = utc.localize(prod.date_start.replace(tzinfo=None)).astimezone(emp_tz).date()
+
+        esperadas = emp._apunts_horas_esperadas(dia)
+        if not esperadas:
+            return None
+
+        # Límites del día en UTC
+        day_from = emp_tz.localize(datetime.combine(dia, time.min)).astimezone(utc).replace(tzinfo=None)
+        day_to = emp_tz.localize(datetime.combine(dia, time.max)).astimezone(utc).replace(tzinfo=None)
+
+        # Suma de horas de productividad cerradas ese día (capped al día)
+        fichs = self.env['mrp.workcenter.productivity'].sudo().search([
+            ('employee_id', '=', emp.id),
+            ('date_start', '>=', day_from),
+            ('date_start', '<=', day_to),
+            ('date_end', '!=', False),
+        ])
+        horas_fichadas = sum(
+            (min(f.date_end, day_to) - max(f.date_start, day_from)).total_seconds() / 3600.0
+            for f in fichs
+            if min(f.date_end, day_to) > max(f.date_start, day_from)
+        )
+
+        aus = emp._apunts_horas_ausencia(dia)
+        horas_faltantes = esperadas - horas_fichadas - aus
+        if horas_faltantes <= 0:
+            return None
+
+        return self._crear_leave(emp, dia, horas_faltantes, sufijo=' (fichaje corregido)')
+
+    def _crear_ausencia_jornada_insuficiente(self):
+        """CASO 2 (sin fichaje abierto, bloqueo por jornada insuficiente): crea
+        ausencia en borrador si no se realizó ninguna corrección de fichaje.
+        La fecha se extrae del motivo del bloqueo ('Jornada insuficiente el YYYY-MM-DD')."""
+        motivo = self.motivo_bloqueo or ''
+        if 'Jornada insuficiente' not in motivo:
+            return None
+        if self.workorder_id_nuevo and self.date_start_nuevo:
+            return None  # se corrigió el fichaje → no crear ausencia
+
+        m = re.search(r'(\d{4}-\d{2}-\d{2})', motivo)
+        if not m:
+            return None
+        dia = fields.Date.from_string(m.group(1))
+
+        emp = self.employee_id
+        esperadas = emp._apunts_horas_esperadas(dia)
+        if not esperadas:
+            return None
+        pres = emp._apunts_horas_presencia(dia)
+        aus = emp._apunts_horas_ausencia(dia)
+        horas_faltantes = esperadas - (pres + aus)
+        if horas_faltantes <= 0:
+            return None
+
+        return self._crear_leave(emp, dia, horas_faltantes)
+
     # ── Acción principal ──────────────────────────────────────────────────────
 
     def action_aplicar(self):
         self.ensure_one()
         Productivity = self.env['mrp.workcenter.productivity']
+        prod_cerrado = None  # fichaje de CASO 1 que se cierra → para crear ausencia
 
         if self.tiene_fichaje_abierto:
             # CASO 1: cerrar el fichaje abierto con hora corregida
-            # Usar el workorder seleccionado si el admin lo cambió
             if self.workorder_id_abierto:
                 prod = Productivity.search([
                     ('employee_id', '=', self.employee_id.id),
@@ -164,6 +287,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                     'apunts_modificado_por_id': self.env.user.id,
                     'apunts_modificado_fecha': fields.Datetime.now(),
                 })
+                prod_cerrado = prod  # guardar para calcular ausencia tras el cierre
                 accion_msg = (
                     f"Fichaje cerrado (id {prod.id}) en "
                     f"{prod.workorder_id.production_id.name} / {prod.workorder_id.name} "
@@ -179,8 +303,6 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                 if not self.motivo:
                     raise UserError(_(
                         "Indica el motivo de la corrección para crear el nuevo fichaje."))
-                # Resolver loss_id sin depender del nombre del modelo
-                # (mrp.workcenter.loss puede no estar registrado en Odoo 18)
                 loss_id = False
                 loss_field = Productivity._fields.get('loss_id')
                 if loss_field and loss_field.comodel_name in self.env.registry:
@@ -216,6 +338,15 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             else:
                 accion_msg = "No se creó fichaje (falta fase o fecha de inicio) — solo se desbloqueó al operario."
 
+        # Ausencia automática SOLO en CASO 2 con bloqueo por jornada insuficiente.
+        # En CASO 1 (fichaje continuo) no se crea: no se sabe si el operario
+        # trabajó o no su jornada, solo se corrige el fichaje abierto.
+        ausencia = (
+            None
+            if prod_cerrado
+            else self._crear_ausencia_jornada_insuficiente()
+        )
+
         # Desbloquear siempre
         if self.employee_id.apunts_taller_bloqueado:
             self.employee_id.write({
@@ -231,5 +362,15 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
         if self.motivo:
             motivo_label = dict(self._fields['motivo'].selection).get(self.motivo, self.motivo)
             msg += _("\nMotivo: %s") % motivo_label
+        if ausencia:
+            horas = round(
+                (ausencia.date_to - ausencia.date_from).total_seconds() / 3600.0, 2
+            ) if (ausencia.date_from and ausencia.date_to) else '?'
+            m_dia = re.search(r'(\d{4}-\d{2}-\d{2})', ausencia.name or '')
+            dia_str = m_dia.group(1) if m_dia else '?'
+            msg += _(
+                "\nAusencia en borrador creada automáticamente: tipo «%s», %.2f h el %s. "
+                "Revísala en RRHH → Ausencias y apruébala o ajusta el tipo si procede."
+            ) % (ausencia.holiday_status_id.name, horas, dia_str)
         self.employee_id.message_post(body=msg)
         return {'type': 'ir.actions.act_window_close'}

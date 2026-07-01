@@ -44,8 +44,16 @@ class HrEmployee(models.Model):
         }
 
         if prod_abierta:
-            # CASO 1: fichado demasiado tiempo → pre-cargar la OF
+            # CASO 1: fichado demasiado tiempo → pre-cargar la OF y sugerir
+            # salida_real = date_end del último fichaje cerrado (estimación de
+            # cuándo el operario dejó de trabajar antes de irse sin desfichar).
             vals['production_id'] = prod_abierta.workorder_id.production_id.id or False
+            last_closed = self.env['mrp.workcenter.productivity'].search([
+                ('employee_id', '=', self.id),
+                ('date_end', '!=', False),
+            ], order='date_end DESC', limit=1)
+            if last_closed and last_closed.date_end >= prod_abierta.date_start:
+                vals['salida_real'] = last_closed.date_end
         else:
             # CASO 2: inactividad → pre-cargar fechas para el nuevo fichaje
             last_prod = self.env['mrp.workcenter.productivity'].search([
