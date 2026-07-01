@@ -1,6 +1,6 @@
 {
     'name':    'Apunts Tablero Contabilidad',
-    'version': '18.0.3.1.0',
+    'version': '18.0.3.2.0',
     'summary': 'Tablero financiero Apunts: KPIs, ratios, ventas, escandallo, márgenes por cliente, previsión de liquidez y salarios, existencias, VAN/TIR, gráficas. Sin fabricación (en módulo aparte).',
     'author':  'Apunts Informàtica',
     'website': 'http://www.grupapunts.es',

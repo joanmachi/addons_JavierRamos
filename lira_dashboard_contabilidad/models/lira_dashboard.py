@@ -121,7 +121,7 @@ class LiraDashboard(models.TransientModel):
 
     # ══ HELPERS ═══════════════════════════════════════════════════════════════
 
-    def _q(self, df=None, dt=None):
+    def _q(self, df=None, dt=None, exclude_codes=None):
         """
         Un único SELECT agregado sobre account_move_line para la ventana temporal dada.
 
@@ -130,10 +130,7 @@ class LiraDashboard(models.TransientModel):
           by_code2 → clave = primeros 2 dígitos     (p.ej. '64', '62')
           by_code1 → clave = primer dígito          (p.ej. '3' para existencias)
 
-        Patrón de optimización:
-          La versión anterior hacía un search() por cada ratio (~13 queries por
-          periodo, 26 en total con el periodo anterior). Aquí un solo GROUP BY
-          resuelve todo: el motor SQL agrega en disco, no en Python.
+        exclude_codes: lista de códigos de cuenta completos a excluir (p.ej. ['710000001']).
         """
         cr    = self.env.cr
         cid   = self.env.company.id
@@ -146,10 +143,16 @@ class LiraDashboard(models.TransientModel):
             date_clause += ' AND aml.date <= %s'
             params.append(dt)
 
+        excl_clause = ''
+        if exclude_codes:
+            placeholders = ','.join(['%s'] * len(exclude_codes))
+            excl_clause = f" AND (aa.code_store->>'{cid}') NOT IN ({placeholders})"
+            params.extend(exclude_codes)
+
         cr.execute(f"""
             SELECT aa.account_type,
-                   LEFT(aa.code_store->>'1', 2)       AS c2,
-                   LEFT(aa.code_store->>'1', 1)       AS c1,
+                   LEFT(aa.code_store->>'{cid}', 2)       AS c2,
+                   LEFT(aa.code_store->>'{cid}', 1)       AS c1,
                    SUM(aml.debit) - SUM(aml.credit)  AS net
             FROM   account_move_line  aml
             JOIN   account_account    aa ON aa.id = aml.account_id
@@ -157,7 +160,8 @@ class LiraDashboard(models.TransientModel):
             WHERE  am.state     = 'posted'
               AND  aml.company_id = %s
               {date_clause}
-            GROUP  BY aa.account_type, LEFT(aa.code_store->>'1', 2), LEFT(aa.code_store->>'1', 1)
+              {excl_clause}
+            GROUP  BY aa.account_type, LEFT(aa.code_store->>'{cid}', 2), LEFT(aa.code_store->>'{cid}', 1)
         """, params)
 
         by_type, by_code2, by_code1 = {}, {}, {}
@@ -230,8 +234,12 @@ class LiraDashboard(models.TransientModel):
             # Existencias: grupo 3 del PGC (300xxx–399xxx), primer dígito '3'
             existencias = bs1.get('3', 0.0)
 
+            # Cuentas excluidas de ingresos de explotación:
+            # 710000001 (variación existencias) y 740000001 (subvenciones)
+            _EXCL = ['710000001', '740000001']
+
             # ── Query 2/3 · Cuenta de resultados — periodo actual ───────────────
-            pl, pl2, _ = rec._q(df=df, dt=dt)
+            pl, pl2, _ = rec._q(df=df, dt=dt, exclude_codes=_EXCL)
 
             # Ingresos de explotación (cuentas acreedoras → net negativo → negamos)
             # Solo grupo 70-75 para el EBITDA; 76-77 son financieros y van aparte
@@ -257,7 +265,7 @@ class LiraDashboard(models.TransientModel):
             beneficio  = ebit_val + res_financiero
 
             # ── Query 3/3 · Cuenta de resultados — periodo anterior ─────────────
-            pp, pp2, _ = rec._q(df=df_prev, dt=dt_prev)
+            pp, pp2, _ = rec._q(df=df_prev, dt=dt_prev, exclude_codes=_EXCL)
 
             ventas_p   = -(pp2.get('70', 0.0))
             otros_p    = -(pp2.get('71', 0.0) + pp2.get('73', 0.0)
