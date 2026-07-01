@@ -5,24 +5,49 @@
         <field name="name">apunts.wip.resumen.form</field>
         <field name="model">apunts.wip.resumen</field>
         <field name="arch" type="xml">
-            <form string="Resumen WIP" create="0" edit="0" delete="0">
+            <form string="Resumen WIP" create="0" delete="0">
                 <sheet>
+                    <!-- SELECTOR DE MODO + FILTRO FECHAS -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-3 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold text-muted">Vista:</span>
+                            <field name="modo" widget="radio" nolabel="1"/>
+                        </div>
+                        <div class="d-flex align-items-center gap-2" invisible="modo != 'historico'">
+                            <span class="fw-semibold text-muted">Cerradas entre</span>
+                            <field name="fecha_desde" nolabel="1" placeholder="Desde..."/>
+                            <span class="text-muted">–</span>
+                            <field name="fecha_hasta" nolabel="1" placeholder="Hasta..."/>
+                        </div>
+                    </div>
+
                     <div class="oe_title mb-3">
-                        <h1>Resumen Trabajo en Curso</h1>
-                        <p class="text-muted">
+                        <h1 invisible="modo != 'en_curso'">Resumen Trabajo en Curso</h1>
+                        <h1 invisible="modo != 'historico'">Historial de Producción</h1>
+                        <p class="text-muted" invisible="modo != 'en_curso'">
                             Foto global ahora mismo de todas las OFs en curso (WIP).
                             Para detalle por OF, filtros y agrupaciones, abre la lista detallada.
+                        </p>
+                        <p class="text-muted" invisible="modo != 'historico'">
+                            Totales de OFs terminadas filtradas por fecha de cierre.
+                            Selecciona un rango de fechas para ver el resumen histórico.
                         </p>
                     </div>
 
                     <div class="d-flex justify-content-center gap-2 mb-4">
                         <button name="action_open_lista_wip" type="object"
                                 string="EN CURSO — abrir lista detallada"
-                                class="btn btn-lg btn-primary"/>
+                                class="btn btn-lg btn-primary"
+                                invisible="modo != 'en_curso'"/>
                         <button name="action_forzar_recompute" type="object"
                                 string="↻ Forzar recompute"
                                 class="btn btn-lg btn-secondary"
+                                invisible="modo != 'en_curso'"
                                 help="Recalcula todos los campos del WIP. Útil si acabas de recibir una PO y los datos no se han refrescado todavía."/>
+                        <button name="action_open_lista_historico" type="object"
+                                string="HISTORIAL — abrir lista terminadas"
+                                class="btn btn-lg btn-info"
+                                invisible="modo != 'historico'"/>
                     </div>
 
                     <field name="n_ofs_bom_incompleta" invisible="1"/>
@@ -31,14 +56,18 @@
                         <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Órdenes en curso</div>
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1" invisible="modo != 'en_curso'">Órdenes en curso</div>
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1" invisible="modo != 'historico'">Órdenes terminadas</div>
                                     <div class="display-5 fw-bold text-primary">
                                         <field name="n_ofs_wip" nolabel="1" readonly="1"/>
                                     </div>
-                                    <div class="small text-muted mt-1">
+                                    <div class="small text-muted mt-1" invisible="modo != 'en_curso'">
                                         Órdenes de fabricación con material ya consumido
                                         o con material recibido del proveedor (aunque
                                         la orden aún no haya empezado a trabajarse).
+                                    </div>
+                                    <div class="small text-muted mt-1" invisible="modo != 'historico'">
+                                        Órdenes de fabricación terminadas en el período seleccionado.
                                     </div>
                                 </div>
                             </div>
@@ -60,13 +89,13 @@
                         <div class="col">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">En curso (real)</div>
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1" invisible="modo != 'en_curso'">En curso (real)</div>
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1" invisible="modo != 'historico'">Coste real total</div>
                                     <div class="display-6 fw-bold text-warning">
                                         <field name="total_cost_real" nolabel="1" readonly="1" widget="monetary"/>
                                     </div>
                                     <div class="small text-muted mt-1">
                                         Material recibido + mano de obra fichada + máquina ya invertida.
-                                        El material cuenta desde que llega del proveedor (aunque aún no se haya consumido).
                                     </div>
                                 </div>
                             </div>
@@ -134,7 +163,7 @@
                                 </td>
                             </tr>
                             <field name="total_mat_planned_ajustado" invisible="1"/>
-                            <tr>
+                            <tr invisible="modo != 'en_curso'">
                                 <td class="text-start">
                                     <div class="fw-bold ps-4">↳ MP pendiente de recibir</div>
                                     <div class="small text-muted ps-4">

@@ -412,7 +412,7 @@ class MrpProduction(models.Model):
 
     @api.depends(
         "sale_line_id", "product_qty", "product_id",
-        "x_studio_venta", "procurement_group_id.sale_id",
+        "procurement_group_id.sale_id",
     )
     def _compute_apunts_sale_amount(self):
         # Solo cuenta SOs confirmados (estado 'sale' o 'done') Y con entrega no completada.
@@ -715,9 +715,35 @@ class MrpProduction(models.Model):
         amort = amort_anon + prod._apunts_prorated_cost_raw(prod.id, None, "COALESCE(wc.apunts_amort_hour, 0)")
         return mo, machine, amort
 
+    def _apunts_cost_from_secondary(self, product):
+        """Coste por UoM PRIMARIA (p.ej. €/m) de un producto que se COMPRA en
+        unidad secundaria (p.ej. €/kg) pero se gestiona/consume en primaria.
+
+        Imprescindible porque para estos materiales (barras/perfiles) el
+        `standard_price` y el resto de fuentes de precio quedan en €/kg, pero
+        en la OF se multiplican por METROS → infravaloración masiva del coste.
+
+        Factor OCA `product_secondary_unit`: primary = secondary × factor, o
+        sea factor = m/kg. Por tanto €/m = price_unit(€/kg) ÷ factor(m/kg).
+        Toma el factor y el precio de la última línea de compra en secundaria.
+        """
+        POL = self.env["purchase.order.line"]
+        if "secondary_uom_id" not in POL._fields:
+            return 0.0
+        pol = POL.search([
+            ("product_id", "=", product.id),
+            ("secondary_uom_id", "!=", False),
+            ("price_unit", ">", 0),
+            ("order_id.state", "in", ("purchase", "done")),
+        ], order="id DESC", limit=1)
+        if pol and pol.secondary_uom_id and pol.secondary_uom_id.factor:
+            return pol.price_unit / pol.secondary_uom_id.factor
+        return 0.0
+
     def _apunts_get_product_cost(self, product, production=None):
-        """Cascada: pol vinculada a la OF (campo `fabricacion`) → standard_price
-        → POs recibidas → última PO confirmada → sellers."""
+        """Cascada: pol vinculada a la OF (campo `fabricacion`) → unidad
+        secundaria (€/kg → €/m) → standard_price → POs recibidas →
+        última PO confirmada → sellers."""
         if not product:
             return 0.0
         POL = self.env["purchase.order.line"]
@@ -732,6 +758,12 @@ class MrpProduction(models.Model):
                 ta = sum(pols.mapped("price_subtotal"))
                 if tq > 0 and ta > 0:
                     return ta / tq
+        # Productos comprados en unidad secundaria (€/kg): convertir a €/UoM
+        # primaria ANTES de cualquier fallback, que devolvería el precio en €/kg
+        # (la secundaria) y al multiplicar por metros daría un coste erróneo.
+        precio_sec = self._apunts_cost_from_secondary(product)
+        if precio_sec > 0:
+            return precio_sec
         if product.standard_price:
             return product.standard_price
         # Último stock.move incoming done con price_unit > 0. JR a veces
