@@ -20,6 +20,16 @@ class StockMove(models.Model):
             "puede editar las dos por separado al recibir/enviar mercancía."
         ),
     )
+    apunts_kg_pedidos = fields.Float(
+        related="purchase_line_id.secondary_uom_qty",
+        string="Kg (pedido)",
+        digits="Product Unit of Measure",
+        readonly=True,
+        help=(
+            "Los kg que se pusieron en el pedido de compra (peso aproximado). "
+            "Sirve para comparar con lo que marca la báscula al recibir."
+        ),
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

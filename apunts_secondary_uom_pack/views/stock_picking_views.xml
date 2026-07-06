@@ -2,21 +2,46 @@
 <odoo>
 
     <!-- En el form del picking, la sección de "Operaciones" usa stock.move
-         como list editable. Añadimos 2 columnas: UdM sec y Cantidad sec. -->
+         como list editable. Orden de columnas pedido → recibido:
+         Demanda (m) | Kg (pedido) | Cantidad (m recibidos) | Kg (recibido) -->
     <record id="apunts_view_picking_form_secondary_uom" model="ir.ui.view">
         <field name="name">apunts.stock.picking.form.secondary.uom</field>
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <!-- Columnas en la lista de moves de la pestaña Operaciones -->
-            <xpath expr="//field[@name='move_ids_without_package']/list//field[@name='quantity']" position="after">
-                <field name="secondary_uom_qty" optional="show" string="Recibido (sec.)"/>
-                <field name="secondary_uom_id" optional="show" string="UdM sec."/>
+
+            <!-- Leyenda de ayuda cuando la recepción lleva materiales por peso -->
+            <xpath expr="//field[@name='move_ids_without_package']" position="before">
+                <field name="apunts_tiene_uom_secundaria" invisible="1"/>
+                <div class="alert alert-info" role="alert"
+                     invisible="not apunts_tiene_uom_secundaria">
+                    <strong>⚖️ Materiales por peso — rellena SIEMPRE las dos cantidades:</strong>
+                    <ol class="mb-0">
+                        <li>Los <strong>kg de la báscula</strong> (o del albarán del proveedor), en <em>Kg (recibido)</em>. Compara con <em>Kg (pedido)</em>.</li>
+                        <li>Los <strong>metros</strong> que han llegado, en la columna <em>Cantidad</em>.</li>
+                    </ol>
+                    <span>Al validar, el <b>pedido de compra se actualiza solo</b> con estos datos reales — no hay que corregir nada a mano.</span>
+                </div>
             </xpath>
+
+            <!-- Igual que en el pedido, el kg va DELANTE de los metros:
+                 Kg (pedido) | Demanda (m) | Kg (recibido) | Cantidad (m) -->
+            <xpath expr="//field[@name='move_ids_without_package']/list//field[@name='product_uom_qty']" position="before">
+                <field name="apunts_kg_pedidos" optional="show" string="Kg (pedido)"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']/list//field[@name='quantity']" position="before">
+                <field name="secondary_uom_qty" optional="show" string="Kg (recibido)"
+                       help="Peso real que marca la báscula (o el albarán del proveedor). Escríbelo siempre en los materiales por peso."/>
+            </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']/list//field[@name='quantity']" position="after">
+                <field name="secondary_uom_id" optional="hide" string="Unidad peso"/>
+            </xpath>
+
         </field>
     </record>
 
-    <!-- Vista del PO line con columna 'Recibido (sec.)' al lado de Recibido -->
+    <!-- Vista del PO line con columna 'Recibido (kg)' al lado de Recibido -->
     <record id="apunts_view_purchase_order_form_recibido_sec" model="ir.ui.view">
         <field name="name">apunts.purchase.order.form.recibido.sec</field>
         <field name="model">purchase.order</field>

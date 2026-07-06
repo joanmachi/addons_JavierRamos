@@ -37,7 +37,7 @@ Sustituye a los módulos individuales:
 ``apunts_account_move_secondary_unit`` y
 ``apunts_purchase_qty_invoiced_fix``.
     """,
-    "version": "18.0.2.0.2",
+    "version": "18.0.2.2.2",
     "category": "Purchases",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",

@@ -22,6 +22,31 @@ class PurchaseOrderLine(models.Model):
         help="UdM principal (ej. m) — texto corto para mostrar al lado de la cantidad.",
     )
 
+    apunts_factor_linea = fields.Float(
+        string="Factor m/kg de la línea",
+        digits=(16, 6),
+        copy=False,
+        help=(
+            "Factor de conversión (UdM primaria por unidad secundaria, p.ej. "
+            "m/kg) CONGELADO para esta línea: se fija al confirmar el pedido "
+            "y se sustituye por el ratio real medido al recibir. Evita que la "
+            "recalibración automática del producto reinterprete pedidos ya "
+            "confirmados."
+        ),
+    )
+
+    apunts_cantidades_reales = fields.Boolean(
+        string="Ajustado a real",
+        copy=False,
+        help=(
+            "Marcado automáticamente al recibir: las cantidades de la línea "
+            "(kg y m) ya son las reales pesadas/medidas en recepción. A "
+            "partir de ese momento el sistema deja de recalcular una "
+            "cantidad a partir de la otra: las correcciones manuales se "
+            "respetan tal cual."
+        ),
+    )
+
     apunts_qty_received_secondary = fields.Float(
         string="Recibido (sec.)",
         compute="_compute_apunts_qty_received_secondary",
@@ -33,6 +58,31 @@ class PurchaseOrderLine(models.Model):
             "qty_received (que está en UdM primaria)."
         ),
     )
+
+    def _get_factor_line(self):
+        """Factor congelado de la línea si existe; si no, el vivo del
+        producto (comportamiento OCA). Al pasar por aquí, TODOS los
+        cálculos (kg↔m del mixin, qty_invoiced, facturas) usan el mismo
+        factor coherente y la recalibración del producto solo afecta a
+        pedidos futuros.
+        """
+        if self.apunts_factor_linea:
+            return self.apunts_factor_linea
+        return super()._get_factor_line()
+
+    def _compute_product_qty(self):
+        # Líneas ya ajustadas a lo recibido: no recalcular m desde kg.
+        bloqueadas = self.filtered("apunts_cantidades_reales")
+        for line in bloqueadas:
+            line.product_qty = line.product_qty
+        super(PurchaseOrderLine, self - bloqueadas)._compute_product_qty()
+
+    def _compute_secondary_uom_qty(self):
+        # Líneas ya ajustadas a lo recibido: no recalcular kg desde m.
+        bloqueadas = self.filtered("apunts_cantidades_reales")
+        for line in bloqueadas:
+            line.secondary_uom_qty = line.secondary_uom_qty
+        super(PurchaseOrderLine, self - bloqueadas)._compute_secondary_uom_qty()
 
     @api.depends("move_ids.state", "move_ids.secondary_uom_qty", "move_ids.secondary_uom_id")
     def _compute_apunts_qty_received_secondary(self):

@@ -29,4 +29,64 @@
         </field>
     </record>
 
+    <!-- Vista aparte con priority alta: retoca columnas que añaden el módulo
+         OCA (purchase_order_secondary_unit) y la vista de arriba, por lo que
+         DEBE aplicarse después de ambas. Orden final (el de trabajo real):
+         Kg (pedido) | Cantidad (m, estimada) | UdM | ... -->
+    <record id="purchase_order_form_apunts_orden_columnas" model="ir.ui.view">
+        <field name="name">purchase.order.form.apunts.orden.columnas</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+
+            <!-- Leyenda de ayuda cuando el pedido lleva materiales por peso -->
+            <xpath expr="//field[@name='order_line']" position="before">
+                <field name="apunts_tiene_uom_secundaria" invisible="1"/>
+                <div class="alert alert-info" role="alert"
+                     invisible="not apunts_tiene_uom_secundaria">
+                    <strong>⚖️ Materiales por peso:</strong>
+                    escribe los <strong>kg que compras</strong> en
+                    <em>Kg (pedido)</em> — los metros (<em>Cantidad</em>) son
+                    un <u>estimado</u> y se calculan solos.
+                    El <strong>Precio</strong> es <strong>por kg</strong>
+                    (subtotal = kg × precio).
+                    Al recibir el material, el pedido se ajusta
+                    automáticamente a los kg y metros reales (columna
+                    <em>Real</em> marcada).
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list//field[@name='secondary_uom_qty']" position="attributes">
+                <attribute name="string">Kg (pedido)</attribute>
+                <attribute name="help">Los kg que se compran al proveedor: es lo que se escribe. Al recibir la mercancía se sustituye por el peso real de la báscula.</attribute>
+            </xpath>
+
+            <!-- Columna técnica (unidad secundaria + factor): oculta por defecto -->
+            <xpath expr="//field[@name='order_line']/list//field[@name='secondary_uom_id']" position="attributes">
+                <attribute name="string">Unidad peso</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_qty']" position="attributes">
+                <attribute name="help">En materiales por peso, los metros son un ESTIMADO calculado desde los kg; no hace falta tocarlos. Al recibir se ajustan solos a lo medido de verdad.</attribute>
+            </xpath>
+
+            <!-- Marca de que la línea ya lleva las cantidades reales de
+                 recepción: al lado de Recibido (kg), que es cuando se marca.
+                 Así el trío Kg (pedido) | Cantidad | UdM queda junto. -->
+            <xpath expr="//field[@name='order_line']/list//field[@name='apunts_qty_received_secondary']" position="after">
+                <field name="apunts_cantidades_reales"
+                       string="Real"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list//field[@name='price_unit']" position="attributes">
+                <attribute name="help">En materiales por peso (con Kg), este precio es POR KG y el subtotal = kg × precio. En el resto, es por la unidad de la línea.</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
 </odoo>
