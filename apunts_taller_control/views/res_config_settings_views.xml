@@ -26,6 +26,12 @@
                                        string="Tolerancia (minutos)"/>
                                 <field name="apunts_taller_jornada_tolerancia_min" class="oe_inline"/>
                             </div>
+                            <div class="content-group mt8"
+                                 invisible="not apunts_taller_bloqueo_jornada_activo">
+                                <label for="apunts_taller_descanso_puente_min"
+                                       string="Descanso que computa como presencia (min)"/>
+                                <field name="apunts_taller_descanso_puente_min" class="oe_inline"/>
+                            </div>
                         </setting>
                     </block>
                 </app>

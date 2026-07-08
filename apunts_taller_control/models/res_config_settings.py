@@ -41,6 +41,16 @@ class ResConfigSettings(models.TransientModel):
             "de 7h50m (presencia + ausencias)."
         ),
     )
+    apunts_taller_descanso_puente_min = fields.Integer(
+        string="Descanso que computa como presencia (min)",
+        default=30,
+        help=(
+            "Al calcular la presencia diaria, los huecos entre fichajes de "
+            "asistencia de hasta X minutos (almuerzo, bocadillo, doble "
+            "pulsación) se cuentan como presencia. Huecos mayores se "
+            "descuentan. Independiente de la tolerancia de jornada."
+        ),
+    )
 
     def set_values(self):
         super().set_values()
@@ -61,6 +71,10 @@ class ResConfigSettings(models.TransientModel):
             "apunts_taller_control.jornada_tolerancia_min",
             str(self.apunts_taller_jornada_tolerancia_min),
         )
+        ICP.set_param(
+            "apunts_taller_control.descanso_puente_min",
+            str(self.apunts_taller_descanso_puente_min),
+        )
 
     @api.model
     def get_values(self):
@@ -77,5 +91,8 @@ class ResConfigSettings(models.TransientModel):
         )
         res["apunts_taller_jornada_tolerancia_min"] = int(
             ICP.get_param("apunts_taller_control.jornada_tolerancia_min", "10")
+        )
+        res["apunts_taller_descanso_puente_min"] = int(
+            ICP.get_param("apunts_taller_control.descanso_puente_min", "30")
         )
         return res
