@@ -154,4 +154,19 @@
             </t>
         </xpath>
     </template>
+
+    <template id="valued_report_picking_draft" inherit_id="stock.report_delivery_document">
+        <xpath expr="//table[@name='stock_move_table']//th[@name='th_sm_quantity']" position="after">
+            <th class="text-end" t-if="o.valued"><strong>Precio Unidad</strong></th>
+            <th class="text-end" t-if="o.valued"><strong>Subtotal</strong></th>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr/td[last()]" position="after">
+            <td class="text-end" t-if="o.valued">
+                <span t-esc="move.sale_line_id.price_unit"/>
+            </td>
+            <td class="text-end" t-if="o.valued">
+                <span t-esc="(move.quantity or move.product_uom_qty) * (move.sale_line_id.price_unit or 0.0) * (1 - (move.sale_line_id.discount or 0.0)/100.0) * (-1 if o.picking_type_code=='incoming' else 1)" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+            </td>
+        </xpath>
+    </template>
 </odoo>
