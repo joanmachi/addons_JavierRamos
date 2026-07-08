@@ -137,6 +137,14 @@
         inherit_id="stock.stock_report_delivery_has_serial_move_line"
         priority="17"
     >
+        <xpath expr="//td[@name='move_line_lot_quantity']/span[1]" position="replace">
+            <t t-if="o.valued">
+                <span t-esc="move_line._get_report_valued_quantity()" t-options='{"widget": "float", "precision": 2}'/>
+            </t>
+            <t t-if="not o.valued">
+                <span t-field="move_line.quantity"/>
+            </t>
+        </xpath>
         <xpath expr="." position="inside">
             <t t-if="o.valued and o.sale_id and o.move_line_ids and (is_outgoing or o.sale_id)">
                 <td class="text-end">

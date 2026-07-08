@@ -122,3 +122,27 @@ class StockMoveLine(models.Model):
                 line.sale_price_subtotal = -line.sale_price_subtotal
                 line.sale_price_tax = -line.sale_price_tax
                 line.sale_price_total = -line.sale_price_total
+
+    def _get_aggregated_product_quantities(self, **kwargs):
+        """El albarán valorado enseña el NETO tras devoluciones: si la
+        entrega tiene devoluciones hechas, la cantidad Entregado se reduce
+        (10 − 2 → 8), igual que el subtotal valorado."""
+        aggregated = super()._get_aggregated_product_quantities(**kwargs)
+        picking = self.picking_id[:1]
+        if not picking or picking.picking_type_id.code != "outgoing" or not picking.valued:
+            return aggregated
+        for move in self.move_id:
+            devuelto = sum(
+                move.returned_move_ids.filtered(
+                    lambda m: m.state == "done" and m.picking_code == "incoming"
+                ).mapped("quantity")
+            )
+            if not devuelto:
+                continue
+            for key, vals in aggregated.items():
+                if vals.get("name") == move.product_id.name or key.startswith(
+                    "%s_" % move.product_id.id
+                ):
+                    vals["quantity"] = max((vals.get("quantity") or 0.0) - devuelto, 0.0)
+                    break
+        return aggregated
