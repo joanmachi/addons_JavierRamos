@@ -182,7 +182,7 @@
                 <span t-esc="move.sale_line_id.price_unit"/>
             </td>
             <td class="text-end" t-if="o.valued">
-                <span t-esc="move.quantity * (move.sale_line_id.price_unit or 0.0) * (1 - (move.sale_line_id.discount or 0.0)/100.0) * (-1 if o.picking_type_code=='incoming' else 1)" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                <span t-esc="max(move.quantity - sum(move.returned_move_ids.filtered(lambda m: m.state == 'done' and m.picking_code == 'incoming').mapped('quantity')), 0.0) * (move.sale_line_id.price_unit or 0.0) * (1 - (move.sale_line_id.discount or 0.0)/100.0) * (-1 if o.picking_type_code=='incoming' else 1)" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
             </td>
             <td class="text-end" t-if="o.valued">
                 <span t-esc="move.move_line_ids[:1].sale_tax_description or ', '.join(t.description or t.name for t in move.sale_line_id.tax_id)"/>
