@@ -69,6 +69,11 @@
                        widget="float"
                        digits="[16,1]"
                        optional="hide"/>
+                <field name="apunts_carga_pct_real"
+                       string="% carga s/ ritmo real"
+                       widget="float"
+                       digits="[16,1]"
+                       optional="show"/>
                 <field name="costs_hour" string="Coste/h máquina" optional="hide"/>
                 <field name="employee_costs_hour" string="Coste/h operario" optional="hide"/>
                 <field name="active" column_invisible="1"/>

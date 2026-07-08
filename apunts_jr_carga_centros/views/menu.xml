@@ -16,4 +16,10 @@
               parent="menu_apunts_jr_carga_root"
               action="apunts_action_carga_centros_list"
               sequence="2"/>
+
+    <menuitem id="menu_apunts_jr_carga_evolucion"
+              name="Evolución carga"
+              parent="menu_apunts_jr_carga_root"
+              action="apunts_action_carga_snapshot"
+              sequence="3"/>
 </odoo>

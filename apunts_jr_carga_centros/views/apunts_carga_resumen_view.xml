@@ -44,6 +44,10 @@
                                 string="HISTÓRICO — desglose por centro"
                                 class="btn btn-lg btn-info"
                                 invisible="modo != 'historico'"/>
+                        <button name="action_open_teorico_vs_real" type="object"
+                                string="Teórico vs real por centro"
+                                class="btn btn-lg btn-secondary"
+                                invisible="modo != 'historico'"/>
                     </div>
 
                     <!-- TARJETAS HISTÓRICO -->
@@ -110,6 +114,46 @@
                                     </div>
                                     <div class="small text-muted mt-1">
                                         Horas del periodo entre los días naturales del rango elegido.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas teóricas (OTs cerradas)</div>
+                                    <div class="display-6 fw-bold text-primary">
+                                        <field name="hist_horas_teoricas_ot" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Duración prevista de las órdenes de trabajo terminadas en el periodo.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (OTs cerradas)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="hist_horas_reales_ot" nolabel="1" readonly="1" widget="float_time"/>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Duración realmente fichada en esas mismas órdenes de trabajo.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Eficiencia</div>
+                                    <div class="display-6 fw-bold text-dark">
+                                        <field name="hist_eficiencia_pct" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-4"> %</span>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        Teórico ÷ real × 100. Más de 100% = se terminó
+                                        más rápido de lo previsto; menos = se tardó más.
                                     </div>
                                 </div>
                             </div>
@@ -287,6 +331,30 @@
                 <field name="workcenter_id" type="row"/>
                 <field name="date_end" interval="month" type="col"/>
                 <field name="duration" type="measure" string="Minutos fichados"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_carga_hist_graph" model="ir.ui.view">
+        <field name="name">apunts.carga.hist.productivity.graph</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="arch" type="xml">
+            <graph string="Histórico por centro" type="bar" sample="1">
+                <field name="date_end" interval="month"/>
+                <field name="workcenter_id"/>
+                <field name="duration" type="measure" string="Minutos fichados"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_carga_wo_teorico_real_pivot" model="ir.ui.view">
+        <field name="name">apunts.carga.wo.teorico.real.pivot</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <pivot string="Teórico vs real por centro" sample="1">
+                <field name="workcenter_id" type="row"/>
+                <field name="duration_expected" type="measure" string="Minutos teóricos"/>
+                <field name="duration" type="measure" string="Minutos reales"/>
             </pivot>
         </field>
     </record>

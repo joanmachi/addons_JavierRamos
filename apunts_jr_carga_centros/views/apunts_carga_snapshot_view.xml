@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_carga_snapshot_graph" model="ir.ui.view">
+        <field name="name">apunts.carga.snapshot.graph</field>
+        <field name="model">apunts.carga.snapshot</field>
+        <field name="arch" type="xml">
+            <graph string="Evolución de la carga pendiente" type="line" sample="1">
+                <field name="fecha" interval="day"/>
+                <field name="workcenter_id"/>
+                <field name="horas_pendientes" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_carga_snapshot_pivot" model="ir.ui.view">
+        <field name="name">apunts.carga.snapshot.pivot</field>
+        <field name="model">apunts.carga.snapshot</field>
+        <field name="arch" type="xml">
+            <pivot string="Evolución de la carga pendiente" sample="1">
+                <field name="workcenter_id" type="row"/>
+                <field name="fecha" interval="week" type="col"/>
+                <field name="horas_pendientes" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_carga_snapshot_list" model="ir.ui.view">
+        <field name="name">apunts.carga.snapshot.list</field>
+        <field name="model">apunts.carga.snapshot</field>
+        <field name="arch" type="xml">
+            <list string="Fotos de carga" create="false" edit="false"
+                  decoration-muted="estimado">
+                <field name="fecha"/>
+                <field name="workcenter_id"/>
+                <field name="horas_pendientes" widget="float_time" sum="Total"/>
+                <field name="dias_pendientes" widget="float" digits="[16,1]"/>
+                <field name="n_workorders" string="OTs abiertas"/>
+                <field name="estimado" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_carga_snapshot_search" model="ir.ui.view">
+        <field name="name">apunts.carga.snapshot.search</field>
+        <field name="model">apunts.carga.snapshot</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="workcenter_id"/>
+                <filter name="solo_reales" string="Solo fotos reales"
+                        domain="[('estimado', '=', False)]"/>
+                <filter name="solo_estimadas" string="Solo estimadas"
+                        domain="[('estimado', '=', True)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_centro" string="Centro"
+                            context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_fecha" string="Fecha"
+                            context="{'group_by': 'fecha'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_carga_snapshot" model="ir.actions.act_window">
+        <field name="name">Evolución carga</field>
+        <field name="res_model">apunts.carga.snapshot</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="apunts_carga_snapshot_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aún no hay fotos de carga</p>
+            <p>Cada día se guarda automáticamente una foto de las horas
+            pendientes por centro. Aquí se ve la evolución: si la carga crece
+            (acumulamos retraso) o baja. Las filas "Estimado" son la
+            reconstrucción retroactiva inicial; las demás son fotos reales.</p>
+        </field>
+    </record>
+
+</odoo>

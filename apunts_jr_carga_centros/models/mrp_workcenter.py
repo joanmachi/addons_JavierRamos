@@ -191,6 +191,29 @@ class MrpWorkcenter(models.Model):
             w.apunts_horas_reales_total = horas_total
             w.apunts_dias_reales_total = horas_total / 8.0
 
+    apunts_carga_pct_real = fields.Float(
+        string="% carga s/ ritmo real",
+        compute="_compute_apunts_carga_pct_real",
+        help=(
+            "Carga pendiente medida contra el ritmo REAL del centro.\n"
+            "\n"
+            "FÓRMULA: horas_pendientes / horas realmente fichadas en los "
+            "últimos 30 días × 100.\n"
+            "\n"
+            "100% = al ritmo real de los últimos 30 días, el centro tiene "
+            "un mes de trabajo por delante. Más fiable que el % teórico "
+            "porque usa lo que el centro produce de verdad, no el "
+            "calendario. 0 si el centro no fichó nada en 30 días."
+        ),
+    )
+
+    def _compute_apunts_carga_pct_real(self):
+        for w in self:
+            real_30d = w.apunts_horas_reales_30d
+            w.apunts_carga_pct_real = (
+                (w.apunts_horas_pendientes / real_30d * 100.0) if real_30d else 0.0
+            )
+
     def _compute_apunts_carga_pct(self):
         for w in self:
             horas_pte = w.apunts_horas_pendientes

@@ -136,6 +136,31 @@ class ApuntsCargaResumen(models.TransientModel):
             "del rango. Solo se calcula si has puesto Desde y Hasta."
         ),
     )
+    hist_horas_teoricas_ot = fields.Float(
+        string="Horas teóricas (OTs cerradas)",
+        compute="_compute_historico",
+        help=(
+            "Suma de la duración PREVISTA de las órdenes de trabajo "
+            "terminadas dentro del periodo (por fecha de cierre de la OT)."
+        ),
+    )
+    hist_horas_reales_ot = fields.Float(
+        string="Horas reales (OTs cerradas)",
+        compute="_compute_historico",
+        help=(
+            "Suma de la duración REAL fichada en esas mismas órdenes de "
+            "trabajo terminadas en el periodo."
+        ),
+    )
+    hist_eficiencia_pct = fields.Float(
+        string="Eficiencia (%)",
+        compute="_compute_historico",
+        help=(
+            "Horas teóricas / horas reales × 100, sobre las OTs terminadas "
+            "en el periodo. 100% = se cumplió el plan exacto; >100% = se "
+            "terminó más rápido de lo previsto; <100% = se tardó más."
+        ),
+    )
 
     def _hist_rango_utc(self, rec):
         """(desde, hasta_exclusivo) como datetimes naive para filtrar
@@ -187,6 +212,36 @@ class ApuntsCargaResumen(models.TransientModel):
                 rec.hist_horas_media_dia = rec.hist_horas / dias_rango
             else:
                 rec.hist_horas_media_dia = 0.0
+            # Teórico vs real: OTs terminadas en el periodo (por date_finished)
+            where_wo = [
+                "wo.state = 'done'",
+                "wo.workcenter_id IS NOT NULL",
+            ]
+            params_wo = []
+            if desde:
+                where_wo.append("wo.date_finished >= %s")
+                params_wo.append(desde)
+            if hasta:
+                where_wo.append("wo.date_finished < %s")
+                params_wo.append(hasta)
+            cr.execute(
+                """
+                SELECT COALESCE(SUM(wo.duration_expected), 0) / 60.0,
+                       COALESCE(SUM(wo.duration), 0) / 60.0
+                FROM mrp_workorder wo
+                WHERE %s
+                """
+                % " AND ".join(where_wo),
+                params_wo,
+            )
+            teoricas, reales_ot = cr.fetchone() or (0.0, 0.0)
+            rec.hist_horas_teoricas_ot = float(teoricas or 0.0)
+            rec.hist_horas_reales_ot = float(reales_ot or 0.0)
+            rec.hist_eficiencia_pct = (
+                rec.hist_horas_teoricas_ot / rec.hist_horas_reales_ot * 100.0
+                if rec.hist_horas_reales_ot
+                else 0.0
+            )
 
     def action_open_historico_centros(self):
         """Desglose del periodo: fichajes agrupados por centro (lista + pivote)."""
@@ -201,10 +256,33 @@ class ApuntsCargaResumen(models.TransientModel):
             "type": "ir.actions.act_window",
             "name": "Histórico por centro",
             "res_model": "mrp.workcenter.productivity",
-            "view_mode": "pivot,list",
+            "view_mode": "pivot,graph,list",
             "views": [
                 (self.env.ref("apunts_jr_carga_centros.apunts_carga_hist_pivot").id, "pivot"),
+                (self.env.ref("apunts_jr_carga_centros.apunts_carga_hist_graph").id, "graph"),
                 (self.env.ref("apunts_jr_carga_centros.apunts_carga_hist_list").id, "list"),
+            ],
+            "domain": domain,
+            "context": {"group_by": ["workcenter_id"]},
+        }
+
+    def action_open_teorico_vs_real(self):
+        """OTs terminadas en el periodo: minutos previstos vs reales por centro."""
+        self.ensure_one()
+        desde, hasta = self._hist_rango_utc(self)
+        domain = [("state", "=", "done"), ("workcenter_id", "!=", False)]
+        if desde:
+            domain.append(("date_finished", ">=", fields.Datetime.to_string(desde)))
+        if hasta:
+            domain.append(("date_finished", "<", fields.Datetime.to_string(hasta)))
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Teórico vs real por centro",
+            "res_model": "mrp.workorder",
+            "view_mode": "pivot,list",
+            "views": [
+                (self.env.ref("apunts_jr_carga_centros.apunts_carga_wo_teorico_real_pivot").id, "pivot"),
+                (False, "list"),
             ],
             "domain": domain,
             "context": {"group_by": ["workcenter_id"]},
