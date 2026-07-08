@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_apunts_direccion_resumen,apunts.direccion.resumen,model_apunts_direccion_resumen,account.group_account_readonly,1,1,1,1
+access_apunts_direccion_snapshot,apunts.direccion.snapshot,model_apunts_direccion_snapshot,account.group_account_readonly,1,0,0,0

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Columnas "en fecha" en la lista de albaranes -->
+    <record id="apunts_view_picking_list_en_fecha" model="ir.ui.view">
+        <field name="name">stock.picking.list.apunts.en.fecha</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_done']" position="after">
+                <field name="apunts_fecha_limite" optional="hide"/>
+                <field name="apunts_en_fecha" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Filtro/agrupación para el botón "Ver detalle" de entregas -->
+    <record id="apunts_view_picking_search_en_fecha" model="ir.ui.view">
+        <field name="name">stock.picking.search.apunts.en.fecha</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="apunts_solo_tarde" string="Entregados tarde"
+                        domain="[('apunts_en_fecha', '=', False), ('apunts_fecha_limite', '!=', False), ('state', '=', 'done')]"/>
+                <filter name="apunts_group_en_fecha" string="En fecha / tarde"
+                        context="{'group_by': 'apunts_en_fecha'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_direccion_snapshot_graph" model="ir.ui.view">
+        <field name="name">apunts.direccion.snapshot.graph</field>
+        <field name="model">apunts.direccion.snapshot</field>
+        <field name="arch" type="xml">
+            <graph string="Evolución semanal KPIs" type="line" sample="1">
+                <field name="fecha" interval="week"/>
+                <field name="kpi"/>
+                <field name="valor" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_direccion_snapshot_list" model="ir.ui.view">
+        <field name="name">apunts.direccion.snapshot.list</field>
+        <field name="model">apunts.direccion.snapshot</field>
+        <field name="arch" type="xml">
+            <list string="Fotos semanales" create="false" edit="false" delete="false">
+                <field name="fecha"/>
+                <field name="kpi"/>
+                <field name="valor"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_direccion_snapshot_search" model="ir.ui.view">
+        <field name="name">apunts.direccion.snapshot.search</field>
+        <field name="model">apunts.direccion.snapshot</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="kpi"/>
+                <filter name="f_fact" string="Facturación año" domain="[('kpi', '=', 'fact_anual')]"/>
+                <filter name="f_pedidos" string="Pedidos mes" domain="[('kpi', '=', 'pedidos_mes')]"/>
+                <filter name="f_cartera" string="Cartera" domain="[('kpi', '=', 'cartera_pendiente')]"/>
+                <filter name="f_cobertura" string="Cobertura" domain="[('kpi', '=', 'cobertura_meses')]"/>
+                <filter name="f_tesoreria" string="Tesorería" domain="[('kpi', '=', 'tesoreria')]"/>
+                <filter name="f_cobros" string="Cobros pendientes" domain="[('kpi', '=', 'cobros_pendientes')]"/>
+                <filter name="f_margen" string="Margen bruto" domain="[('kpi', '=', 'margen_bruto')]"/>
+                <filter name="f_entregas" string="Entregas en fecha" domain="[('kpi', '=', 'entregas_mes_pct')]"/>
+                <filter name="f_horas" string="Horas productivas" domain="[('kpi', '=', 'horas_prod_pct')]"/>
+                <filter name="f_wip" string="WIP" domain="[('kpi', '=', 'wip_valor')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_kpi" string="KPI" context="{'group_by': 'kpi'}"/>
+                    <filter name="group_fecha" string="Fecha" context="{'group_by': 'fecha'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_direccion_snapshot" model="ir.actions.act_window">
+        <field name="name">Evolución semanal KPIs</field>
+        <field name="res_model">apunts.direccion.snapshot</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="apunts_direccion_snapshot_search"/>
+        <field name="context">{'search_default_group_kpi': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aún no hay fotos semanales</p>
+            <p>Cada lunes se guarda automáticamente el valor de todos los KPIs
+            del Panel Dirección. Usa los filtros para ver la evolución de un
+            KPI concreto. Ojo: los euros y los porcentajes conviven aquí —
+            filtra por un KPI para que el gráfico tenga sentido.</p>
+        </field>
+    </record>
+
+</odoo>

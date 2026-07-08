@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_direccion_resumen_form" model="ir.ui.view">
+        <field name="name">apunts.direccion.resumen.form</field>
+        <field name="model">apunts.direccion.resumen</field>
+        <field name="arch" type="xml">
+            <form string="Panel Dirección" create="0" edit="0" delete="0">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title mb-2">
+                        <h1>Panel Dirección</h1>
+                        <p class="text-muted">
+                            El estado de la empresa en una pantalla. Cada tarjeta lleva
+                            su botón para ver el detalle completo. Los valores son en
+                            tiempo real; la evolución semanal se guarda sola cada lunes.
+                        </p>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <button name="action_ver_evolucion" type="object"
+                                string="📈 Evolución semanal de todos los KPIs"
+                                class="btn btn-lg btn-dark"/>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">1 · Facturación del año</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="fact_anual" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Facturado (sin IVA) desde el 1 de enero.
+                                        Esta semana: <field name="fact_semana" readonly="1" widget="monetary" class="fw-semibold"/>
+                                    </div>
+                                    <button name="action_ver_facturacion" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">2 · Pedidos del mes</div>
+                                    <div class="display-6 fw-bold text-primary">
+                                        <field name="pedidos_mes" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Pedidos de venta confirmados este mes (sin IVA).
+                                        En el año: <field name="pedidos_anual" readonly="1" widget="monetary" class="fw-semibold"/>
+                                    </div>
+                                    <button name="action_ver_pedidos" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">3 · Cartera pendiente</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="cartera_pendiente" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Vendido y todavía no entregado: trabajo contratado
+                                        pendiente de servir (sin IVA).
+                                    </div>
+                                    <button name="action_ver_cartera" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">4 · Cobertura de trabajo</div>
+                                    <div class="display-6 fw-bold text-info">
+                                        <field name="cobertura_meses" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> meses</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Meses de carga asegurada en los centros, al ritmo
+                                        real de trabajo de los últimos 30 días.
+                                    </div>
+                                    <button name="action_ver_cobertura" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">5 · Tesorería disponible</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="tesoreria" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Saldo actual de bancos y caja (asientos publicados).
+                                    </div>
+                                    <button name="action_ver_tesoreria" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">6 · Cobros pendientes</div>
+                                    <div class="display-6 fw-bold text-danger">
+                                        <field name="cobros_pendientes" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Facturas de cliente emitidas y aún no cobradas.
+                                    </div>
+                                    <button name="action_ver_cobros" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">7 · Margen bruto del año</div>
+                                    <div class="display-6 fw-bold text-dark">
+                                        <field name="margen_bruto" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Ingresos menos coste directo/aprovisionamientos (60x).
+                                        Sobre ventas: <field name="margen_bruto_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
+                                    </div>
+                                    <button name="action_ver_margen" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">8 · Entregas en fecha (mes)</div>
+                                    <div class="display-6 fw-bold text-info">
+                                        <field name="entregas_mes_pct" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> %</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Albaranes de salida validados dentro de la fecha
+                                        comprometida. En el año:
+                                        <field name="entregas_anual_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
+                                    </div>
+                                    <button name="action_ver_entregas" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">9 · Horas productivas (mes)</div>
+                                    <div class="display-6 fw-bold text-primary">
+                                        <field name="horas_prod_pct" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> %</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Jornada cumplida por los operarios (presencia +
+                                        ausencias sobre lo esperado), como en KPIs de fichaje.
+                                    </div>
+                                    <button name="action_ver_horas" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">10 · Fabricación en curso (WIP)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="wip_valor" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Coste real acumulado en las órdenes de fabricación
+                                        en curso: el dinero metido en el taller ahora mismo.
+                                    </div>
+                                    <button name="action_ver_wip" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_direccion_resumen_srv" model="ir.actions.server">
+        <field name="name">Panel Dirección</field>
+        <field name="model_id" ref="model_apunts_direccion_resumen"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_resumen()</field>
+    </record>
+
+</odoo>
