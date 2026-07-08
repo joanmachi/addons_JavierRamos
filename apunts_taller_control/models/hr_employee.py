@@ -135,64 +135,18 @@ class HrEmployee(models.Model):
         cal = self.resource_calendar_id
         return cal.hours_per_day if cal and cal.hours_per_day else 8.0
 
-    # Asistencias con más de estas horas se consideran dato corrupto
-    # (asistencia "zombi" cerrada días/meses después) y se ignoran.
-    _APUNTS_MAX_ASISTENCIA_H = 18.0
-
     def _apunts_horas_presencia(self, dia):
-        """Horas de presencia fichadas (hr.attendance) en el día natural,
-        contadas por SOLAPE con el día. Robusto ante los patrones reales
-        del taller:
-
-        - Cuenta asistencias que TOCAN el día aunque el check_in sea de
-          otro día (cruces de medianoche, cierres tardíos), recortadas a
-          los límites del día.
-        - Descarta registros corruptos (> _APUNTS_MAX_ASISTENCIA_H):
-          una asistencia zombi cerrada meses después ni regala ni roba
-          horas a ningún día.
-        - PUENTEA los huecos cortos entre fichajes (almuerzo, bocadillo,
-          doble pulsación del PIN) hasta el margen configurado
-          "descanso_puente_min" (default 30'): cuentan como presencia.
-          Es un margen INDEPENDIENTE de la tolerancia de jornada y del
-          margen de inactividad — cada uno sirve para lo suyo.
-        - Una asistencia sin check_out sigue contando 0: es justo el caso
-          'se olvidó de desfichar' que el bloqueo quiere detectar.
-        """
+        """Horas de presencia fichadas (hr.attendance) en el día natural.
+        Una asistencia sin check_out cuenta 0 (worked_hours=0): es justo el
+        caso 'se olvidó de desfichar' que queremos detectar."""
         self.ensure_one()
         ini, fin = self._apunts_rango_utc(dia)
         atts = self.env['hr.attendance'].search([
             ('employee_id', '=', self.id),
+            ('check_in', '>=', ini),
             ('check_in', '<=', fin),
-            ('check_out', '>=', ini),
-        ], order='check_in')
-        tramos = []
-        for att in atts:
-            dur_total = (att.check_out - att.check_in).total_seconds() / 3600.0
-            if dur_total > self._APUNTS_MAX_ASISTENCIA_H:
-                continue  # dato corrupto (asistencia zombi)
-            tramo_ini = max(att.check_in, ini)
-            tramo_fin = min(att.check_out, fin)
-            if tramo_fin > tramo_ini:
-                tramos.append((tramo_ini, tramo_fin))
-        if not tramos:
-            return 0.0
-        puente_s = int(
-            self.env['ir.config_parameter'].sudo().get_param(
-                'apunts_taller_control.descanso_puente_min', '30'
-            )
-        ) * 60
-        tramos.sort()
-        total = 0.0
-        cur_ini, cur_fin = tramos[0]
-        for tramo_ini, tramo_fin in tramos[1:]:
-            if (tramo_ini - cur_fin).total_seconds() <= puente_s:
-                # Hueco corto (descanso): se puentea y computa como presencia
-                cur_fin = max(cur_fin, tramo_fin)
-            else:
-                total += (cur_fin - cur_ini).total_seconds() / 3600.0
-                cur_ini, cur_fin = tramo_ini, tramo_fin
-        total += (cur_fin - cur_ini).total_seconds() / 3600.0
-        return total
+        ])
+        return sum(atts.mapped('worked_hours'))
 
     def _apunts_horas_ausencia(self, dia):
         """Horas justificadas por ausencias aprobadas (hr.leave) ese día.
