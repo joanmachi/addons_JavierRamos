@@ -36,8 +36,19 @@ class StockPicking(models.Model):
         records...).
         """
         for pick in self:
+            lines = pick.move_line_ids
+            # Albarán rectificado: si esta entrega tiene DEVOLUCIONES hechas,
+            # sus líneas (ya en negativo) se restan del total → el albarán
+            # valorado enseña el neto real entregado (10 − 2 = 8 uds → 40 €).
+            if pick.picking_type_id.code == "outgoing" and pick.move_ids:
+                ret_moves = self.env["stock.move"].sudo().search([
+                    ("origin_returned_move_id", "in", pick.move_ids.ids),
+                    ("state", "=", "done"),
+                    ("picking_id.picking_type_id.code", "=", "incoming"),
+                ])
+                lines |= ret_moves.mapped("move_line_ids")
             amount_untaxed = amount_tax = 0.0
-            for line in pick.move_line_ids:
+            for line in lines:
                 amount_untaxed += line.sale_price_subtotal
                 amount_tax += line.sale_price_tax
             pick.update(
