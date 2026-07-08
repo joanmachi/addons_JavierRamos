@@ -59,7 +59,21 @@ class StockMoveLine(models.Model):
     )
 
     def _get_report_valued_quantity(self):
-        return self.quantity
+        """Cantidad NETA a valorar: el albarán de Odoo enseña el Entregado
+        descontando devoluciones hechas, así que el subtotal debe usar la
+        misma cantidad (8 uds → 40 €, no 50 €). La devolución se reparte
+        proporcionalmente si el move tiene varias líneas."""
+        qty = self.quantity
+        move = self.move_id
+        if move.picking_code == "outgoing" and move.quantity:
+            devuelto = sum(
+                move.returned_move_ids.filtered(
+                    lambda m: m.state == "done" and m.picking_code == "incoming"
+                ).mapped("quantity")
+            )
+            if devuelto:
+                qty = max(qty - devuelto * (self.quantity / move.quantity), 0.0)
+        return qty
 
     def _compute_sale_order_line_fields(self):
         """This is computed with sudo for avoiding problems if you don't have
