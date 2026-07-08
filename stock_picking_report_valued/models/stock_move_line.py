@@ -102,3 +102,9 @@ class StockMoveLine(models.Model):
                     "sale_price_unit": line.sale_line.price_unit,
                 }
             )
+            # Devolución de cliente (entrada con línea de venta): el albarán
+            # valorado debe RESTAR esos importes, no sumarlos en positivo.
+            if line.move_id.picking_code == "incoming":
+                line.sale_price_subtotal = -line.sale_price_subtotal
+                line.sale_price_tax = -line.sale_price_tax
+                line.sale_price_total = -line.sale_price_total
