@@ -1,3 +1,4 @@
+from . import desbloqueo_log
 from . import mrp_workcenter_productivity
 from . import hr_attendance_sync
 from . import hr_employee

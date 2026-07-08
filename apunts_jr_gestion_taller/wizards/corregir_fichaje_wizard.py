@@ -265,6 +265,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
         self.ensure_one()
         Productivity = self.env['mrp.workcenter.productivity']
         prod_cerrado = None  # fichaje de CASO 1 que se cierra → para crear ausencia
+        of_vinculada_id = False  # OF de la corrección → para el histórico de desbloqueos
 
         if self.tiene_fichaje_abierto:
             # CASO 1: cerrar el fichaje abierto con hora corregida
@@ -288,6 +289,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                     'apunts_modificado_fecha': fields.Datetime.now(),
                 })
                 prod_cerrado = prod  # guardar para calcular ausencia tras el cierre
+                of_vinculada_id = prod.workorder_id.production_id.id or False
                 accion_msg = (
                     f"Fichaje cerrado (id {prod.id}) en "
                     f"{prod.workorder_id.production_id.name} / {prod.workorder_id.name} "
@@ -329,6 +331,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
                 if loss_id:
                     vals_prod['loss_id'] = loss_id
                 nuevo = Productivity.create(vals_prod)
+                of_vinculada_id = self.workorder_id_nuevo.production_id.id or False
                 accion_msg = (
                     f"Nuevo fichaje creado (id {nuevo.id}) en "
                     f"{self.workorder_id_nuevo.production_id.name} / {self.workorder_id_nuevo.name}: "
@@ -347,9 +350,24 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             else self._crear_ausencia_jornada_insuficiente()
         )
 
-        # Desbloquear siempre
+        motivo_label = (
+            dict(self._fields['motivo'].selection).get(self.motivo, self.motivo)
+            if self.motivo else False
+        )
+
+        # Desbloquear siempre (el write dispara el histórico de desbloqueos;
+        # el contexto enriquece la traza con lo que se hizo en el wizard)
         if self.employee_id.apunts_taller_bloqueado:
-            self.employee_id.write({
+            info_desbloqueo = {
+                'accion': accion_msg,
+                'con_correccion': bool(of_vinculada_id),
+                'production_id': of_vinculada_id,
+                'motivo_correccion': motivo_label,
+                'ausencia_id': ausencia.id if ausencia else False,
+            }
+            self.employee_id.with_context(
+                apunts_desbloqueo_info=info_desbloqueo
+            ).write({
                 'apunts_taller_bloqueado': False,
                 'apunts_taller_motivo_bloqueo': False,
                 'apunts_taller_fecha_bloqueo': False,
@@ -359,8 +377,7 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             'user': self.env.user.name,
             'accion': accion_msg,
         }
-        if self.motivo:
-            motivo_label = dict(self._fields['motivo'].selection).get(self.motivo, self.motivo)
+        if motivo_label:
             msg += _("\nMotivo: %s") % motivo_label
         if ausencia:
             horas = round(

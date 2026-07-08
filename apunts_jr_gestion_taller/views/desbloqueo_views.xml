@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_desbloqueo_list" model="ir.ui.view">
+        <field name="name">apunts.taller.desbloqueo.list</field>
+        <field name="model">apunts.taller.desbloqueo</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false"
+                  decoration-danger="not con_correccion"
+                  decoration-warning="cumple_ahora">
+                <field name="fecha_desbloqueo"/>
+                <field name="employee_id"/>
+                <field name="tipo_bloqueo"/>
+                <field name="dia_incidencia" optional="show"/>
+                <field name="horas_esperadas" optional="show" string="Esperadas"/>
+                <field name="horas_presencia" optional="show" string="Presencia"/>
+                <field name="horas_ausencia" optional="show" string="Ausencia"/>
+                <field name="cumple_ahora" optional="show"/>
+                <field name="con_correccion"/>
+                <field name="production_id" optional="show"/>
+                <field name="motivo_correccion" optional="show"/>
+                <field name="desbloqueado_por_id"/>
+                <field name="duracion_bloqueo_h" optional="hide" widget="float_time"/>
+                <field name="fecha_bloqueo" optional="hide"/>
+                <field name="motivo_bloqueo" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_desbloqueo_form" model="ir.ui.view">
+        <field name="name">apunts.taller.desbloqueo.form</field>
+        <field name="model">apunts.taller.desbloqueo</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="employee_id" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Bloqueo">
+                            <field name="tipo_bloqueo"/>
+                            <field name="fecha_bloqueo"/>
+                            <field name="dia_incidencia"/>
+                            <field name="motivo_bloqueo"/>
+                        </group>
+                        <group string="Desbloqueo">
+                            <field name="fecha_desbloqueo"/>
+                            <field name="desbloqueado_por_id"/>
+                            <field name="duracion_bloqueo_h" widget="float_time"/>
+                            <field name="con_correccion"/>
+                            <field name="production_id"/>
+                            <field name="motivo_correccion"/>
+                            <field name="ausencia_id"/>
+                        </group>
+                    </group>
+                    <group string="Foto de la jornada al desbloquear"
+                           invisible="tipo_bloqueo != 'jornada'">
+                        <group>
+                            <field name="horas_esperadas"/>
+                            <field name="horas_presencia"/>
+                            <field name="horas_ausencia"/>
+                        </group>
+                        <group>
+                            <field name="cumple_ahora"/>
+                        </group>
+                    </group>
+                    <group string="Acción realizada">
+                        <field name="accion" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_desbloqueo_search" model="ir.ui.view">
+        <field name="name">apunts.taller.desbloqueo.search</field>
+        <field name="model">apunts.taller.desbloqueo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="desbloqueado_por_id"/>
+                <field name="production_id"/>
+                <filter name="sin_of" string="Sin OF (desbloqueo a pelo)"
+                        domain="[('con_correccion', '=', False)]"/>
+                <filter name="cumple_ahora" string="Cumplía al desbloquear (bloqueo dudoso)"
+                        domain="[('cumple_ahora', '=', True)]"/>
+                <separator/>
+                <filter name="tipo_jornada" string="Jornada insuficiente"
+                        domain="[('tipo_bloqueo', '=', 'jornada')]"/>
+                <filter name="tipo_inactividad" string="Inactividad"
+                        domain="[('tipo_bloqueo', '=', 'inactividad')]"/>
+                <filter name="tipo_fichaje_largo" string="Fichaje largo"
+                        domain="[('tipo_bloqueo', '=', 'fichaje_largo')]"/>
+                <separator/>
+                <filter name="ultimo_mes" string="Últimos 30 días"
+                        domain="[('fecha_desbloqueo', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_employee" string="Operario"
+                            context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_tipo" string="Tipo de bloqueo"
+                            context="{'group_by': 'tipo_bloqueo'}"/>
+                    <filter name="group_user" string="Desbloqueado por"
+                            context="{'group_by': 'desbloqueado_por_id'}"/>
+                    <filter name="group_dia" string="Día de la incidencia"
+                            context="{'group_by': 'dia_incidencia'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_apunts_desbloqueos" model="ir.actions.act_window">
+        <field name="name">Histórico desbloqueos</field>
+        <field name="res_model">apunts.taller.desbloqueo</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="search_view_id" ref="apunts_desbloqueo_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin desbloqueos registrados aún</p>
+            <p>Cada vez que se desbloquea a un operario (con el wizard o
+            quitando el check a mano) queda aquí la traza: por qué lo bloqueó
+            el sistema, quién lo desbloqueó, si se hizo con o sin OF, y la
+            foto de las horas del día de la incidencia. Filas en rojo:
+            desbloqueos sin OF. Filas en amarillo: al desbloquear los datos ya
+            cumplían la jornada (el bloqueo vino de datos que llegaron tarde).</p>
+        </field>
+    </record>
+
+</odoo>

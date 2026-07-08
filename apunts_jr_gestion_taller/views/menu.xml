@@ -43,4 +43,10 @@
               action="apunts_corregir_fichaje_action"
               sequence="6"/>
 
+    <menuitem id="menu_apunts_gestion_desbloqueos"
+              name="Histórico desbloqueos"
+              parent="menu_apunts_gestion_taller_root"
+              action="action_apunts_desbloqueos"
+              sequence="7"/>
+
 </odoo>
