@@ -1,6 +1,6 @@
 {
     'name':     'Apunts — Costes OF (smart button + vista en tiempo real, SOLO CONSULTA)',
-    'version':  '18.0.11.4.1',
+    'version':  '18.0.11.4.2',
     'summary':  'Modulo SOLO CONSULTA: smart button "Costes OF" en mrp.production con coste consolidado en tiempo real (material, mano de obra, operacion), trazabilidad backward (PO/proveedor/lote) + forward (SO/cliente/lote/margen incluso si la OF se vincula a SO via campo Studio), asistencias por empleado x dia, comparativa precio venta vs coste real con margen, vista Master Data Costes (consulta) y tooltips informativos en cada KPI. NO MODIFICA datos del Odoo.',
     'author':   'Apunts Informatica',
     'website':  'http://www.grupapunts.es',

@@ -736,8 +736,14 @@ class MrpProduction(models.Model):
             ("price_unit", ">", 0),
             ("order_id.state", "in", ("purchase", "done")),
         ], order="id DESC", limit=1)
-        if pol and pol.secondary_uom_id and pol.secondary_uom_id.factor:
-            return pol.price_unit / pol.secondary_uom_id.factor
+        if pol:
+            # Preferir el ratio REAL de la propia línea: subtotal (kg × €/kg)
+            # ÷ metros = €/m, sin depender del factor del producto (que la
+            # auto-calibración puede haber dejado mal).
+            if pol.product_qty and pol.price_subtotal:
+                return pol.price_subtotal / pol.product_qty
+            if pol.secondary_uom_id and pol.secondary_uom_id.factor:
+                return pol.price_unit / pol.secondary_uom_id.factor
         return 0.0
 
     def _apunts_get_product_cost(self, product, production=None):

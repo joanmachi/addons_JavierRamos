@@ -880,7 +880,13 @@ class MrpProduction(models.Model):
             missing = max(needed - consumed - reserved - in_transit, 0.0)
             std_price = m.product_id.standard_price or 0.0
             avg_purchase = self._apunts_avg_purchase_price(m.product_id)
-            effective_price = std_price if std_price else avg_purchase
+            # Prioridad: precio REAL por UoM primaria de la compra
+            # (subtotal ÷ cantidad). En materiales por peso el subtotal es
+            # kg × €/kg, así que subtotal/m = €/m con el ratio real de esa
+            # compra — std_price y avg_purchase quedan en €/kg y darían un
+            # coste disparatado al multiplicar por metros.
+            precio_po = self._apunts_precio_metro_po(m.product_id)
+            effective_price = precio_po or std_price or avg_purchase
             cost_consumed = round(consumed * effective_price, 2)
             cost_pending = round((reserved + in_transit + missing) * effective_price, 2)
             if missing > 0.001 and self.state not in ('done', 'cancel'):
@@ -920,6 +926,37 @@ class MrpProduction(models.Model):
             })
         if rows:
             Material.create(rows)
+
+    def _apunts_precio_metro_po(self, product):
+        """Precio por UoM PRIMARIA (€/m) sacado de la compra real:
+        price_subtotal ÷ product_qty. En materiales comprados por peso el
+        subtotal es kg × €/kg, de modo que subtotal/m lleva incorporado el
+        ratio kg/m REAL de esa compra (ej. 676 kg / 118,6 m a 2,93 €/kg
+        → 1.980,68 € / 118,6 m = 16,70 €/m). No depende del factor del
+        producto (que puede estar mal calibrado).
+
+        Orden: 1) POs vinculadas a ESTA OF (campo fabricacion);
+               2) última PO recibida del producto."""
+        self.ensure_one()
+        POL = self.env['purchase.order.line']
+        if 'fabricacion' in POL._fields:
+            pols = POL.search([
+                ('fabricacion', '=', self.id),
+                ('product_id', '=', product.id),
+                ('order_id.state', 'in', ('purchase', 'done')),
+            ])
+            tq = sum(pols.mapped('product_qty'))
+            ta = sum(pols.mapped('price_subtotal'))
+            if tq > 0 and ta > 0:
+                return ta / tq
+        pol = POL.search([
+            ('product_id', '=', product.id),
+            ('order_id.state', 'in', ('purchase', 'done')),
+            ('qty_received', '>', 0),
+        ], order='id DESC', limit=1)
+        if pol and pol.product_qty and pol.price_subtotal:
+            return pol.price_subtotal / pol.product_qty
+        return 0.0
 
     def _apunts_avg_purchase_price(self, product):
         """Devuelve un precio de coste para `product` con cascada de fallbacks.
