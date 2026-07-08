@@ -10,7 +10,7 @@ Vista resumida de la carga de trabajo de cada centro:
 Pensado para sustituir la vista nativa "Planificación por centros" que es
 poco legible. Estilo Resumen (tarjetas) + lista detallada por centro.
     """,
-    "version": "18.0.1.0.5",
+    "version": "18.0.1.1.0",
     "category": "Manufacturing",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
