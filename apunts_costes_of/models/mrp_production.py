@@ -780,22 +780,29 @@ class MrpProduction(models.Model):
         return round(total_covered / total_needed * 100, 1) if total_needed else 0.0
 
     def _apunts_in_transit_qty(self, move):
-        """Cantidad de POs vinculadas a esta OF para el producto del move, pendiente de recibir."""
+        """Cantidad pendiente de recibir de POs vinculadas a esta OF (por
+        grupo de aprovisionamiento O por campo fabricacion) para el producto."""
         self.ensure_one()
-        if not self.procurement_group_id:
+        POL = self.env['purchase.order.line']
+        dominio = [
+            ('product_id', '=', move.product_id.id),
+            ('order_id.state', 'in', ('purchase', 'done')),
+        ]
+        vinculo = []
+        if self.procurement_group_id:
+            vinculo.append(('order_id.group_id', '=', self.procurement_group_id.id))
+        if 'fabricacion' in POL._fields:
+            vinculo.append(('fabricacion', '=', self.id))
+        if not vinculo:
             return 0.0
-        cr = self.env.cr
-        cr.execute("""
-            SELECT COALESCE(SUM(pol.product_qty - pol.qty_received), 0)
-            FROM   purchase_order_line pol
-            JOIN   purchase_order      po ON po.id = pol.order_id
-            WHERE  po.group_id = %s
-              AND  pol.product_id = %s
-              AND  po.state IN ('purchase', 'done')
-              AND  pol.product_qty > pol.qty_received
-        """, [self.procurement_group_id.id, move.product_id.id])
-        row = cr.fetchone()
-        return float(row[0]) if row else 0.0
+        if len(vinculo) == 2:
+            dominio = ['|'] + [vinculo[0], vinculo[1]] + dominio
+        else:
+            dominio = [vinculo[0]] + dominio
+        total = 0.0
+        for pol in POL.search(dominio):
+            total += max((pol.product_qty or 0.0) - (pol.qty_received or 0.0), 0.0)
+        return total
 
     def _apunts_progress_pct(self):
         """% completado = qty_producing / product_qty x 100. Si done, 100%."""

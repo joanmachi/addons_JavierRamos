@@ -115,10 +115,54 @@ class ApuntsCostesOfMaterialLine(models.TransientModel):
         }
 
     def action_create_po_for_missing(self):
-        """Crea PO borrador con la cantidad faltante. Reusa proveedor preferido del producto."""
+        """Crea PO borrador con la cantidad faltante, VINCULADA a la OF
+        (campo fabricacion). Idempotente: si ya hay compras vinculadas
+        pendientes de recibir que cubren la falta, no duplica — abre la
+        existente. Si hay un borrador previo, amplía su línea en vez de
+        crear otro pedido."""
         self.ensure_one()
         if self.qty_missing <= 0 or not self.product_id:
             return False
+        POL = self.env['purchase.order.line']
+        falta = self.qty_missing
+        linea_borrador = POL.browse()
+        if 'fabricacion' in POL._fields:
+            existentes = POL.search([
+                ('fabricacion', '=', self.production_id.id),
+                ('product_id', '=', self.product_id.id),
+                ('state', '!=', 'cancel'),
+            ])
+            grupo = self.production_id.procurement_group_id
+            # Las confirmadas del mismo grupo ya están descontadas en
+            # qty_missing (columna "De camino"): no restarlas dos veces.
+            a_descontar = existentes.filtered(
+                lambda p: p.state in ('draft', 'sent') or p.order_id.group_id != grupo
+            )
+            pendiente = sum(
+                max(p.product_qty - p.qty_received, 0.0) for p in a_descontar
+            )
+            falta -= pendiente
+            if falta <= 0.001:
+                ultimo = existentes.sorted('id')[-1:]
+                return {
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'purchase.order',
+                    'res_id': ultimo.order_id.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                } if ultimo else False
+            linea_borrador = existentes.filtered(
+                lambda p: p.state in ('draft', 'sent')
+            )[:1]
+        if linea_borrador:
+            linea_borrador.product_qty += falta
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'purchase.order',
+                'res_id': linea_borrador.order_id.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
         seller = self.product_id.seller_ids[:1]
         partner = seller.partner_id if seller else False
         if not partner:
@@ -144,6 +188,9 @@ class ApuntsCostesOfMaterialLine(models.TransientModel):
                 'date_planned': fields.Datetime.now(),
             })],
         }
+        po_vals['order_line'][0][2]['product_qty'] = falta
+        if 'fabricacion' in POL._fields:
+            po_vals['order_line'][0][2]['fabricacion'] = self.production_id.id
         po = self.env['purchase.order'].create(po_vals)
         return {
             'type': 'ir.actions.act_window',
