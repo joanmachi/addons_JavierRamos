@@ -612,13 +612,16 @@ class MrpProduction(models.Model):
                     # Si la línea de compra está valorada por UNIDAD SECUNDARIA
                     # (p. ej. €/kg en barras/perfiles que se consumen en m), el
                     # price_unit es €/kg pero el consumo (move.quantity) está en m.
-                    # Convertimos a €/UoM-base con el factor de la unidad
-                    # secundaria (factor = base por secundaria, es decir m/kg):
-                    #   €/m = €/kg ÷ (m/kg)
-                    # Evita el error de multiplicar metros por un precio por kilo.
+                    # Usar el ratio REAL de la propia línea: subtotal (kg × €/kg)
+                    # ÷ cantidad (m) = €/m. NO usar el factor del producto, que
+                    # la auto-calibración puede tener descalibrado (caso real:
+                    # 3,90/0,007 = 557 €/m frente a 854,10/1,76 = 485 €/m).
                     su = pol.secondary_uom_id
-                    if su and su.factor:
-                        precio = pol.price_unit / su.factor
+                    if su:
+                        if pol.product_qty and pol.price_subtotal:
+                            precio = pol.price_subtotal / pol.product_qty
+                        elif su.factor:
+                            precio = pol.price_unit / su.factor
                     precio_po[pol.product_id.id] = precio
         total = 0.0
         for m in prod.move_raw_ids:
