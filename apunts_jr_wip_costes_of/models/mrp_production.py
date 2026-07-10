@@ -577,63 +577,30 @@ class MrpProduction(models.Model):
         return False
 
     def _apunts_mp_total_planned(self, prod):
+        # Precio ÚNICO (canónico) compartido con la pestaña Material: la
+        # fila "MP Teórico" es la suma de la columna "Coste (€)" de abajo.
         total = 0.0
         for m in prod.move_raw_ids:
             if m.state == "cancel":
                 continue
             qty = m.product_qty or 0.0
-            price = self._apunts_get_product_cost(m.product_id, prod)
-            total += qty * price
+            total += qty * prod._apunts_precio_unitario_canonico(m.product_id)
         return total
 
     def _apunts_mp_total_real(self, prod):
-        # Punto 10 JR: coste REAL de materiales = cantidad CONSUMIDA en la OF
-        # (move_raw.quantity, lo realmente UTILIZADO) × PRECIO del pedido de
-        # compra vinculado a la OF (campo `fabricacion`).
-        #   • Cuenta lo usado, no lo comprado: si compras 20 y usas 10, cuenta 10.
-        #   • Valora al precio del PO (lo que costó comprarlo), no al coste estándar.
-        #   • Si un material consumido no tiene PO vinculado, fallback a su coste
-        #     estándar para no dejar el material sin valorar.
-        POL = self.env["purchase.order.line"]
-        precio_po = {}
-        if "fabricacion" in POL._fields:
-            dom = [
-                ("fabricacion", "=", prod.id),
-                ("order_id.state", "in", ("purchase", "done")),
-            ]
-            # Excluir compras de reposición: su coste se cuenta aparte
-            # (apunts_mat_reposicion_extra) para no duplicarlo.
-            if "apunts_es_reposicion" in POL._fields:
-                dom.append(("apunts_es_reposicion", "=", False))
-            pols = POL.search(dom)
-            for pol in pols:
-                if pol.price_unit:
-                    precio = pol.price_unit
-                    # Si la línea de compra está valorada por UNIDAD SECUNDARIA
-                    # (p. ej. €/kg en barras/perfiles que se consumen en m), el
-                    # price_unit es €/kg pero el consumo (move.quantity) está en m.
-                    # Usar el ratio REAL de la propia línea: subtotal (kg × €/kg)
-                    # ÷ cantidad (m) = €/m. NO usar el factor del producto, que
-                    # la auto-calibración puede tener descalibrado (caso real:
-                    # 3,90/0,007 = 557 €/m frente a 854,10/1,76 = 485 €/m).
-                    su = pol.secondary_uom_id
-                    if su:
-                        if pol.product_qty and pol.price_subtotal:
-                            precio = pol.price_subtotal / pol.product_qty
-                        elif su.factor:
-                            precio = pol.price_unit / su.factor
-                    precio_po[pol.product_id.id] = precio
+        # "Dinero ya metido" en material: (consumido + reservado/recibido) ×
+        # precio ÚNICO canónico (compra vinculada → última compra con precio →
+        # secundaria → estándar → media). Mismo precio y misma cantidad que la
+        # columna "Recibido proveedor" de la pestaña Material: la fila "MP
+        # Real" del desglose es exactamente la suma de esa columna.
         total = 0.0
         for m in prod.move_raw_ids:
             if m.state == "cancel":
                 continue
-            qty_consumida = m.quantity or 0.0
-            if not qty_consumida:
+            qty = m.quantity or 0.0
+            if not qty:
                 continue
-            price = precio_po.get(m.product_id.id)
-            if price is None:
-                price = self._apunts_get_product_cost(m.product_id, prod)
-            total += qty_consumida * price
+            total += qty * prod._apunts_precio_unitario_canonico(m.product_id)
         return total
 
     def _apunts_reposicion_po_total(self, prod):
@@ -717,6 +684,12 @@ class MrpProduction(models.Model):
         machine = machine_anon + prod._apunts_prorated_emp_cost(prod.id, use_center=True)
         amort = amort_anon + prod._apunts_prorated_cost_raw(prod.id, None, "COALESCE(wc.apunts_amort_hour, 0)")
         return mo, machine, amort
+
+    def _apunts_precio_secundario_hook(self, product):
+        # Implementación del hook de apunts_costes_of: precio €/UoM-base
+        # desde la última compra en unidad secundaria.
+        self.ensure_one()
+        return self._apunts_cost_from_secondary(product)
 
     def _apunts_cost_from_secondary(self, product):
         """Coste por UoM PRIMARIA (p.ej. €/m) de un producto que se COMPRA en

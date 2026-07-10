@@ -40,6 +40,10 @@ class ApuntsCostesOfMaterialLine(models.TransientModel):
                                  help='qty_consumed x standard_price. Coste real ya gastado en este componente.')
     cost_pending = fields.Monetary('Coste pendiente', currency_field='currency_id', readonly=True,
                                    help='(reservado + de camino + falta) x standard_price. Coste estimado que aun queda por imputar.')
+    cost_recibido = fields.Monetary('Recibido (proveedor)', currency_field='currency_id', readonly=True,
+                                    help='Material ya en casa para esta OF (consumido + reservado/recibido) '
+                                         'valorado al precio de la compra. La SUMA de esta columna es '
+                                         'exactamente la fila "MP Real" del desglose de arriba.')
     cost_total_needed = fields.Monetary('Coste (€)', currency_field='currency_id', readonly=True,
                                         help='qty_needed x standard_price. Coste total esperado para este componente si se consume la cantidad completa segun la OF.')
 

@@ -887,13 +887,9 @@ class MrpProduction(models.Model):
             missing = max(needed - consumed - reserved - in_transit, 0.0)
             std_price = m.product_id.standard_price or 0.0
             avg_purchase = self._apunts_avg_purchase_price(m.product_id)
-            # Prioridad: precio REAL por UoM primaria de la compra
-            # (subtotal ÷ cantidad). En materiales por peso el subtotal es
-            # kg × €/kg, así que subtotal/m = €/m con el ratio real de esa
-            # compra — std_price y avg_purchase quedan en €/kg y darían un
-            # coste disparatado al multiplicar por metros.
-            precio_po = self._apunts_precio_metro_po(m.product_id)
-            effective_price = precio_po or std_price or avg_purchase
+            # Precio ÚNICO para toda la fila (y para la fila MP del desglose):
+            # ver _apunts_precio_unitario_canonico.
+            effective_price = self._apunts_precio_unitario_canonico(m.product_id)
             cost_consumed = round(consumed * effective_price, 2)
             cost_pending = round((reserved + in_transit + missing) * effective_price, 2)
             if missing > 0.001 and self.state not in ('done', 'cancel'):
@@ -923,6 +919,7 @@ class MrpProduction(models.Model):
                 'cost_total': cost_consumed,
                 'cost_pending': cost_pending,
                 'cost_total_needed': round(needed * effective_price, 2),
+                'cost_recibido': round((m.quantity or 0.0) * effective_price, 2),
                 'state': state,
                 'purchase_order_id': po.id if po else False,
                 'seller_partner_id': seller_partner.id if seller_partner else False,
@@ -968,6 +965,28 @@ class MrpProduction(models.Model):
             if pol.product_qty and pol.price_subtotal:
                 return pol.price_subtotal / pol.product_qty
         return 0.0
+
+    def _apunts_precio_secundario_hook(self, product):
+        """Punto de extensión: precio €/UoM-base desde unidad secundaria.
+        Lo implementa apunts_jr_wip_costes_of; aquí 0 (sin efecto)."""
+        return 0.0
+
+    def _apunts_precio_unitario_canonico(self, product):
+        """Precio unitario ÚNICO para valorar material en TODAS las pantallas
+        (fila MP del desglose, columnas de la pestaña Material, teórico y
+        real). Cascada: compra vinculada a la OF (subtotal ÷ cantidad) →
+        última compra recibida con precio → unidad secundaria → estándar →
+        media ponderada. Una sola fuente = imposible que descuadren."""
+        self.ensure_one()
+        precio = self._apunts_precio_metro_po(product)
+        if precio:
+            return precio
+        precio = self._apunts_precio_secundario_hook(product)
+        if precio:
+            return precio
+        if product.standard_price:
+            return product.standard_price
+        return self._apunts_avg_purchase_price(product)
 
     def _apunts_avg_purchase_price(self, product):
         """Devuelve un precio de coste para `product` con cascada de fallbacks.

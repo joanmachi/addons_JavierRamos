@@ -55,6 +55,7 @@
                 <field name="seller_partner_name" string="Proveedor preferido" optional="show"/>
                 <field name="lot_ids_summary" string="Lotes" optional="hide"/>
                 <field name="cost_total" string="Coste consumido (€)" widget="monetary" sum="Total consumido" optional="show"/>
+                <field name="cost_recibido" string="Recibido proveedor (€)" widget="monetary" sum="Total recibido" optional="show"/>
                 <field name="cost_pending" string="Coste pendiente (€)" widget="monetary" sum="Total pendiente" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'green'"
