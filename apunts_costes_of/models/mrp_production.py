@@ -862,6 +862,10 @@ class MrpProduction(models.Model):
         Hito 3 anyade attendance lines. Hito 4 anyade finished lines.
         """
         self.ensure_one()
+        # Recalcular PRIMERO las tarjetas/desglose (campos almacenados del WIP)
+        # en el mismo instante que las filas: mismos datos = cuadre garantizado.
+        if hasattr(self, '_compute_apunts_wip_costs'):
+            self._compute_apunts_wip_costs()
         # Limpieza
         self.env['apunts.costes.of.material.line'].search([('production_id', '=', self.id)]).unlink()
         self.env['apunts.costes.of.labor.line'].search([('production_id', '=', self.id)]).unlink()
