@@ -99,8 +99,9 @@
                                 <div class="fw-bold">MP (Materia Prima)</div>
                                 <div class="small text-muted">
                                     Teórico: lista de materiales × cantidad de la orden × precio.
-                                    Real: lo recibido del proveedor (línea de compra con campo Fabricación)
-                                    más lo ya consumido en taller.
+                                    Real: material ya en casa para esta OF (consumido + reservado/recibido)
+                                    a precio de compra — es la suma de la columna
+                                    «Recibido proveedor» de la pestaña Material.
                                 </div>
                             </td>
                             <td class="text-end h4 mb-0">
