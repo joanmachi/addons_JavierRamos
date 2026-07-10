@@ -956,13 +956,17 @@ class MrpProduction(models.Model):
             ta = sum(pols.mapped('price_subtotal'))
             if tq > 0 and ta > 0:
                 return ta / tq
-        pol = POL.search([
+        # Última compra recibida CON precio: saltar las líneas a 0 €
+        # (restos/material cobrado en otra línea), que si son las más
+        # recientes dejarían el coste a 0 y descuadrarían con el WIP.
+        pols = POL.search([
             ('product_id', '=', product.id),
             ('order_id.state', 'in', ('purchase', 'done')),
             ('qty_received', '>', 0),
-        ], order='id DESC', limit=1)
-        if pol and pol.product_qty and pol.price_subtotal:
-            return pol.price_subtotal / pol.product_qty
+        ], order='id DESC', limit=10)
+        for pol in pols:
+            if pol.product_qty and pol.price_subtotal:
+                return pol.price_subtotal / pol.product_qty
         return 0.0
 
     def _apunts_avg_purchase_price(self, product):
