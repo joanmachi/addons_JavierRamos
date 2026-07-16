@@ -476,8 +476,15 @@ class MrpProduction(models.Model):
         # Hito 4: margen comercial (revenue desde sale.order.line vinculadas)
         # Hito 11: revenue ya respeta tanto sale_id estandar como campo Studio.
         revenue = self._apunts_revenue_total()
-        margin_total = round(revenue - total_real, 2) if revenue else 0.0
-        margin_pct = round((revenue - total_real) / revenue * 100, 1) if revenue else 0.0
+        # Coste real para el MARGEN: el MISMO número que la tarjeta
+        # "EN CURSO (REAL)" del WIP (si está instalado). Antes usaba el
+        # total_real propio de este módulo, que valora MO/máquina con otra
+        # cascada → la tarjeta MARGEN contradecía a la de al lado.
+        total_real_margen = total_real
+        if 'apunts_cost_total_real' in self._fields:
+            total_real_margen = self.apunts_cost_total_real or total_real
+        margin_total = round(revenue - total_real_margen, 2) if revenue else 0.0
+        margin_pct = round((revenue - total_real_margen) / revenue * 100, 1) if revenue else 0.0
         self.apunts_revenue_total = revenue
         self.apunts_margin_total = margin_total
         self.apunts_margin_pct = margin_pct
