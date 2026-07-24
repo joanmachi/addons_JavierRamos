@@ -3,3 +3,4 @@ access_apunts_corregir_fichaje_wizard,apunts.corregir.fichaje.wizard,model_apunt
 access_apunts_historico_presencia,apunts.historico.presencia,model_apunts_historico_presencia,mrp.group_mrp_manager,1,0,0,0
 access_apunts_taller_kpi,apunts.taller.kpi,model_apunts_taller_kpi,mrp.group_mrp_manager,1,1,1,1
 access_apunts_taller_desbloqueo,apunts.taller.desbloqueo,model_apunts_taller_desbloqueo,mrp.group_mrp_manager,1,0,0,0
+access_apunts_reasignar_fichaje_wizard,apunts.reasignar.fichaje.wizard,model_apunts_reasignar_fichaje_wizard,mrp.group_mrp_manager,1,1,1,1

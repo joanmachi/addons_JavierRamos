@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_reasignar_fichaje_wizard_form" model="ir.ui.view">
+        <field name="name">apunts.reasignar.fichaje.wizard.form</field>
+        <field name="model">apunts.reasignar.fichaje.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reasignar fichaje">
+                <div class="alert alert-info" role="status">
+                    Mueve este fichaje a la OF y fase correctas. Se conservan la
+                    entrada y la salida — no tienes que teclear fechas. Si el
+                    fichaje sigue abierto, el operario pasará a la nueva fase.
+                </div>
+                <group>
+                    <group string="Fichaje">
+                        <field name="employee_id"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="abierto"/>
+                        <field name="production_origen_id"/>
+                        <field name="workorder_origen_id"/>
+                    </group>
+                    <group string="Reasignar a">
+                        <field name="productivity_id" invisible="1"/>
+                        <field name="production_id" options="{'no_create': True}"/>
+                        <field name="workorder_id" options="{'no_create': True}" required="1"/>
+                        <field name="motivo" placeholder="p. ej. se fichó en la fase equivocada"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_aplicar" type="object" string="Reasignar"
+                            class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

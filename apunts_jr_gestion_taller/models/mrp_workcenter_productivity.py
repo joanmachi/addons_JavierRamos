@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class MrpWorkcenterProductivity(models.Model):
@@ -202,3 +202,22 @@ class MrpWorkcenterProductivity(models.Model):
                     fields.Datetime.to_string(ahora),
                 ))
         return True
+
+    def action_apunts_reasignar_fichaje(self):
+        """Abre el wizard para mover este fichaje a otra OF/fase, conservando
+        las fechas. Funciona también con el fichaje abierto (sin salida)."""
+        self.ensure_one()
+        wizard = self.env['apunts.reasignar.fichaje.wizard'].create({
+            'productivity_id': self.id,
+            'workorder_origen_id': self.workorder_id.id,
+            'production_origen_id': self.workorder_id.production_id.id,
+            'production_id': self.workorder_id.production_id.id,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Reasignar fichaje'),
+            'res_model': 'apunts.reasignar.fichaje.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }

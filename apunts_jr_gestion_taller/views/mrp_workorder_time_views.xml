@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Pestaña "Seguimiento del tiempo" del workorder: columna de modificación
+         + botón para reasignar el fichaje a otra OF/fase. -->
+    <record id="apunts_mrp_workorder_form_reasignar" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.apunts.reasignar.fichaje</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='time_ids']/list/field[@name='loss_id']" position="after">
+                <field name="apunts_modificado_manual" string="Modificado" optional="show"/>
+                <button name="action_apunts_reasignar_fichaje" type="object"
+                        string="Reasignar" icon="fa-exchange"
+                        help="Mover este fichaje a otra OF o fase sin re-teclear fechas"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,6 +1,6 @@
 {
     'name': 'Apunts JR — Gestión Taller (oficina)',
-    'version': '18.0.1.15.0',
+    'version': '18.0.1.16.0',
     'summary': 'Panel de gestión para oficina: ver fichajes activos, sumar horas por empleado, buscar OFs, corregir fichajes manualmente.',
     'author': 'Apunts Informàtica',
     'website': 'http://www.grupapunts.es',
@@ -18,6 +18,8 @@
     'data': [
         'security/ir.model.access.csv',
         'wizards/corregir_fichaje_wizard_view.xml',
+        'wizards/reasignar_fichaje_wizard_view.xml',
+        'views/mrp_workorder_time_views.xml',
         'views/productivity_views.xml',
         'views/employee_views.xml',
         'views/historico_presencia_views.xml',
