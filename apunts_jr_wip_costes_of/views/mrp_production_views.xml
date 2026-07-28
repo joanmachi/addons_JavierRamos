@@ -120,7 +120,15 @@
                 </div>
                 <field name="apunts_is_wip" invisible="1"/>
             </xpath>
-            <xpath expr="//field[@name='bom_id']" position="after">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_apunts_ver_hijas" type="object"
+                        class="oe_stat_button" icon="fa-sitemap"
+                        invisible="apunts_of_hijas_count == 0">
+                    <field name="apunts_of_hijas_count" widget="statinfo"
+                           string="OF hijas"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='origin'][@readonly]" position="after">
                 <field name="apunts_of_madre_manual_id"
                        string="OF madre (si es una hija suelta)"
                        options="{'no_create': True}"
