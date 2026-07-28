@@ -221,15 +221,31 @@ class MrpProduction(models.Model):
     # daría 0 (subconjunto sin compra ni coste estándar) → no cambia ningún
     # número que ya funcionara.
 
+    apunts_of_madre_manual_id = fields.Many2one(
+        "mrp.production",
+        string="OF madre (enlace manual)",
+        help="Si esta OF se creó suelta pero en realidad fabrica un componente de "
+             "otra OF (su 'madre'), selecciónala aquí. Así el coste real de esta OF "
+             "se sube al componente correspondiente de la madre, igual que si se "
+             "hubiera generado automáticamente. Úsalo cuando la relación no se "
+             "creó sola (p.ej. la OF se lanzó a mano).",
+    )
+
     def _apunts_of_hija_de(self, product):
-        """OF hija que fabrica `product` para esta OF (por Origen)."""
+        """OF hija que fabrica `product` para esta OF.
+
+        La detecta por dos vías: por Origen automático (origin = nombre de esta
+        OF) o por enlace manual (apunts_of_madre_manual_id apuntando a esta OF).
+        """
         self.ensure_one()
         if not product.bom_ids or not self.name:
             return self.browse()
         return self.search([
             ("product_id", "=", product.id),
-            ("origin", "=", self.name),
             ("state", "!=", "cancel"),
+            "|",
+            ("origin", "=", self.name),
+            ("apunts_of_madre_manual_id", "=", self.id),
         ], order="id desc", limit=1)
 
     def _apunts_precio_desde_hija(self, product):

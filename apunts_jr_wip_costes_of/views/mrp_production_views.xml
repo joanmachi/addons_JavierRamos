@@ -119,6 +119,13 @@
                     Min/pieza real: <field name="apunts_min_unit_real" readonly="1" nolabel="1" widget="float_time" class="oe_inline"/>
                 </div>
                 <field name="apunts_is_wip" invisible="1"/>
+                <div class="alert alert-secondary mb-0 mt-1" role="group">
+                    <label for="apunts_of_madre_manual_id" class="fw-bold me-2"
+                           string="Esta OF fabrica un componente de otra OF (madre):"/>
+                    <field name="apunts_of_madre_manual_id" nolabel="1" class="oe_inline"
+                           options="{'no_create': True}"
+                           placeholder="Déjalo vacío salvo que sea una hija creada suelta"/>
+                </div>
             </xpath>
         </field>
     </record>
