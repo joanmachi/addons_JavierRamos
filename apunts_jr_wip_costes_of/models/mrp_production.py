@@ -1,6 +1,6 @@
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -212,6 +212,40 @@ class MrpProduction(models.Model):
         related="company_id.currency_id",
         store=True,
     )
+
+    # ── Roll-up de coste por componente (subconjunto → su OF hija) ────────────
+    # Un componente que se FABRICA en una OF hija (enlazada por Origen = nombre
+    # de esta OF) vale lo que costó fabricarlo en esa hija. Así, en la pestaña
+    # Material de la madre, cada subconjunto muestra directamente su coste real,
+    # sin tablas ni ventanas aparte. Solo se aplica cuando el precio normal
+    # daría 0 (subconjunto sin compra ni coste estándar) → no cambia ningún
+    # número que ya funcionara.
+
+    def _apunts_of_hija_de(self, product):
+        """OF hija que fabrica `product` para esta OF (por Origen)."""
+        self.ensure_one()
+        if not product.bom_ids or not self.name:
+            return self.browse()
+        return self.search([
+            ("product_id", "=", product.id),
+            ("origin", "=", self.name),
+            ("state", "!=", "cancel"),
+        ], order="id desc", limit=1)
+
+    def _apunts_precio_desde_hija(self, product):
+        """Precio unitario del componente tomado del coste real de su OF hija."""
+        hija = self._apunts_of_hija_de(product)
+        if hija and hija.apunts_cost_total_real and hija.product_qty:
+            return hija.apunts_cost_total_real / hija.product_qty
+        return 0.0
+
+    def _apunts_precio_unitario_canonico(self, product):
+        # Cascada normal (compra → estándar → media). Si da 0 y el componente
+        # se fabrica en una OF hija, usar el coste real de esa hija.
+        base = super()._apunts_precio_unitario_canonico(product)
+        if base:
+            return base
+        return self._apunts_precio_desde_hija(product)
 
     apunts_of_short = fields.Char(
         string="OF",

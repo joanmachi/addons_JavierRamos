@@ -56,6 +56,38 @@ class ApuntsCostesOfMaterialLine(models.TransientModel):
 
     purchase_order_id = fields.Many2one('purchase.order', readonly=True,
                                         help='PO origen (si una sola la aprovisiona via procurement_group_id).')
+    apunts_hija_id = fields.Many2one('mrp.production', string='OF hija', readonly=True,
+                                     compute='_compute_apunts_hija_id',
+                                     help='Si este componente se fabrica en una OF hija de esta orden '
+                                          '(enlazada por Origen), aquí está esa OF. El coste de la línea '
+                                          'sale de ella. Botón para abrirla directamente.')
+
+    def _compute_apunts_hija_id(self):
+        MO = self.env['mrp.production']
+        for line in self:
+            hija = MO.browse()
+            p = line.product_id
+            of = line.production_id
+            if p and p.bom_ids and of.name:
+                hija = MO.search([
+                    ('product_id', '=', p.id),
+                    ('origin', '=', of.name),
+                    ('state', '!=', 'cancel'),
+                ], order='id desc', limit=1)
+            line.apunts_hija_id = hija
+
+    def action_apunts_abrir_hija(self):
+        self.ensure_one()
+        if not self.apunts_hija_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.apunts_hija_id.name,
+            'res_model': 'mrp.production',
+            'res_id': self.apunts_hija_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     # Hito 4 - trazabilidad backward
     seller_partner_id = fields.Many2one('res.partner', readonly=True,

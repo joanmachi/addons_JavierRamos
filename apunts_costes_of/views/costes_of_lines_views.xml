@@ -61,6 +61,10 @@
                        decoration-success="state == 'green'"
                        decoration-warning="state == 'amber'"
                        decoration-danger="state == 'red'"/>
+                <field name="apunts_hija_id" column_invisible="1"/>
+                <button name="action_apunts_abrir_hija" type="object" icon="fa-sitemap"
+                        string="Ver OF hija" class="btn-link"
+                        invisible="not apunts_hija_id"/>
                 <button name="action_open_move" type="object" icon="fa-arrow-right"
                         string="Ver movimiento" invisible="not move_id"/>
                 <button name="action_open_purchase" type="object" icon="fa-shopping-cart"
