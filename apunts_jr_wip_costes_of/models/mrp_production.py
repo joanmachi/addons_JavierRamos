@@ -231,41 +231,26 @@ class MrpProduction(models.Model):
              "creó sola (p.ej. la OF se lanzó a mano).",
     )
 
-    apunts_of_hijas_count = fields.Integer(
-        string="OF hijas",
-        compute="_compute_apunts_of_hijas_count",
-        help="Nº de OF hijas de esta orden (subconjuntos que se fabrican para "
-             "ella), detectadas por Origen automático o por enlace manual.",
-    )
-
     def _apunts_hijas_domain(self):
-        """Dominio de las OF hijas de esta OF (por Origen o enlace manual)."""
+        """OF relacionadas como hijas de ésta por Origen o por enlace manual."""
         self.ensure_one()
         return [
+            ("id", "!=", self.id),
             ("state", "!=", "cancel"),
             "|",
             ("origin", "=", self.name),
             ("apunts_of_madre_manual_id", "=", self.id),
         ]
 
-    def _compute_apunts_of_hijas_count(self):
-        MO = self.env["mrp.production"]
-        for prod in self:
-            prod.apunts_of_hijas_count = (
-                MO.search_count(prod._apunts_hijas_domain()) if prod.name else 0
-            )
-
-    def action_apunts_ver_hijas(self):
-        """Smart button: abre las OF hijas de esta orden."""
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": f"OF hijas de {self.name}",
-            "res_model": "mrp.production",
-            "view_mode": "list,form",
-            "domain": self._apunts_hijas_domain(),
-            "context": {"default_apunts_of_madre_manual_id": self.id},
-        }
+    def _get_children(self):
+        """Extiende las hijas nativas (detectadas por la cadena de movimientos)
+        con las relacionadas por Origen o por enlace manual. Así el smart button
+        NATIVO 'Orden de fabricación hija' también muestra las que se lanzaron
+        sueltas y se enlazaron a mano (apunts_of_madre_manual_id)."""
+        children = super()._get_children()
+        if self.name:
+            children |= self.search(self._apunts_hijas_domain())
+        return children
 
     def _apunts_of_hija_de(self, product):
         """OF hija que fabrica `product` para esta OF.
