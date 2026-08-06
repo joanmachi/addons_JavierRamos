@@ -9,21 +9,43 @@
         <field name="report_file">apunts_jr_wip_costes_of.report_coste_of</field>
         <field name="binding_model_id" ref="mrp.model_mrp_production"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
         <field name="print_report_name">'Coste OF - %s' % (object.name or '')</field>
     </record>
 
     <template id="report_coste_of">
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="doc">
-                <t t-set="mats" t-value="material[doc.id]"/>
-                <t t-set="labs" t-value="labor[doc.id]"/>
-                <t t-set="cur" t-value="doc.company_currency_id"/>
-                <!-- color del margen según estado (verde/ámbar/rojo), como la pantalla -->
-                <t t-set="mcolor" t-value="{'green':'#198754','amber':'#f0ad4e','red':'#dc3545'}.get(doc.apunts_margin_state, '#0dcaf0')"/>
-                <t t-call="web.external_layout">
-                    <div class="page">
+        <t t-foreach="docs" t-as="doc">
+            <t t-set="mats" t-value="material[doc.id]"/>
+            <t t-set="labs" t-value="labor[doc.id]"/>
+            <t t-set="cur" t-value="doc.company_currency_id"/>
+            <!-- color del margen según estado (verde/ámbar/rojo), como la pantalla -->
+            <t t-set="mcolor" t-value="{'green':'#198754','amber':'#f0ad4e','red':'#dc3545'}.get(doc.apunts_margin_state, '#0dcaf0')"/>
+            <t t-set="co" t-value="doc.company_id"/>
+            <t t-call="web.basic_layout">
+                <t t-set="o" t-value="doc"/>
+                <div class="page">
 
-                        <h2 style="margin:0 0 8px 0;">Coste de OF — <span t-field="doc.name"/></h2>
+                        <!-- ══ CABECERA autocontenida: logo + datos de empresa ══ -->
+                        <table style="width:100%; margin-bottom:6px; border-bottom:2px solid #333; padding-bottom:6px;">
+                            <tr>
+                                <td style="width:55%; vertical-align:top;">
+                                    <img t-if="co.logo" t-att-src="image_data_uri(co.logo)" style="max-height:70px; max-width:260px;"/>
+                                </td>
+                                <td style="width:45%; vertical-align:top; text-align:right; font-size:10px; color:#333;">
+                                    <div style="font-size:13px; font-weight:bold;"><span t-esc="co.name"/></div>
+                                    <div t-if="co.street"><span t-esc="co.street"/></div>
+                                    <div><span t-esc="co.zip or ''"/> <span t-esc="co.city or ''"/> <span t-esc="co.state_id.name or ''"/></div>
+                                    <div t-if="co.vat">CIF/NIF: <span t-esc="co.vat"/></div>
+                                    <div>
+                                        <span t-if="co.phone">Tel. <span t-esc="co.phone"/></span>
+                                        <span t-if="co.email"> · <span t-esc="co.email"/></span>
+                                    </div>
+                                    <div t-if="co.website"><span t-esc="co.website"/></div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h2 style="margin:6px 0 8px 0;">Coste de OF — <span t-field="doc.name"/></h2>
                         <table style="width:100%; margin-bottom:14px; font-size:12px;">
                             <tr>
                                 <td style="width:13%;"><strong>Producto</strong></td>
@@ -174,9 +196,16 @@
                             Los importes de este documento son los mismos que muestra la pantalla «Coste OF» de esta orden.
                         </p>
 
+                        <!-- Pie con datos de empresa -->
+                        <div style="border-top:1px solid #ccc; margin-top:14px; padding-top:5px; text-align:center; font-size:9px; color:#666;">
+                            <span t-esc="co.name"/>
+                            <span t-if="co.phone"> · Tel. <span t-esc="co.phone"/></span>
+                            <span t-if="co.website"> · <span t-esc="co.website"/></span>
+                            <span t-if="co.vat"> · <span t-esc="co.vat"/></span>
+                        </div>
+
                     </div>
                 </t>
-            </t>
         </t>
     </template>
 
