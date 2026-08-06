@@ -15,6 +15,9 @@
                         groups="hr.group_hr_user"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
+                <group string="Datos empresa (Apunts)" name="apunts_empresa">
+                    <field name="apunts_fecha_incorporacion"/>
+                </group>
                 <group string="Control taller (Apunts)" name="apunts_taller">
                     <field name="apunts_taller_bloqueado" readonly="1"/>
                     <field name="apunts_taller_motivo_bloqueo" readonly="1"

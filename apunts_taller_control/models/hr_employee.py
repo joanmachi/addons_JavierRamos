@@ -8,6 +8,12 @@ from odoo import _, fields, models
 class HrEmployee(models.Model):
     _inherit = "hr.employee"
 
+    apunts_fecha_incorporacion = fields.Date(
+        string="Entrada a empresa",
+        tracking=True,
+        help="Fecha en la que el empleado entró a trabajar en la empresa "
+             "(fecha de alta/incorporación).",
+    )
     apunts_taller_bloqueado = fields.Boolean(
         string="Bloqueado en taller",
         default=False,
