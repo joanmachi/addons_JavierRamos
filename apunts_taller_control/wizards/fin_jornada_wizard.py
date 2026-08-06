@@ -1,6 +1,8 @@
 import logging
 from datetime import date
 
+import pytz
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -47,6 +49,37 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             presencia += (fields.Datetime.now() - abierta.check_in).total_seconds() / 3600.0
         return presencia
 
+    def _tramos_presencia_html(self, emp):
+        """Línea con la hora de ENTRADA y SALIDA de hoy (asistencias reales),
+        en hora local del operario. Si sigue fichado, la salida sale 'abierto'.
+        Puede haber varios tramos si entró y salió más de una vez."""
+        hoy = fields.Date.context_today(self)
+        ini, fin = emp._apunts_rango_utc(hoy)
+        atts = self.env["hr.attendance"].search([
+            ("employee_id", "=", emp.id),
+            ("check_in", ">=", ini), ("check_in", "<=", fin),
+        ], order="check_in asc")
+        if not atts:
+            return ""
+        tz = pytz.timezone(emp._get_tz() or "Europe/Madrid")
+
+        def _loc(dt):
+            return pytz.utc.localize(dt).astimezone(tz).strftime("%H:%M") if dt else None
+
+        tramos = []
+        for a in atts:
+            entrada = _loc(a.check_in) or "—"
+            if a.check_out:
+                salida = _loc(a.check_out)
+            else:
+                salida = '<span style="color:#c00">abierto</span>'
+            tramos.append(f"{entrada} → {salida}")
+        return (
+            "<div class='text-muted small mb-2'>"
+            "<i class='fa fa-sign-in me-1'/>Entrada / salida: "
+            f"<strong>{', '.join(tramos)}</strong></div>"
+        )
+
     @api.depends("employee_id")
     def _compute_resumen_html(self):
         ahora = fields.Datetime.now()
@@ -74,21 +107,30 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             else:
                 total_txt = f"<strong>Presencia hoy: {presencia_h:.2f} h</strong>"
 
+            tramos_html = self._tramos_presencia_html(emp)
+
             if not registros:
                 nota = ("" if (presencia_h or ausencia_h)
                         else " · <em>sin fichajes de producción hoy</em>")
                 w.resumen_html = (
                     f"<p><strong>{emp.name}</strong> — {total_txt}{nota}</p>"
+                    f"{tramos_html}"
                 )
                 continue
+
+            tz = pytz.timezone(emp._get_tz() or "Europe/Madrid")
+
+            def _loc_dt(dt):
+                return (pytz.utc.localize(dt).astimezone(tz).strftime("%Y-%m-%d %H:%M")
+                        if dt else "?")
 
             filas = []
             for r in registros:
                 of = r.workorder_id.production_id.name or "?"
                 wo = r.workorder_id.name or "?"
-                ini = fields.Datetime.to_string(r.date_start) if r.date_start else "?"
+                ini = _loc_dt(r.date_start)
                 if r.date_end:
-                    fin_txt = fields.Datetime.to_string(r.date_end)
+                    fin_txt = _loc_dt(r.date_end)
                     seg = (r.date_end - r.date_start).total_seconds() if r.date_start else 0
                 else:
                     fin_txt = '<strong style="color:#c00">ABIERTO — desfíchate antes de cerrar jornada</strong>'
@@ -102,6 +144,7 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 f"<p><strong>{emp.name}</strong> — "
                 f"{len(registros)} fichajes en OF hoy · "
                 f"{total_txt}</p>"
+                f"{tramos_html}"
                 "<p class='text-muted small mb-1'>Detalle de fichajes en OF "
                 "(pueden solaparse entre sí; su suma <u>no</u> es la presencia):</p>"
                 "<table class='table table-sm'>"
