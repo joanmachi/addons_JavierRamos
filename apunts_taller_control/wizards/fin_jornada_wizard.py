@@ -29,6 +29,21 @@ class ApuntsFinJornadaWizard(models.TransientModel):
         self.employee_id = emp
         return emp
 
+    @staticmethod
+    def _fmt_hm(horas):
+        """Formatea horas decimales como 'Xh YYm' para que no se confunda el
+        decimal con minutos (p.ej. 3.29 h decimales son 3h 17m, no 3h 29m)."""
+        horas = horas or 0.0
+        neg = horas < 0
+        horas = abs(horas)
+        h = int(horas)
+        m = int(round((horas - h) * 60))
+        if m == 60:
+            h += 1
+            m = 0
+        txt = f"{h}h {m:02d}m"
+        return ("-" + txt) if neg else txt
+
     def _presencia_hoy(self, emp):
         """Presencia REAL de hoy: horas de asistencia (hr.attendance) del día,
         más la sesión aún abierta proyectada hasta ahora.
@@ -100,12 +115,12 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             presencia_h = self._presencia_hoy(emp)
             if ausencia_h:
                 total_txt = (
-                    f"<strong>Presencia hoy: {presencia_h:.2f} h "
-                    f"+ {ausencia_h:.2f} h ausencia "
-                    f"= {presencia_h + ausencia_h:.2f} h</strong>"
+                    f"<strong>Presencia hoy: {self._fmt_hm(presencia_h)} "
+                    f"+ {self._fmt_hm(ausencia_h)} ausencia "
+                    f"= {self._fmt_hm(presencia_h + ausencia_h)}</strong>"
                 )
             else:
-                total_txt = f"<strong>Presencia hoy: {presencia_h:.2f} h</strong>"
+                total_txt = f"<strong>Presencia hoy: {self._fmt_hm(presencia_h)}</strong>"
 
             tramos_html = self._tramos_presencia_html(emp)
 
@@ -138,7 +153,7 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 horas = seg / 3600.0
                 filas.append(
                     f"<tr><td>{of}</td><td>{wo}</td><td>{ini}</td><td>{fin_txt}</td>"
-                    f"<td>{horas:.2f} h</td></tr>"
+                    f"<td>{self._fmt_hm(horas)}</td></tr>"
                 )
             w.resumen_html = (
                 f"<p><strong>{emp.name}</strong> — "
