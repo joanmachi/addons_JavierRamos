@@ -18,17 +18,18 @@
                 <t t-set="mats" t-value="material[doc.id]"/>
                 <t t-set="labs" t-value="labor[doc.id]"/>
                 <t t-set="cur" t-value="doc.company_currency_id"/>
+                <!-- color del margen según estado (verde/ámbar/rojo), como la pantalla -->
+                <t t-set="mcolor" t-value="{'green':'#198754','amber':'#f0ad4e','red':'#dc3545'}.get(doc.apunts_margin_state, '#0dcaf0')"/>
                 <t t-call="web.external_layout">
                     <div class="page">
 
-                        <!-- Cabecera -->
-                        <h2 class="mt-0 mb-1">Coste de OF — <span t-field="doc.name"/></h2>
-                        <table class="table table-sm table-borderless mb-3" style="width:100%;">
+                        <h2 style="margin:0 0 8px 0;">Coste de OF — <span t-field="doc.name"/></h2>
+                        <table style="width:100%; margin-bottom:14px; font-size:12px;">
                             <tr>
-                                <td style="width:25%;"><strong>Producto</strong></td>
-                                <td style="width:40%;"><span t-field="doc.product_id.display_name"/></td>
-                                <td style="width:15%;"><strong>Cantidad</strong></td>
-                                <td style="width:20%;"><span t-field="doc.product_qty"/> <span t-field="doc.product_uom_id.name"/></td>
+                                <td style="width:13%;"><strong>Producto</strong></td>
+                                <td style="width:47%;"><span t-field="doc.product_id.display_name"/></td>
+                                <td style="width:13%;"><strong>Cantidad</strong></td>
+                                <td style="width:27%;"><span t-field="doc.product_qty"/> <span t-field="doc.product_uom_id.name"/></td>
                             </tr>
                             <tr>
                                 <td><strong>Cliente</strong></td>
@@ -38,141 +39,139 @@
                             </tr>
                         </table>
 
-                        <!-- Tarjetas resumen (mismos campos que la pantalla) -->
-                        <table class="table table-bordered text-center mb-3" style="width:100%;">
-                            <thead>
-                                <tr class="table-active">
-                                    <th>Venta</th>
-                                    <th>En curso (real)</th>
-                                    <th>Coste teórico OF</th>
-                                    <th>Margen actual</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="h4">
-                                        <span t-field="doc.apunts_sale_amount"
-                                              t-options="{'widget': 'monetary', 'display_currency': cur}"/>
-                                    </td>
-                                    <td class="h4">
-                                        <span t-field="doc.apunts_cost_total_real"
-                                              t-options="{'widget': 'monetary', 'display_currency': cur}"/>
-                                    </td>
-                                    <td class="h4">
-                                        <span t-field="doc.apunts_cost_total_planned"
-                                              t-options="{'widget': 'monetary', 'display_currency': cur}"/>
-                                    </td>
-                                    <td class="h4">
-                                        <span t-field="doc.apunts_margin_total"
-                                              t-options="{'widget': 'monetary', 'display_currency': cur}"/>
-                                        <div class="small text-muted">
-                                            Factor <span t-esc="'%.2f' % (doc.apunts_factor_cobertura or 0)"/>x ·
-                                            Avance <span t-esc="'%.0f' % (doc.apunts_avance_coste_pct or 0)"/>%
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
+                        <!-- ══ 4 TARJETAS (mismos colores que la vista Coste OF) ══ -->
+                        <table style="width:100%; border-collapse:separate; border-spacing:6px 0; margin-bottom:16px; table-layout:fixed;">
+                            <tr>
+                                <td style="width:25%; border:1px solid #198754; border-radius:6px; padding:8px; text-align:center; vertical-align:top;">
+                                    <div style="color:#6c757d; font-size:10px; text-transform:uppercase;">Venta</div>
+                                    <div style="color:#198754; font-size:22px; font-weight:bold;">
+                                        <span t-field="doc.apunts_sale_amount" t-options="{'widget':'monetary','display_currency':cur}"/>
+                                    </div>
+                                    <div style="color:#6c757d; font-size:9px; margin-top:3px;">Importe del pedido de venta confirmado vinculado a esta orden.</div>
+                                </td>
+                                <td style="width:25%; border:1px solid #f0ad4e; border-radius:6px; padding:8px; text-align:center; vertical-align:top;">
+                                    <div style="color:#6c757d; font-size:10px; text-transform:uppercase;">En curso (real)</div>
+                                    <div style="color:#e0900a; font-size:22px; font-weight:bold;">
+                                        <span t-field="doc.apunts_cost_total_real" t-options="{'widget':'monetary','display_currency':cur}"/>
+                                    </div>
+                                    <div style="color:#6c757d; font-size:9px; margin-top:3px;">Material recibido + mano de obra fichada + máquina ya invertida.</div>
+                                </td>
+                                <td style="width:25%; border:1px solid #0d6efd; border-radius:6px; padding:8px; text-align:center; vertical-align:top;">
+                                    <div style="color:#6c757d; font-size:10px; text-transform:uppercase;">Coste teórico OF</div>
+                                    <div style="color:#0d6efd; font-size:22px; font-weight:bold;">
+                                        <span t-field="doc.apunts_cost_total_planned" t-options="{'widget':'monetary','display_currency':cur}"/>
+                                    </div>
+                                    <div style="color:#6c757d; font-size:9px; margin-top:3px;">Material teórico + MO teórica + máquina teórica según BoM y routing.</div>
+                                </td>
+                                <td t-att-style="'width:25%; border:1px solid ' + mcolor + '; border-radius:6px; padding:8px; text-align:center; vertical-align:top;'">
+                                    <div style="color:#6c757d; font-size:10px; text-transform:uppercase;">Margen actual</div>
+                                    <div t-att-style="'font-size:22px; font-weight:bold; color:' + mcolor + ';'">
+                                        <span t-field="doc.apunts_margin_total" t-options="{'widget':'monetary','display_currency':cur}"/>
+                                    </div>
+                                    <div style="font-size:10px; font-weight:bold; margin-top:2px;">
+                                        Factor <span t-esc="'%.2f' % (doc.apunts_factor_cobertura or 0)"/>x ·
+                                        Avance <span t-esc="'%.0f' % (doc.apunts_avance_coste_pct or 0)"/>%
+                                    </div>
+                                    <div style="color:#6c757d; font-size:9px; margin-top:3px;">Venta − coste real. Verde ≥ 20%, ámbar 0–20%, rojo &lt; 0%.</div>
+                                </td>
+                            </tr>
                         </table>
 
-                        <!-- Desglose por concepto (teórico vs real) -->
-                        <h4 class="mb-1">Desglose por concepto</h4>
-                        <table class="table table-bordered mb-3" style="width:100%;">
+                        <!-- ══ DESGLOSE POR CONCEPTO ══ -->
+                        <h3 style="margin:0 0 6px 0;">Desglose por concepto</h3>
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:12px;">
                             <thead>
-                                <tr class="table-active">
-                                    <th>Concepto</th>
-                                    <th class="text-end">Teórico</th>
-                                    <th class="text-end">Real</th>
+                                <tr style="background:#e9ecef;">
+                                    <th style="border:1px solid #adb5bd; padding:5px; text-align:left;">Concepto</th>
+                                    <th style="border:1px solid #adb5bd; padding:5px; text-align:right; width:22%;">Teórico</th>
+                                    <th style="border:1px solid #adb5bd; padding:5px; text-align:right; width:22%;">Real</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>MP (Materia Prima)</td>
-                                    <td class="text-end"><span t-field="doc.apunts_mat_planned_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                    <td class="text-end"><span t-field="doc.apunts_mat_real_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px;"><strong>MP (Materia Prima)</strong></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_mat_planned_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_mat_real_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                </tr>
+                                <tr style="background:#f2f2f2;">
+                                    <td style="border:1px solid #adb5bd; padding:5px;"><strong>Tiempo de fabricación</strong></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_min_total_plan" t-options="{'widget':'float_time'}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_min_real_total" t-options="{'widget':'float_time'}"/></td>
                                 </tr>
                                 <tr>
-                                    <td>Tiempo de fabricación</td>
-                                    <td class="text-end"><span t-field="doc.apunts_min_total_plan" t-options="{'widget': 'float_time'}"/></td>
-                                    <td class="text-end"><span t-field="doc.apunts_min_real_total" t-options="{'widget': 'float_time'}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; padding-left:22px;">↳ Coste operario</td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_mo_planned_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_mo_real_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-4">↳ Coste operario</td>
-                                    <td class="text-end"><span t-field="doc.apunts_mo_planned_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                    <td class="text-end"><span t-field="doc.apunts_mo_real_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4">↳ Coste máquina</td>
-                                    <td class="text-end"><span t-field="doc.apunts_machine_planned_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                    <td class="text-end"><span t-field="doc.apunts_machine_real_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; padding-left:22px;">↳ Coste máquina</td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_machine_planned_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_machine_real_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
                                 </tr>
                                 <tr t-if="doc.apunts_mat_servicio_externo">
-                                    <td>Servicios externos</td>
-                                    <td class="text-end text-muted">—</td>
-                                    <td class="text-end"><span t-field="doc.apunts_mat_servicio_externo" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px;"><strong>Servicios externos</strong></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right; color:#6c757d;">—</td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><span t-field="doc.apunts_mat_servicio_externo" t-options="{'widget':'monetary','display_currency':cur}"/></td>
                                 </tr>
-                                <tr class="table-active">
-                                    <td><strong>TOTAL</strong></td>
-                                    <td class="text-end"><strong><span t-field="doc.apunts_cost_total_planned" t-options="{'widget': 'monetary', 'display_currency': cur}"/></strong></td>
-                                    <td class="text-end"><strong><span t-field="doc.apunts_cost_total_real" t-options="{'widget': 'monetary', 'display_currency': cur}"/></strong></td>
+                                <tr style="background:#dfe3e6;">
+                                    <td style="border:1px solid #adb5bd; padding:5px;"><strong>TOTAL</strong></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><strong><span t-field="doc.apunts_cost_total_planned" t-options="{'widget':'monetary','display_currency':cur}"/></strong></td>
+                                    <td style="border:1px solid #adb5bd; padding:5px; text-align:right;"><strong><span t-field="doc.apunts_cost_total_real" t-options="{'widget':'monetary','display_currency':cur}"/></strong></td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <!-- Detalle de material -->
-                        <h4 class="mb-1">Detalle de material</h4>
-                        <table class="table table-sm table-bordered mb-3" style="width:100%;">
+                        <!-- ══ DETALLE DE MATERIAL ══ -->
+                        <h3 style="margin:0 0 6px 0;">Detalle de material</h3>
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:11px;">
                             <thead>
-                                <tr class="table-active">
-                                    <th>Componente</th>
-                                    <th class="text-end">Necesario</th>
-                                    <th class="text-end">Coste (€)</th>
-                                    <th class="text-end">Recibido prov. (€)</th>
-                                    <th>Proveedor</th>
+                                <tr style="background:#e9ecef;">
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:left;">Componente</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">Necesario</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">Coste (€)</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">Recibido prov. (€)</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:left;">Proveedor</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr t-foreach="mats" t-as="m">
-                                    <td><span t-esc="m.product_name"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % (m.qty_needed or 0)"/></td>
-                                    <td class="text-end"><span t-field="m.cost_total_needed" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                    <td class="text-end"><span t-field="m.cost_recibido" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
-                                    <td><span t-esc="m.seller_partner_name or ''"/></td>
+                                <tr t-foreach="mats" t-as="m"
+                                    t-att-style="'background:%s;' % {'green':'#d1e7dd','amber':'#fff3cd','red':'#f8d7da'}.get(m.state, '#ffffff')">
+                                    <td style="border:1px solid #adb5bd; padding:4px;"><span t-esc="m.product_name"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-esc="'%.2f' % (m.qty_needed or 0)"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-field="m.cost_total_needed" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-field="m.cost_recibido" t-options="{'widget':'monetary','display_currency':cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px;"><span t-esc="m.seller_partner_name or ''"/></td>
                                 </tr>
-                                <tr t-if="not mats">
-                                    <td colspan="5" class="text-center text-muted">Sin componentes.</td>
-                                </tr>
+                                <tr t-if="not mats"><td colspan="5" style="border:1px solid #adb5bd; padding:4px; text-align:center; color:#6c757d;">Sin componentes.</td></tr>
                             </tbody>
                         </table>
 
-                        <!-- Detalle de mano de obra -->
-                        <h4 class="mb-1">Mano de obra y operaciones</h4>
-                        <table class="table table-sm table-bordered" style="width:100%;">
+                        <!-- ══ MANO DE OBRA ══ -->
+                        <h3 style="margin:0 0 6px 0;">Mano de obra y operaciones</h3>
+                        <table style="width:100%; border-collapse:collapse; font-size:11px;">
                             <thead>
-                                <tr class="table-active">
-                                    <th>OT</th>
-                                    <th>Centro</th>
-                                    <th class="text-end">H. plan</th>
-                                    <th class="text-end">H. real</th>
-                                    <th class="text-end">Coste (€)</th>
+                                <tr style="background:#e9ecef;">
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:left;">OT</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:left;">Centro</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">H. plan</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">H. real</th>
+                                    <th style="border:1px solid #adb5bd; padding:4px; text-align:right;">Coste (€)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr t-foreach="labs" t-as="l">
-                                    <td><span t-esc="l.workorder_name or ''"/></td>
-                                    <td><span t-esc="l.workcenter_name or ''"/></td>
-                                    <td class="text-end"><span t-field="l.hours_planned" t-options="{'widget': 'float_time'}"/></td>
-                                    <td class="text-end"><span t-field="l.hours_real" t-options="{'widget': 'float_time'}"/></td>
-                                    <td class="text-end"><span t-field="l.cost_total" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px;"><span t-esc="l.workorder_name or ''"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px;"><span t-esc="l.workcenter_name or ''"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-field="l.hours_planned" t-options="{'widget':'float_time'}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-field="l.hours_real" t-options="{'widget':'float_time'}"/></td>
+                                    <td style="border:1px solid #adb5bd; padding:4px; text-align:right;"><span t-field="l.cost_total" t-options="{'widget':'monetary','display_currency':cur}"/></td>
                                 </tr>
-                                <tr t-if="not labs">
-                                    <td colspan="5" class="text-center text-muted">Sin operaciones.</td>
-                                </tr>
+                                <tr t-if="not labs"><td colspan="5" style="border:1px solid #adb5bd; padding:4px; text-align:center; color:#6c757d;">Sin operaciones.</td></tr>
                             </tbody>
                         </table>
 
-                        <p class="text-muted small mt-3">
-                            Los importes de este documento son los mismos que muestra la pantalla
-                            «Coste OF» de esta orden.
+                        <p style="color:#6c757d; font-size:10px; margin-top:12px;">
+                            Los importes de este documento son los mismos que muestra la pantalla «Coste OF» de esta orden.
                         </p>
 
                     </div>
