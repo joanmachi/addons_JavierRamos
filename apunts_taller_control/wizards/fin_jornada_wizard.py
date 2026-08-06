@@ -27,6 +27,26 @@ class ApuntsFinJornadaWizard(models.TransientModel):
         self.employee_id = emp
         return emp
 
+    def _presencia_hoy(self, emp):
+        """Presencia REAL de hoy: horas de asistencia (hr.attendance) del día,
+        más la sesión aún abierta proyectada hasta ahora.
+
+        Viene de la PRESENCIA (hr.attendance), así que NO cuenta los fichajes de
+        OF dobles/solapados ni los fichajes de OF abiertos que inflaban el total
+        (un operario fichado en varias OF a la vez sumaba las mismas horas varias
+        veces). Es el tiempo que el operario ha estado realmente en la fábrica."""
+        hoy = fields.Date.context_today(self)
+        presencia = emp._apunts_horas_presencia(hoy)
+        ini, fin = emp._apunts_rango_utc(hoy)
+        abierta = self.env["hr.attendance"].search([
+            ("employee_id", "=", emp.id),
+            ("check_in", ">=", ini), ("check_in", "<=", fin),
+            ("check_out", "=", False),
+        ], limit=1)
+        if abierta:
+            presencia += (fields.Datetime.now() - abierta.check_in).total_seconds() / 3600.0
+        return presencia
+
     @api.depends("employee_id")
     def _compute_resumen_html(self):
         ahora = fields.Datetime.now()
@@ -35,23 +55,34 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             if not w.employee_id:
                 w.resumen_html = "<p><em>Introduce tu PIN para ver tu resumen.</em></p>"
                 continue
+            emp = w.employee_id
             registros = self.env["mrp.workcenter.productivity"].search([
-                ("employee_id", "=", w.employee_id.id),
+                ("employee_id", "=", emp.id),
                 ("date_start", ">=", hoy.strftime("%Y-%m-%d 00:00:00")),
             ], order="date_start ASC")
-            ausencia_h = w.employee_id._apunts_horas_ausencia(hoy)
+            ausencia_h = emp._apunts_horas_ausencia(hoy)
+            # Cabecera = PRESENCIA real del día (sin dobles ni fichajes abiertos
+            # inflando), + ausencia justificada. Es el número que el operario
+            # debe ver, no la suma de horas trabajadas en OF.
+            presencia_h = self._presencia_hoy(emp)
+            if ausencia_h:
+                total_txt = (
+                    f"<strong>Presencia hoy: {presencia_h:.2f} h "
+                    f"+ {ausencia_h:.2f} h ausencia "
+                    f"= {presencia_h + ausencia_h:.2f} h</strong>"
+                )
+            else:
+                total_txt = f"<strong>Presencia hoy: {presencia_h:.2f} h</strong>"
+
             if not registros:
-                if ausencia_h:
-                    w.resumen_html = (
-                        f"<p><strong>{w.employee_id.name}</strong> — "
-                        f"sin fichajes de producción hoy · "
-                        f"<strong>{ausencia_h:.2f} h de ausencia justificada</strong></p>"
-                    )
-                else:
-                    w.resumen_html = "<p><em>No tienes fichajes hoy.</em></p>"
+                nota = ("" if (presencia_h or ausencia_h)
+                        else " · <em>sin fichajes de producción hoy</em>")
+                w.resumen_html = (
+                    f"<p><strong>{emp.name}</strong> — {total_txt}{nota}</p>"
+                )
                 continue
+
             filas = []
-            total_seg = 0
             for r in registros:
                 of = r.workorder_id.production_id.name or "?"
                 wo = r.workorder_id.name or "?"
@@ -63,27 +94,19 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                     fin_txt = '<strong style="color:#c00">ABIERTO — desfíchate antes de cerrar jornada</strong>'
                     seg = (ahora - r.date_start).total_seconds() if r.date_start else 0
                 horas = seg / 3600.0
-                total_seg += seg
                 filas.append(
                     f"<tr><td>{of}</td><td>{wo}</td><td>{ini}</td><td>{fin_txt}</td>"
                     f"<td>{horas:.2f} h</td></tr>"
                 )
-            total_h = total_seg / 3600.0
-            if ausencia_h:
-                total_txt = (
-                    f"<strong>Total: {total_h:.2f} h fichadas "
-                    f"+ {ausencia_h:.2f} h ausencia "
-                    f"= {total_h + ausencia_h:.2f} h</strong>"
-                )
-            else:
-                total_txt = f"<strong>Total: {total_h:.2f} h</strong>"
             w.resumen_html = (
-                f"<p><strong>{w.employee_id.name}</strong> — "
-                f"{len(registros)} fichajes hoy · "
+                f"<p><strong>{emp.name}</strong> — "
+                f"{len(registros)} fichajes en OF hoy · "
                 f"{total_txt}</p>"
+                "<p class='text-muted small mb-1'>Detalle de fichajes en OF "
+                "(pueden solaparse entre sí; su suma <u>no</u> es la presencia):</p>"
                 "<table class='table table-sm'>"
                 "<thead><tr><th>OF</th><th>OT</th><th>Inicio</th>"
-                "<th>Fin</th><th>Duración</th></tr></thead>"
+                "<th>Fin</th><th>Tiempo en OF</th></tr></thead>"
                 f"<tbody>{''.join(filas)}</tbody></table>"
             )
 
@@ -119,15 +142,7 @@ class ApuntsFinJornadaWizard(models.TransientModel):
         tol = int(
             ICP.get_param("apunts_taller_control.jornada_tolerancia_min", "10")
         ) / 60.0
-        presencia = emp._apunts_horas_presencia(hoy)
-        ini, fin = emp._apunts_rango_utc(hoy)
-        abierta = self.env["hr.attendance"].search([
-            ("employee_id", "=", emp.id),
-            ("check_in", ">=", ini), ("check_in", "<=", fin),
-            ("check_out", "=", False),
-        ], limit=1)
-        if abierta:
-            presencia += (fields.Datetime.now() - abierta.check_in).total_seconds() / 3600.0
+        presencia = self._presencia_hoy(emp)
         ausencia = emp._apunts_horas_ausencia(hoy)
         if presencia + ausencia < esperadas - tol:
             return (presencia, ausencia, esperadas)

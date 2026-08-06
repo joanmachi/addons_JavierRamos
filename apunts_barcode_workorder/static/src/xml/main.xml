@@ -293,8 +293,8 @@
                         <div class="apunts-wo-row1">
                             <span class="apunts-wo-num"><t t-esc="orden_index + 1"/></span>
                             <strong class="apunts-wo-name"><t t-esc="orden.name"/></strong>
-                            <span t-if="orden.duration_str" class="apunts-wo-duration">
-                                <i class="fa fa-clock-o me-1"/><t t-esc="orden.duration_str"/>
+                            <span t-if="orden.duration_str" class="apunts-wo-duration" title="Tiempo previsto de la fase (estimación), no lo trabajado">
+                                <i class="fa fa-clock-o me-1"/>Previsto <t t-esc="orden.duration_str"/>
                             </span>
                             <span t-if="is_done"     class="apunts-badge apunts-badge-done"><i class="fa fa-check me-1"/>LISTO</span>
                             <span t-elif="is_waiting" class="apunts-badge apunts-badge-waiting"><i class="fa fa-clock-o me-1"/>ESPERA</span>
