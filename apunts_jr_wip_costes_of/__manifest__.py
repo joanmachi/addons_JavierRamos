@@ -7,7 +7,7 @@ de coste consolidado por OF: materia prima, mano de obra, máquina y
 amortización. Una OF entra a WIP cuando se recibe físicamente la materia prima
 vinculada y sale cuando se completan todas las piezas.
     """,
-    "version": "18.0.1.12.0",
+    "version": "18.0.1.13.0",
     "category": "Manufacturing",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
@@ -22,6 +22,7 @@ vinculada y sale cuando se completan todas las piezas.
         "views/wizard_buscar_coste.xml",
         "views/menu.xml",
         "views/product_stock_valorado_views.xml",
+        "reports/coste_of_report.xml",
     ],
     "pre_init_hook": "_pre_init_uninstall_apunts_wip",
     "post_init_hook": "_post_init_recompute_wip",
