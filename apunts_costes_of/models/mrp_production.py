@@ -119,6 +119,35 @@ class MrpProduction(models.Model):
              'que afecta a esta OF por solapamiento. Fuerza refresco del formulario abierto.',
     )
 
+    # Enlace MANUAL de la venta de la OF a línea(s) de pedido de venta.
+    # Resuelve los casos en que la venta no se puede deducir por producto:
+    #   - una OF que ejecuta VARIOS pedidos a la vez (se enlazan sus líneas → suma),
+    #   - un pedido con VARIAS referencias/líneas y cada OF vale por SU línea,
+    #   - una OF cuyo producto fabricado no figura como línea del pedido.
+    # Cuando hay líneas enlazadas, VENTA y MARGEN se calculan desde ellas.
+    apunts_sale_line_ids = fields.Many2many(
+        'sale.order.line',
+        'apunts_mrp_production_sale_line_rel',
+        'production_id', 'sale_line_id',
+        string='Ventas de esta OF',
+        domain="[('order_id.state', 'in', ('sale', 'done')), ('display_type', '=', False)]",
+        help="Línea(s) de pedido de venta que definen la VENTA de esta OF.\n"
+             "Enlaza la(s) que le corresponden: de uno o varios pedidos, o una "
+             "línea concreta de un pedido con varias referencias.\n"
+             "Con líneas enlazadas, la VENTA y el MARGEN se calculan como la suma "
+             "de esos subtotales (no se deducen por producto).\n"
+             "Vacío = cálculo automático de siempre.",
+    )
+
+    def _apunts_venta_manual(self):
+        """Suma de los subtotales de las líneas de venta enlazadas a mano.
+        Devuelve None si no hay enlace manual (→ usar el cálculo automático)."""
+        self.ensure_one()
+        lines = self.sudo().apunts_sale_line_ids
+        if not lines:
+            return None
+        return round(sum(lines.mapped('price_subtotal')), 2)
+
     # --- KPI scalars: REAL (siempre frescos, store=False)
 
     apunts_material_cost_real = fields.Monetary(
@@ -327,6 +356,7 @@ class MrpProduction(models.Model):
         'workorder_ids', 'workorder_ids.duration', 'workorder_ids.duration_expected',
         'product_qty', 'qty_producing', 'bom_id', 'state',
         'apunts_productivity_trigger',
+        'apunts_sale_line_ids', 'apunts_sale_line_ids.price_subtotal',
     )
     def _compute_apunts_costs(self):
         for prod in self:
@@ -1376,8 +1406,14 @@ class MrpProduction(models.Model):
 
         Hito 11: usa el helper `_apunts_get_sale_order` que respeta tanto el `sale_id`
         estandar de Odoo como el campo Studio detectado (ej. `x_studio_venta` en JR).
+
+        Si la OF tiene líneas de venta enlazadas a mano (apunts_sale_line_ids),
+        el ingreso es la suma de esos subtotales (control total del usuario).
         """
         self.ensure_one()
+        venta_manual = self._apunts_venta_manual()
+        if venta_manual is not None:
+            return venta_manual
         so = self._apunts_get_sale_order()
         if not so:
             return 0.0

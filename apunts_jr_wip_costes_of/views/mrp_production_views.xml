@@ -125,6 +125,11 @@
                        string="OF madre (si es una hija suelta)"
                        options="{'no_create': True}"
                        placeholder="Solo si esta OF fabrica un componente de otra OF"/>
+                <field name="apunts_sale_line_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"
+                       string="Ventas de esta OF (margen)"
+                       placeholder="Enlaza la(s) línea(s) de pedido que valoran esta OF"/>
             </xpath>
         </field>
     </record>

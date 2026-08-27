@@ -484,6 +484,7 @@ class MrpProduction(models.Model):
     @api.depends(
         "sale_line_id", "product_qty", "product_id",
         "procurement_group_id.sale_id",
+        "apunts_sale_line_ids", "apunts_sale_line_ids.price_subtotal",
     )
     def _compute_apunts_sale_amount(self):
         # Solo cuenta SOs confirmados (estado 'sale' o 'done') Y con entrega no completada.
@@ -498,6 +499,13 @@ class MrpProduction(models.Model):
         for prod in self:
             if not isinstance(prod.id, int):
                 prod.apunts_sale_amount = 0.0
+                continue
+            # Enlace MANUAL de venta (líneas de pedido enlazadas a mano): tiene
+            # prioridad sobre la cascada automática. Cubre OF con varios pedidos
+            # o pedidos con varias referencias (una línea por OF).
+            venta_manual = prod._apunts_venta_manual()
+            if venta_manual is not None:
+                prod.apunts_sale_amount = venta_manual
                 continue
             # sudo: campo almacenado que se recalcula al escribir en la OF desde
             # planta. Leemos el pedido/línea de venta como superusuario para no

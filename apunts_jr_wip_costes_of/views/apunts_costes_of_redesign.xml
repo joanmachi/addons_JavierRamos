@@ -14,6 +14,20 @@
         <field name="arch" type="xml">
 
             <xpath expr="//div[@name='apunts_kpi_cards']" position="replace">
+                <div class="alert alert-light border mb-3" role="group">
+                    <label for="apunts_sale_line_ids" class="fw-bold me-2">
+                        Ventas de esta OF (para el margen):
+                    </label>
+                    <field name="apunts_sale_line_ids" nolabel="1"
+                           widget="many2many_tags"
+                           options="{'no_create': True}"
+                           placeholder="Vacío = automático. Enlaza aquí la(s) línea(s) de pedido que valoran esta OF (de uno o varios pedidos)."/>
+                    <div class="small text-muted mt-1">
+                        Úsalo cuando la venta no se deduce sola: una OF que ejecuta varios
+                        pedidos, o un pedido con varias referencias (una línea por OF).
+                        Con líneas enlazadas, Venta y Margen se calculan como la suma de sus subtotales.
+                    </div>
+                </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-3 col-sm-6">
                         <div class="card border-success h-100">
