@@ -148,6 +148,19 @@ class MrpProduction(models.Model):
             return None
         return round(sum(lines.mapped('price_subtotal')), 2)
 
+    def action_apunts_cargar_lineas_pedido(self):
+        """Añade a 'Ventas de esta OF' las líneas del pedido de venta vinculado
+        a la orden (sin notas/secciones). No borra las que ya hubiera: suma.
+        Comodidad para no buscarlas a mano en el desplegable."""
+        for prod in self:
+            so = prod._apunts_get_sale_order()
+            if not so:
+                continue
+            lines = so.order_line.filtered(lambda l: not l.display_type)
+            if lines:
+                prod.apunts_sale_line_ids = [(4, l.id) for l in lines]
+        return True
+
     # --- KPI scalars: REAL (siempre frescos, store=False)
 
     apunts_material_cost_real = fields.Monetary(

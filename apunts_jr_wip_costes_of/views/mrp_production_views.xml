@@ -125,11 +125,16 @@
                        string="OF madre (si es una hija suelta)"
                        options="{'no_create': True}"
                        placeholder="Solo si esta OF fabrica un componente de otra OF"/>
-                <field name="apunts_sale_line_ids"
-                       widget="many2many_tags"
-                       options="{'no_create': True}"
-                       string="Ventas de esta OF (margen)"
-                       placeholder="Enlaza la(s) línea(s) de pedido que valoran esta OF"/>
+                <label for="apunts_sale_line_ids" string="Ventas de esta OF (margen)"/>
+                <div>
+                    <field name="apunts_sale_line_ids" nolabel="1"
+                           widget="many2many_tags"
+                           options="{'no_create': True}"
+                           placeholder="Enlaza la(s) línea(s) de pedido que valoran esta OF"/>
+                    <button name="action_apunts_cargar_lineas_pedido" type="object"
+                            class="btn btn-sm btn-link ps-0"
+                            icon="fa-download" string="Cargar líneas del pedido"/>
+                </div>
             </xpath>
         </field>
     </record>

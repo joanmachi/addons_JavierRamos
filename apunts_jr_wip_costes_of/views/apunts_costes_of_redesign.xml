@@ -18,6 +18,9 @@
                     <label for="apunts_sale_line_ids" class="fw-bold me-2">
                         Ventas de esta OF (para el margen):
                     </label>
+                    <button name="action_apunts_cargar_lineas_pedido" type="object"
+                            class="btn btn-sm btn-outline-primary me-2"
+                            icon="fa-download" string="Cargar líneas del pedido"/>
                     <field name="apunts_sale_line_ids" nolabel="1"
                            widget="many2many_tags"
                            options="{'no_create': True}"
