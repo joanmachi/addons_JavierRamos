@@ -149,16 +149,26 @@ class MrpProduction(models.Model):
         return round(sum(lines.mapped('price_subtotal')), 2)
 
     def action_apunts_cargar_lineas_pedido(self):
-        """Añade a 'Ventas de esta OF' las líneas del pedido de venta vinculado
-        a la orden (sin notas/secciones). No borra las que ya hubiera: suma.
-        Comodidad para no buscarlas a mano en el desplegable."""
+        """Añade a 'Ventas de esta OF' la(s) línea(s) del pedido de venta vinculado
+        que corresponden a esta OF (sin notas/secciones). No borra las que hubiera.
+
+        Para no romper OFs que ya valoran bien, carga con criterio:
+          - Si el producto que fabrica la OF figura como línea del pedido
+            (caso normal: pedido con varias referencias, una por OF), carga SOLO
+            esa(s) línea(s) — no el pedido entero.
+          - Si el producto fabricado NO está como línea (proyecto vendido por
+            partes, ej. OF1019), carga todas las líneas del pedido.
+        """
         for prod in self:
             so = prod._apunts_get_sale_order()
             if not so:
                 continue
             lines = so.order_line.filtered(lambda l: not l.display_type)
-            if lines:
-                prod.apunts_sale_line_ids = [(4, l.id) for l in lines]
+            product_ids = prod.move_finished_ids.product_id.ids
+            match = lines.filtered(lambda l: l.product_id.id in product_ids)
+            chosen = match or lines
+            if chosen:
+                prod.apunts_sale_line_ids = [(4, l.id) for l in chosen]
         return True
 
     # --- KPI scalars: REAL (siempre frescos, store=False)
@@ -1414,14 +1424,21 @@ class MrpProduction(models.Model):
         return False
 
     def _apunts_revenue_total(self):
-        """Ingreso total de la OF: suma de price_unit x qty para los productos
-        terminados de la OF. Si no hay SO vinculada, 0.
+        """Ingreso de la OF para el MARGEN.
 
-        Hito 11: usa el helper `_apunts_get_sale_order` que respeta tanto el `sale_id`
-        estandar de Odoo como el campo Studio detectado (ej. `x_studio_venta` en JR).
+        Prioridad:
+          1. Líneas de venta enlazadas a mano (apunts_sale_line_ids) → su suma.
+             Comodín para casos raros: una OF que junta varios pedidos, o elegir
+             una línea concreta de un pedido con varias referencias.
+          2. Automático: el MISMO importe que la tarjeta "Venta" de al lado
+             (subtotal de las líneas del pedido cuyo producto fabrica la OF; si el
+             producto no figura como línea —p.ej. un proyecto vendido por partes—,
+             el importe del pedido vinculado). Así "Margen = Venta − coste" y las
+             dos tarjetas nunca se contradicen.
 
-        Si la OF tiene líneas de venta enlazadas a mano (apunts_sale_line_ids),
-        el ingreso es la suma de esos subtotales (control total del usuario).
+        Antes se hacía cantidad_fabricada × precio_unitario, que doblaba el ingreso
+        cuando la OF fabricaba más unidades de las que había en el pedido (ej. OF832)
+        y daba 0 cuando el producto no era una línea del pedido (ej. OF1019).
         """
         self.ensure_one()
         venta_manual = self._apunts_venta_manual()
@@ -1430,19 +1447,15 @@ class MrpProduction(models.Model):
         so = self._apunts_get_sale_order()
         if not so:
             return 0.0
-        revenue = 0.0
         product_ids = self.move_finished_ids.product_id.ids
-        for line in so.order_line:
-            if line.product_id.id in product_ids:
-                # Proporcional a qty de esta OF (no de la SO completa)
-                # Coger qty done del move_finished correspondiente
-                qty_of = sum(
-                    (m.quantity if m.state == 'done' else m.product_uom_qty or 0.0)
-                    for m in self.move_finished_ids
-                    if m.product_id.id == line.product_id.id and m.state != 'cancel'
-                )
-                revenue += qty_of * (line.price_unit or 0.0)
-        return round(revenue, 2)
+        matched = so.order_line.filtered(
+            lambda l: not l.display_type and l.product_id.id in product_ids
+        )
+        if matched:
+            return round(sum(matched.mapped('price_subtotal')), 2)
+        # El producto fabricado no figura como línea del pedido (proyecto vendido
+        # por partes): tomamos el importe del pedido vinculado.
+        return round(so.amount_untaxed or 0.0, 2)
 
     # ============================================================
     # CALCULOS - ALERTAS
