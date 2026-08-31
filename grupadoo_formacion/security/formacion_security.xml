@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- El grupo de los que CONSTRUYEN las formaciones (nosotros, la consultora).
+         Los usuarios del cliente no lo tienen: solo ven el Formador. -->
+    <record id="group_formacion_constructor" model="res.groups">
+        <field name="name">Formación: constructor</field>
+        <field name="comment">Puede crear y editar guías, resolver gaps, apuntar horas y gestionar áreas. Los usuarios del cliente no necesitan este grupo: usan el Formador o el enlace público.</field>
+    </record>
+    <!-- Todo administrador de Ajustes es constructor automáticamente (aquí y en el servidor) -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_formacion_constructor'))]"/>
+    </record>
+</odoo>

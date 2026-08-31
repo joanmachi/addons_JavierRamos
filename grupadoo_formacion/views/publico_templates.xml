@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="pagina_base" name="Formación pública: esqueleto">
+        <t t-set="titulo" t-value="titulo or 'Formación'"/>
+        &lt;!DOCTYPE html&gt;
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title><t t-esc="titulo"/> — Formación</title>
+                <link rel="stylesheet" type="text/css" href="/grupadoo_formacion/static/src/publico/publico.css"/>
+            </head>
+            <body>
+                <header class="fp-top">
+                    <a t-attf-href="/formacion/{{ token }}" class="fp-brand">
+                        <img src="/grupadoo_base/static/img/grupadoo_symbol.png" alt=""/>
+                        <span><b class="g">GRUPA</b><b class="p">DOO</b> <small>FORMACIÓN</small></span>
+                    </a>
+                </header>
+                <main class="fp-main">
+                    <t t-out="0"/>
+                </main>
+                <footer class="fp-foot">Guías de formación de tu Odoo — si algo no cuadra, avísanos desde la propia guía.</footer>
+            </body>
+        </html>
+    </template>
+
+    <template id="pagina_indice" name="Formación pública: índice">
+        <t t-call="grupadoo_formacion.pagina_base">
+            <t t-set="titulo">Guías</t>
+            <h1>¿Qué necesitas hacer?</h1>
+            <div class="fp-aviso ok" t-if="msg == 'validada'">✅ Guía validada — ¡gracias!</div>
+            <a class="fp-avisos-link" t-if="tablero" t-attf-href="/formacion/{{ token }}/avisos">
+                📋 Seguimiento de tus avisos →
+            </a>
+            <div class="fp-vacia" t-if="not areas">
+                Aún no hay guías publicadas — las estamos preparando. ✨
+            </div>
+            <t t-foreach="areas" t-as="area">
+                <section class="fp-area">
+                    <h2><t t-esc="area.name"/></h2>
+                    <div class="fp-grid">
+                        <t t-foreach="fichas.filtered(lambda f: f.area_id == area)" t-as="f">
+                            <a class="fp-card" t-attf-href="/formacion/{{ token }}/guia/{{ f.id_tecnico }}">
+                                <div class="fp-card-t" t-esc="f.name"/>
+                                <div class="fp-card-m">
+                                    <span class="fp-chip"><t t-esc="len(f.paso_ids)"/> pasos</span>
+                                    <span class="fp-chip ok" t-if="f.estado == 'validado'">✅ validada</span>
+                                    <span class="fp-chip warn" t-if="f.estado != 'validado'">pendiente de tu visto bueno</span>
+                                </div>
+                            </a>
+                        </t>
+                    </div>
+                </section>
+            </t>
+        </t>
+    </template>
+
+    <template id="pagina_guia" name="Formación pública: guía completa">
+        <t t-call="grupadoo_formacion.pagina_base">
+            <t t-set="titulo" t-value="ficha.name"/>
+            <a t-attf-href="/formacion/{{ token }}" class="fp-volver">← Todas las guías</a>
+            <h1 t-esc="ficha.name"/>
+            <div class="fp-meta">
+                <span class="fp-chip" t-esc="ficha.area_id.name"/>
+                <span class="fp-chip"><t t-esc="len(ficha.paso_ids)"/> pasos</span>
+                <span class="fp-chip ok" t-if="ficha.estado == 'validado'">✅ validada por <t t-esc="ficha.validado_por"/></span>
+                <span class="fp-chip warn" t-if="gaps_abiertos">⚠️ <t t-esc="gaps_abiertos"/> aviso(s) en corrección</span>
+            </div>
+
+            <div class="fp-aviso ok" t-if="msg == 'validada'">✅ Guía validada — tu conformidad queda registrada. ¡Gracias!</div>
+            <div class="fp-aviso" t-if="msg == 'gap'">📝 Aviso recibido — corregiremos la guía y te avisaremos.</div>
+            <div class="fp-aviso" t-if="msg == 'comentario'">💬 Comentario recibido — ¡gracias!</div>
+            <div class="fp-aviso warn" t-if="msg == 'gaps'">Esta guía tiene avisos pendientes de corregir; podrás validarla cuando estén resueltos.</div>
+            <div class="fp-aviso ok" t-if="msg == 'asistencia'">🛟 Ticket de asistencia enviado — te responderemos al correo que has indicado.</div>
+            <div class="fp-aviso warn" t-if="msg == 'asistencia_error'">
+                No se ha podido enviar el ticket automáticamente.
+                <t t-if="url_soporte"><a t-att-href="url_soporte" target="_blank">Abre el portal de soporte</a> o llámanos.</t>
+                <t t-else="">Llámanos y lo resolvemos.</t>
+            </div>
+
+            <section class="fp-bloque" t-if="cuando">
+                <h3>Cuándo se usa</h3>
+                <div t-out="cuando"/>
+            </section>
+            <section class="fp-bloque nota" t-if="antes">
+                <h3>Antes de empezar</h3>
+                <div t-out="antes"/>
+            </section>
+
+            <section class="fp-pasos" t-if="pasos">
+                <h3>Pasos</h3>
+                <t t-foreach="pasos" t-as="p">
+                    <div class="fp-paso">
+                        <div class="fp-paso-cab">
+                            <span class="fp-paso-num" t-esc="p['n']"/>
+                            <div class="fp-paso-tx" t-out="p['html']"/>
+                        </div>
+                        <img t-if="p['tiene_captura']" class="fp-paso-img"
+                             t-attf-src="/formacion/{{ token }}/img/paso/{{ p['id'] }}" alt="captura del paso"/>
+                    </div>
+                </t>
+            </section>
+
+            <section class="fp-bloque" t-if="si_mal">
+                <h3>Si algo va mal</h3>
+                <div t-out="si_mal"/>
+            </section>
+            <section class="fp-bloque esc" t-if="escalar">
+                <h3>Escalar</h3>
+                <div t-out="escalar"/>
+            </section>
+
+            <!-- ══ validación / gap / comentario ══ -->
+            <section class="fp-acciones">
+                <t t-if="ficha.estado != 'validado'">
+                    <div class="fp-accion valida">
+                        <h3>¿Está todo correcto?</h3>
+                        <p>Si esta guía refleja exactamente cómo funciona tu Odoo, dala por buena.
+                           Tu conformidad queda registrada con tu nombre, fecha y hora.</p>
+                        <form method="post" t-attf-action="/formacion/{{ token }}/guia/{{ ficha.id_tecnico }}/validar">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label class="fp-lbl" for="fp-val-nombre">Tu nombre y apellido *</label>
+                            <input id="fp-val-nombre" type="text" name="nombre" placeholder="P. ej.: María García" required="required"/>
+                            <label class="fp-lbl" for="fp-val-obs">Observación (opcional)</label>
+                            <input id="fp-val-obs" type="text" name="observacion" placeholder="Si quieres añadir algo..."/>
+                            <button type="submit" class="fp-btn ok">✅ Doy por buena esta guía</button>
+                        </form>
+                    </div>
+                </t>
+                <details class="fp-accion" t-if="not soporte">
+                    <summary>⚠️ Algo no cuadra (la guía no coincide con mi Odoo)</summary>
+                    <form method="post" t-attf-action="/formacion/{{ token }}/guia/{{ ficha.id_tecnico }}/gap">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <label class="fp-lbl" for="fp-gap-nombre">Tu nombre</label>
+                        <input id="fp-gap-nombre" type="text" name="nombre" placeholder="Para saber a quién responder"/>
+                        <label class="fp-lbl" for="fp-gap-paso">Nº de paso (déjalo vacío si es de la guía en general)</label>
+                        <input id="fp-gap-paso" type="number" name="paso_n" min="0" placeholder="P. ej.: 3"/>
+                        <label class="fp-lbl" for="fp-gap-texto">Qué no cuadra *</label>
+                        <textarea id="fp-gap-texto" name="texto" rows="3" required="required"
+                                  placeholder="P. ej.: el botón ya no se llama así, falta un paso, la captura no coincide..."/>
+                        <button type="submit" class="fp-btn">Enviar aviso</button>
+                    </form>
+                </details>
+                <details class="fp-accion" t-if="soporte">
+                    <summary>⚠️ Algo no funciona (abrimos un ticket de asistencia a Grupadoo)</summary>
+                    <form method="post" t-attf-action="/formacion/{{ token }}/guia/{{ ficha.id_tecnico }}/asistencia">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <label class="fp-lbl" for="fp-sop-nombre">Tu nombre *</label>
+                        <input id="fp-sop-nombre" type="text" name="nombre" required="required" placeholder="Para saber quién nos escribe"/>
+                        <label class="fp-lbl" for="fp-sop-email">Tu email *</label>
+                        <input id="fp-sop-email" type="email" name="email" required="required" placeholder="Te responderemos aquí"/>
+                        <label class="fp-lbl" for="fp-sop-urg">Urgencia</label>
+                        <select id="fp-sop-urg" name="urgencia">
+                            <option value="baja">🟢 Baja — puede esperar</option>
+                            <option value="media" selected="selected">🟡 Media</option>
+                            <option value="alta">🔴 Alta — no podemos trabajar</option>
+                        </select>
+                        <label class="fp-lbl" for="fp-sop-paso">Nº de paso donde pasa (opcional)</label>
+                        <input id="fp-sop-paso" type="number" name="paso_n" min="0" placeholder="P. ej.: 3"/>
+                        <label class="fp-lbl" for="fp-sop-texto">Qué pasa *</label>
+                        <textarea id="fp-sop-texto" name="texto" rows="3" required="required"
+                                  placeholder="Qué estabas haciendo, qué esperabas y qué ha pasado (si hay mensaje de error, cópialo)..."/>
+                        <button type="submit" class="fp-btn">🛟 Enviar ticket a Grupadoo</button>
+                    </form>
+                </details>
+                <details class="fp-accion">
+                    <summary>💬 Dejar un comentario (sugerencias, dudas...)</summary>
+                    <form method="post" t-attf-action="/formacion/{{ token }}/guia/{{ ficha.id_tecnico }}/comentario">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <label class="fp-lbl" for="fp-com-nombre">Tu nombre</label>
+                        <input id="fp-com-nombre" type="text" name="nombre" placeholder="Para saber quién nos escribe"/>
+                        <label class="fp-lbl" for="fp-com-texto">Comentario *</label>
+                        <textarea id="fp-com-texto" name="texto" rows="3" required="required" placeholder="Cuéntanos..."/>
+                        <button type="submit" class="fp-btn">Enviar comentario</button>
+                    </form>
+                </details>
+            </section>
+        </t>
+    </template>
+
+    <template id="pagina_avisos" name="Formación pública: tablero de avisos">
+        <t t-call="grupadoo_formacion.pagina_base">
+            <t t-set="titulo">Seguimiento de avisos</t>
+            <a t-attf-href="/formacion/{{ token }}" class="fp-volver">← Todas las guías</a>
+            <h1>Seguimiento de tus avisos</h1>
+            <p class="fp-intro">Todo lo que nos habéis reportado sobre las guías, y en qué punto está cada cosa.</p>
+            <div class="fp-board">
+                <t t-foreach="columnas" t-as="col">
+                    <div t-attf-class="fp-col {{ col['clave'] }}">
+                        <div class="fp-col-cab">
+                            <span class="fp-col-t" t-esc="col['titulo']"/>
+                            <span class="fp-col-n" t-esc="len(col['gaps'])"/>
+                        </div>
+                        <div class="fp-col-sub" t-esc="col['sub']"/>
+                        <t t-foreach="col['gaps']" t-as="g">
+                            <div class="fp-tarjeta">
+                                <div class="fp-tarjeta-g">
+                                    <t t-esc="g.ficha_id.name"/>
+                                    <span class="fp-chip" t-if="g.paso_n">paso <t t-esc="g.paso_n"/></span>
+                                </div>
+                                <div class="fp-tarjeta-tx" t-esc="g.descripcion"/>
+                                <div class="fp-tarjeta-meta">
+                                    <t t-esc="g.reportado_por or 'Sin nombre'"/> ·
+                                    <t t-esc="g.create_date and g.create_date.strftime('%d/%m/%Y') or ''"/>
+                                </div>
+                                <div class="fp-tarjeta-resp" t-if="g.respuesta">
+                                    <b>Nuestra respuesta:</b> <t t-esc="g.respuesta"/>
+                                </div>
+                            </div>
+                        </t>
+                        <div class="fp-col-vacia" t-if="not col['gaps']">Nada por aquí 🎉</div>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.form.formacion</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Formación" name="grupadoo_formacion" groups="grupadoo_formacion.group_formacion_constructor">
+                    <block title="Contenido">
+                        <setting string="Solo guías validadas"
+                                 help="Para producción: el cliente (Formaciones y enlace público) solo ve las guías que ya validó.">
+                            <field name="formacion_solo_validadas"/>
+                        </setting>
+                        <setting string="Aviso al consultor por cada gap"
+                                 help="Correo automático al consultor del proyecto cada vez que el cliente reporte que algo no funciona en una guía (desde el visor o el enlace público).">
+                            <field name="formacion_email_consultor" placeholder="correo del consultor del proyecto"/>
+                        </setting>
+                    </block>
+                    <block title="Enlace público">
+                        <setting string="Tablero de avisos (gaps)"
+                                 help="Seguimiento estilo tablero de los avisos del cliente (recibidos / corregidos / no procede) dentro del enlace público. Pensado para encenderlo en reuniones de seguimiento.">
+                            <field name="formacion_tablero_gaps"/>
+                        </setting>
+                        <setting string="Enlace para el cliente"
+                                 help="Página sin usuario de Odoo con todas las guías. Regenerarlo invalida el enlace anterior al instante (como el modo quiosco de Asistencias).">
+                            <field name="formacion_enlace_hay" invisible="1"/>
+                            <field name="formacion_enlace" readonly="1" widget="CopyClipboardChar"/>
+                            <div class="mt8">
+                                <button name="action_formacion_abrir_enlace" type="object" string="Abrir" class="btn-primary" icon="fa-external-link"
+                                        invisible="not formacion_enlace_hay"/>
+                                <button name="action_formacion_regenerar_enlace" type="object" string="Generar enlace" class="btn-primary" icon="fa-magic"
+                                        invisible="formacion_enlace_hay"/>
+                                <button name="action_formacion_regenerar_enlace" type="object" string="Regenerar enlace" class="btn-secondary" icon="fa-refresh"
+                                        invisible="not formacion_enlace_hay"
+                                        confirm="El enlace actual dejará de funcionar al instante. ¿Regenerar?"/>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Soporte Grupadoo (post-proyecto)">
+                        <setting string="Tickets de asistencia"
+                                 help="Al terminar el proyecto: el cliente abre incidencias desde las guías (visor y enlace público) y llegan al helpdesk de Grupadoo con la pantalla exacta donde está el error.">
+                            <field name="formacion_soporte"/>
+                            <div class="mt8" invisible="not formacion_soporte">
+                                <field name="formacion_email_soporte" placeholder="alias-del-equipo@grupadoo.com"/>
+                                <field name="formacion_url_soporte" class="mt4" placeholder="https://www.grupadoo.com/helpdesk/..."/>
+                                <button name="action_formacion_abrir_portal_soporte" type="object"
+                                        string="Probar portal" class="btn-secondary mt4" icon="fa-external-link"/>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

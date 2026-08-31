@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="grupadoo_formacion.Visor">
+        <div class="ff">
+
+            <!-- barra superior fija: marca + público -->
+            <div class="ff-top">
+                <div class="ff-brand">
+                    <img class="ff-logo" src="/grupadoo_base/static/img/grupadoo_symbol.png" alt="Grupadoo"/>
+                    <div class="ff-brand-tx">
+                        <div class="ff-brand-name"><span class="g">GRUPA</span><span class="p">DOO</span></div>
+                        <div class="ff-brand-tag">FORMACIÓN</div>
+                    </div>
+                </div>
+                <div class="ff-pub">
+                    <button t-att-class="state.publico === 'ambas' ? 'on' : ''"
+                            t-on-click="() => this.setPublico('ambas')">Todas</button>
+                    <button t-att-class="state.publico === 'dependiente' ? 'on' : ''"
+                            t-on-click="() => this.setPublico('dependiente')">🏭 Planta</button>
+                    <button t-att-class="state.publico === 'oficina' ? 'on' : ''"
+                            t-on-click="() => this.setPublico('oficina')">🗂️ Oficina</button>
+                </div>
+            </div>
+
+            <!-- ══ HOME: buscador + áreas ══ -->
+            <div class="ff-home" t-if="!state.ficha">
+                <div class="ff-hero">
+                    <h1>¿Qué necesitas hacer?</h1>
+                    <div class="ff-search">
+                        <input type="text" placeholder='Escríbelo como lo dirías: "hacer un ticket", "cobrar con tarjeta"...'
+                               t-att-value="state.q" t-on-input="onSearch"/>
+                        <div class="ff-results" t-if="resultados.length">
+                            <t t-foreach="resultados" t-as="f" t-key="f.id">
+                                <div class="ff-result" t-on-click="() => this.abrirFicha(f)">
+                                    <span class="ff-result-t" t-esc="f.titulo"/>
+                                    <span class="ff-result-a" t-esc="f.area"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="ff-noresult" t-if="state.q.trim() and !resultados.length">
+                            No encuentro ninguna guía con eso — prueba con otras palabras o entra por área.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ff-vacio" t-if="state.cargado and !state.fichas.length">
+                    Aún no hay guías publicadas — las estamos preparando. ✨
+                </div>
+
+                <div class="ff-areas">
+                    <t t-foreach="areasVisibles" t-as="a" t-key="a.id">
+                        <div t-attf-class="ff-area {{ state.areaSel === a.id ? 'sel' : '' }}"
+                             t-on-click="() => this.abrirArea(a.id)">
+                            <div class="ff-area-n" t-esc="a.nombre"/>
+                            <div class="ff-area-c"><t t-esc="a.n"/> guías</div>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="ff-grid" t-if="state.areaSel">
+                    <t t-foreach="fichasDelArea" t-as="f" t-key="f.id">
+                        <div class="ff-card" t-on-click="() => this.abrirFicha(f)">
+                            <div class="ff-card-t" t-esc="f.titulo"/>
+                            <div class="ff-card-d" t-out="md(f.cuando)"/>
+                            <div class="ff-card-foot">
+                                <span class="ff-chip"><t t-esc="f.pasos.length"/> pasos</span>
+                                <span class="ff-chip alt" t-if="f.custom">🔧 a medida</span>
+                                <span class="ff-chip warn" t-if="f.estado === 'borrador'">borrador</span>
+                                <span class="ff-chip warn" t-if="f.estado === 'en_validacion'">pendiente de tu visto bueno</span>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ══ FICHA ══ -->
+            <div class="ff-wz" t-if="state.ficha">
+
+                <!-- portada -->
+                <t t-if="state.paso === -1">
+                    <div class="ff-wz-hero">
+                        <button class="ff-back" t-on-click="cerrarFicha">← Volver</button>
+                        <h1 t-esc="state.ficha.titulo"/>
+                        <div class="ff-meta">
+                            <span class="ff-chip" t-esc="state.ficha.area"/>
+                            <span class="ff-chip"><t t-esc="state.ficha.pasos.length"/> pasos</span>
+                            <span class="ff-chip alt" t-if="state.ficha.custom">🔧 a medida</span>
+                            <span class="ff-chip warn" t-if="state.ficha.estado === 'borrador'">borrador — pendiente de validar</span>
+                            <span class="ff-chip warn" t-if="state.ficha.estado === 'en_validacion'">pendiente de tu visto bueno</span>
+                            <span class="ff-chip ok" t-if="state.ficha.estado === 'validado'">✅ validada por <t t-esc="state.ficha.validado_por"/></span>
+                            <span class="ff-chip warn" t-if="state.ficha.gaps_abiertos">⚠️ <t t-esc="state.ficha.gaps_abiertos"/> aviso(s) pendientes</span>
+                        </div>
+                        <div class="ff-when" t-if="state.ficha.cuando" t-out="mdF(state.ficha.cuando)"/>
+                        <div class="ff-note" t-if="state.ficha.antes">
+                            <div class="ff-note-h">Antes de empezar</div>
+                            <div t-out="mdF(state.ficha.antes)"/>
+                        </div>
+                        <button class="ff-cta" t-on-click="empezar" t-if="state.ficha.pasos.length">
+                            Empezar paso a paso →
+                        </button>
+                        <div class="ff-indice" t-if="state.ficha.pasos.length > 1">
+                            <div class="ff-note-h">Ir directo a un paso</div>
+                            <div class="ff-indice-items">
+                                <t t-foreach="state.ficha.pasos" t-as="p" t-key="p_index">
+                                    <div class="ff-indice-it" t-on-click="() => this.irAPaso(p_index)">
+                                        <span class="ff-indice-n" t-esc="p.n"/>
+                                        <span class="ff-indice-t" t-esc="lineaPaso(p)"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="ff-portada-acciones">
+                            <span class="ff-gaplink" t-on-click="() => this.reportar(0)">⚠️ Algo no cuadra en esta guía</span>
+                            <span class="ff-gaplink" t-on-click="abrirCom">💬 Dejar un comentario</span>
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.gapGracias">
+                            📝 Aviso registrado — lo revisaremos y corregiremos la guía. ¡Gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.comGracias">
+                            💬 Comentario enviado — ¡gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.tkGracias">
+                            🛟 Ticket enviado a Grupadoo — te responderemos al correo de tu usuario.
+                        </div>
+                    </div>
+                </t>
+
+                <!-- paso a paso -->
+                <t t-if="state.paso >= 0 and !enFinal">
+                    <div class="ff-run">
+                        <div class="ff-run-top">
+                            <button class="ff-back" t-on-click="cerrarFicha">✕ Salir</button>
+                            <div class="ff-run-title" t-esc="state.ficha.titulo"/>
+                            <div class="ff-run-n">Paso <t t-esc="state.paso + 1"/> de <t t-esc="state.ficha.pasos.length"/></div>
+                        </div>
+                        <div class="ff-bar"><div class="ff-bar-in" t-attf-style="width: {{ progreso }}%"/></div>
+                        <div class="ff-paso">
+                            <div class="ff-paso-num" t-esc="pasoActual.n"/>
+                            <div class="ff-paso-tx" t-out="md(pasoActual.texto)"/>
+                        </div>
+                        <div class="ff-shot" t-if="pasoActual.captura">
+                            <img t-att-src="pasoActual.url" alt="captura del paso"/>
+                        </div>
+                        <div class="ff-nav">
+                            <button class="ff-ghost" t-on-click="anterior" t-if="state.paso > 0">← Anterior</button>
+                            <button class="ff-cta" t-on-click="siguiente">
+                                <t t-if="state.paso + 1 &lt; state.ficha.pasos.length">Hecho, siguiente →</t>
+                                <t t-else="">Terminar ✓</t>
+                            </button>
+                        </div>
+                        <div class="ff-gaplink" t-on-click="() => this.reportar(pasoActual.n)">
+                            ⚠️ Algo no cuadra en este paso
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.gapGracias">
+                            📝 Aviso registrado — lo revisaremos y corregiremos la guía. ¡Gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.tkGracias">
+                            🛟 Ticket enviado a Grupadoo — te responderemos al correo de tu usuario.
+                        </div>
+                    </div>
+                </t>
+
+                <!-- final -->
+                <t t-if="enFinal">
+                    <div class="ff-done">
+                        <div class="ff-done-ic">✅</div>
+                        <h2>¡Guía completada!</h2>
+                        <div class="ff-help" t-if="state.ficha.si_mal">
+                            <div class="ff-note-h">Si algo va mal</div>
+                            <div t-out="mdF(state.ficha.si_mal)"/>
+                        </div>
+                        <div class="ff-help esc" t-if="state.ficha.escalar">
+                            <div class="ff-note-h">Escalar</div>
+                            <div t-out="mdF(state.ficha.escalar)"/>
+                        </div>
+                        <div class="ff-valida" t-if="state.ficha.estado !== 'validado'">
+                            <div class="ff-note-h">¿Está todo correcto?</div>
+                            <p class="ff-valida-tx">Si la guía refleja exactamente cómo funciona tu Odoo, dala por buena.
+                               Tu conformidad queda registrada con tu nombre y la fecha.</p>
+                            <div class="ff-valida-btns">
+                                <button class="ff-cta ok" t-on-click="aceptar">✅ Doy por buena esta guía</button>
+                                <button class="ff-ghost" t-on-click="() => this.reportar(0)">⚠️ Algo no cuadra</button>
+                                <button class="ff-ghost" t-on-click="abrirCom">💬 Comentar</button>
+                            </div>
+                            <div class="ff-valida-mal" t-if="state.validaMsg and state.validaMsg !== 'ok'" t-esc="state.validaMsg"/>
+                        </div>
+                        <div class="ff-valida hecho" t-if="state.ficha.estado === 'validado'">
+                            ✅ Guía validada<t t-if="state.ficha.validado_por"> por <b t-esc="state.ficha.validado_por"/></t><t t-if="state.ficha.fecha_validado"> el <t t-esc="state.ficha.fecha_validado"/></t>. ¡Gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.gapGracias">
+                            📝 Aviso registrado — lo revisaremos y corregiremos la guía. ¡Gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.comGracias">
+                            💬 Comentario enviado — ¡gracias!
+                        </div>
+                        <div class="ff-valida gracias" t-if="state.tkGracias">
+                            🛟 Ticket enviado a Grupadoo — te responderemos al correo de tu usuario.
+                        </div>
+                        <div class="ff-gaplink" t-if="state.ficha.estado === 'validado'" t-on-click="abrirCom">
+                            💬 Dejar un comentario
+                        </div>
+                        <div class="ff-gaplink" t-if="state.soporte and state.ficha.estado === 'validado'"
+                             t-on-click="() => this.reportar(0)">
+                            ⚠️ Algo no funciona
+                        </div>
+                        <div class="ff-nav">
+                            <button class="ff-ghost" t-on-click="anterior">← Repasar el último paso</button>
+                            <button class="ff-cta" t-on-click="cerrarFicha">Volver al inicio</button>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <div class="ff-gapover" t-if="state.comForm">
+                <div class="ff-gapcard">
+                    <div class="ff-note-h">💬 Tu comentario</div>
+                    <p>Sobre "<t t-esc="state.ficha.titulo"/>" — sugerencias, dudas, lo que sea.</p>
+                    <textarea rows="4" placeholder="Cuéntanos..."
+                              t-att-value="state.comTexto" t-on-input="onComTexto"/>
+                    <div class="ff-gate-mal" t-if="state.comError" t-esc="state.comError"/>
+                    <div class="ff-valida-btns">
+                        <button class="ff-cta" t-on-click="enviarCom">Enviar</button>
+                        <button class="ff-ghost" t-on-click="cerrarCom">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ff-gapover" t-if="state.gapForm">
+                <div class="ff-gapcard">
+                    <div class="ff-note-h">⚠️ Cuéntanos qué no cuadra</div>
+                    <p t-if="state.gapPaso">Sobre el <b>paso <t t-esc="state.gapPaso"/></b> de "<t t-esc="state.ficha.titulo"/>".</p>
+                    <p t-else="">Sobre la guía "<t t-esc="state.ficha.titulo"/>" en general.</p>
+                    <textarea rows="4" placeholder="P. ej.: el botón ya no se llama así, falta un paso, la captura no coincide..."
+                              t-att-value="state.gapTexto" t-on-input="onGapTexto"/>
+                    <div class="ff-gate-mal" t-if="state.gapError" t-esc="state.gapError"/>
+                    <div class="ff-valida-btns">
+                        <button class="ff-cta" t-on-click="enviarGap">Enviar aviso</button>
+                        <button class="ff-ghost" t-on-click="cerrarGap">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ff-gapover" t-if="state.tkForm">
+                <div class="ff-gapcard">
+                    <div class="ff-note-h sop">🛟 Ticket de asistencia a Grupadoo</div>
+                    <p t-if="state.tkPaso">Sobre el <b>paso <t t-esc="state.tkPaso"/></b> de "<t t-esc="state.ficha.titulo"/>" — el ticket llega a nuestro equipo con la pantalla exacta.</p>
+                    <p t-else="">Sobre "<t t-esc="state.ficha.titulo"/>" — el ticket llega a nuestro equipo de soporte con el contexto de esta guía.</p>
+                    <div class="ff-urg">
+                        <button t-att-class="state.tkUrg === 'baja' ? 'on' : ''" t-on-click="() => this.setTkUrg('baja')">🟢 Baja</button>
+                        <button t-att-class="state.tkUrg === 'media' ? 'on' : ''" t-on-click="() => this.setTkUrg('media')">🟡 Media</button>
+                        <button t-att-class="state.tkUrg === 'alta' ? 'on' : ''" t-on-click="() => this.setTkUrg('alta')">🔴 Alta</button>
+                    </div>
+                    <textarea rows="4" placeholder="Qué estabas haciendo, qué esperabas y qué ha pasado (si sale un mensaje de error, cópialo)..."
+                              t-att-value="state.tkTexto" t-on-input="onTkTexto"/>
+                    <div class="ff-gate-mal" t-if="state.tkError" t-esc="state.tkError"/>
+                    <div class="ff-valida-btns">
+                        <button class="ff-ghost" t-if="state.tkError and state.urlSoporte" t-on-click="abrirPortal">Abrir portal de soporte</button>
+                        <button class="ff-cta" t-on-click="enviarTk">🛟 Enviar a Grupadoo</button>
+                        <button class="ff-ghost" t-on-click="cerrarTk">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="grupadoo_formacion.Puerta">
+        <div class="ff">
+            <div class="ff-gate" t-if="state.pedir">
+                <div class="ff-gate-card">
+                    <div class="ff-gate-ic">🔐</div>
+                    <h2>Zona de construcción</h2>
+                    <p>Esta parte es del equipo. Escribe la clave de constructor (se recuerda hasta que cierres sesión).</p>
+                    <input type="password" placeholder="Clave de constructor"
+                           t-att-value="state.clave" t-on-input="onClave" t-on-keydown="onKey"/>
+                    <div class="ff-gate-mal" t-if="state.mal">Esa clave no es — pregunta al equipo.</div>
+                    <button class="ff-cta" t-on-click="entrar">Entrar</button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

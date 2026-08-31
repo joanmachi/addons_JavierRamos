@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ Kanban de validación: el "trello" (Borrador → Validado arrastrando) ══ -->
+    <record id="view_formacion_ficha_kanban" model="ir.ui.view">
+        <field name="name">formacion.ficha.kanban</field>
+        <field name="model">formacion.ficha</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="estado" quick_create="false">
+                <field name="estado"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="p-2">
+                            <div class="fw-bolder"><field name="name"/></div>
+                            <div class="text-muted small">
+                                <field name="area_id"/> · <field name="publico"/> ·
+                                <field name="paso_count"/> pasos
+                            </div>
+                            <div class="small" invisible="not es_custom">🔧 a medida (<field name="modulo_odoo"/>)</div>
+                            <div class="small text-success" invisible="estado != 'validado'">
+                                ✅ <field name="validado_por"/> · <field name="fecha_validado"/>
+                            </div>
+                            <div class="small text-danger" invisible="not gaps_abiertos">
+                                ⚠️ <field name="gaps_abiertos"/> gap(s) abiertos
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_formacion_ficha_list" model="ir.ui.view">
+        <field name="name">formacion.ficha.list</field>
+        <field name="model">formacion.ficha</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="area_id"/>
+                <field name="publico"/>
+                <field name="modulo_odoo" optional="show"/>
+                <field name="paso_count" string="Pasos"/>
+                <field name="gaps_abiertos" string="Gaps abiertos" optional="hide"/>
+                <field name="estado" widget="badge"
+                       decoration-success="estado == 'validado'" decoration-warning="estado == 'borrador'"/>
+                <field name="fecha_actualizado" optional="show"/>
+                <field name="id_tecnico" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_formacion_ficha_form" model="ir.ui.view">
+        <field name="name">formacion.ficha.form</field>
+        <field name="model">formacion.ficha</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_enviar_validacion" type="object" string="Enviar a validación del cliente"
+                            class="btn-primary" invisible="estado != 'borrador' or es_plantilla"/>
+                    <button name="action_crear_desde_plantilla" type="object" string="Crear guía desde esta plantilla"
+                            class="btn-primary" invisible="not es_plantilla"/>
+                    <button name="action_exportar_zip" type="object" string="Exportar ZIP"
+                            groups="grupadoo_formacion.group_formacion_constructor"/>
+                    <field name="estado" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning mb-3" role="alert" invisible="estado != 'validado'">
+                        Esta guía está <b>validada</b>: si cambias su contenido volverá a borrador
+                        (el acta se conserva) y, con "Solo guías validadas" activo, el cliente
+                        dejará de verla hasta re-validarla.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Título de la guía"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="id_tecnico"/>
+                            <field name="area_id"/>
+                            <field name="publico"/>
+                            <field name="dispositivo"/>
+                        </group>
+                        <group>
+                            <field name="modulo_odoo"/>
+                            <field name="es_custom"/>
+                            <field name="version_odoo"/>
+                            <field name="es_plantilla" groups="grupadoo_formacion.group_formacion_constructor"/>
+                            <field name="validado_por" readonly="1"/>
+                            <field name="fecha_validado" readonly="1"/>
+                            <field name="fecha_actualizado" readonly="1"/>
+                            <field name="horas_total" widget="float_time"
+                                   groups="grupadoo_formacion.group_formacion_constructor"/>
+                        </group>
+                    </group>
+                    <group string="Alias de búsqueda (uno por línea — cómo lo diría el usuario)">
+                        <field name="alias_text" nolabel="1"
+                               placeholder="hacer un ticket&#10;cobrar con tarjeta&#10;devolver una venta"/>
+                    </group>
+                    <notebook>
+                        <page string="Pasos">
+                            <field name="paso_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="n" string="Nº" readonly="1"/>
+                                    <field name="texto"/>
+                                    <field name="captura" widget="image" options="{'size': [120, 80]}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Textos de la guía">
+                            <group string="Cuándo se usa"><field name="cuando" nolabel="1"/></group>
+                            <group string="Antes de empezar"><field name="antes" nolabel="1"/></group>
+                            <group string="Si algo va mal"><field name="si_mal" nolabel="1"/></group>
+                            <group string="Escalar"><field name="escalar" nolabel="1"/></group>
+                        </page>
+                        <page string="Gaps y validaciones">
+                            <group string="Gaps reportados por el cliente">
+                                <field name="gap_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="create_date" string="Fecha" readonly="1"/>
+                                        <field name="paso_n" readonly="id"/>
+                                        <field name="descripcion" readonly="id"/>
+                                        <field name="reportado_por" readonly="id"/>
+                                        <field name="estado" widget="badge"
+                                               decoration-danger="estado == 'abierto'"
+                                               decoration-success="estado == 'corregido'"/>
+                                        <field name="respuesta"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Actas de validación (inmutables — la prueba de la aceptación)">
+                                <field name="validacion_ids" nolabel="1" readonly="1">
+                                    <list>
+                                        <field name="fecha"/>
+                                        <field name="usuario"/>
+                                        <field name="login"/>
+                                        <field name="observacion"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Horas de desarrollo" groups="grupadoo_formacion.group_formacion_constructor">
+                            <field name="tiempo_ids">
+                                <list editable="bottom">
+                                    <field name="fecha"/>
+                                    <field name="usuario"/>
+                                    <field name="horas" widget="float_time" sum="Total"/>
+                                    <field name="descripcion"/>
+                                    <field name="gap_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Comentarios del cliente">
+                            <field name="comentario_ids" readonly="1">
+                                <list>
+                                    <field name="fecha"/>
+                                    <field name="autor"/>
+                                    <field name="origen"/>
+                                    <field name="texto"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Imágenes de secciones">
+                            <p class="text-muted">
+                                Sube aquí las imágenes de los textos de la guía y escríbelas en cualquier
+                                sección como <code>{{img:nombre-del-fichero.png}}</code> — se mostrarán en
+                                el visor y en la página pública en ese punto del texto.
+                            </p>
+                            <field name="adjunto_ids">
+                                <list editable="bottom">
+                                    <field name="nombre"/>
+                                    <field name="imagen" widget="image" options="{'size': [120, 80]}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_formacion_ficha_search" model="ir.ui.view">
+        <field name="name">formacion.ficha.search</field>
+        <field name="model">formacion.ficha</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('alias_text', 'ilike', self), ('id_tecnico', 'ilike', self)]" string="Guía"/>
+                <field name="area_id"/>
+                <filter name="borradores" string="Borradores" domain="[('estado', '=', 'borrador')]"/>
+                <filter name="en_validacion" string="En validación" domain="[('estado', '=', 'en_validacion')]"/>
+                <filter name="validadas" string="Validadas" domain="[('estado', '=', 'validado')]"/>
+                <filter name="a_medida" string="Dependen de desarrollo a medida" domain="[('es_custom', '=', True)]"/>
+                <group>
+                    <filter name="por_area" string="Área" context="{'group_by': 'area_id'}"/>
+                    <filter name="por_publico" string="Público" context="{'group_by': 'publico'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_formacion_fichas" model="ir.actions.act_window">
+        <field name="name">Guías</field>
+        <field name="res_model">formacion.ficha</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('es_plantilla', '=', False)]</field>
+        <field name="search_view_id" ref="view_formacion_ficha_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay guías</p>
+            <p>Créalas a mano, arranca desde una plantilla (Apunts → Plantillas)
+               o súbelas en bloque con Apunts → Importar guías (ZIP).</p>
+        </field>
+    </record>
+
+    <record id="view_formacion_gap_search" model="ir.ui.view">
+        <field name="name">formacion.gap.search</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="descripcion" string="Gap"
+                       filter_domain="['|', ('descripcion', 'ilike', self), ('respuesta', 'ilike', self)]"/>
+                <field name="ficha_id"/>
+                <field name="reportado_por"/>
+                <filter name="abiertos" string="Abiertos" domain="[('estado', '=', 'abierto')]"/>
+                <filter name="corregidos" string="Corregidos" domain="[('estado', '=', 'corregido')]"/>
+                <filter name="descartados" string="Descartados" domain="[('estado', '=', 'descartado')]"/>
+                <separator/>
+                <filter name="de_paso" string="Sobre un paso concreto" domain="[('paso_n', '&gt;', 0)]"/>
+                <filter name="generales" string="Sobre la guía en general" domain="[('paso_n', '=', 0)]"/>
+                <group>
+                    <filter name="g_estado" string="Estado" context="{'group_by': 'estado'}"/>
+                    <filter name="g_guia" string="Guía" context="{'group_by': 'ficha_id'}"/>
+                    <filter name="g_area" string="Área" context="{'group_by': 'area_id'}"/>
+                    <filter name="g_quien" string="Quién lo reportó" context="{'group_by': 'reportado_por'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_formacion_gap_kanban" model="ir.ui.view">
+        <field name="name">formacion.gap.kanban</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="estado" quick_create="false">
+                <field name="estado"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="p-2">
+                            <div class="fw-bolder"><field name="ficha_id"/></div>
+                            <div class="small"><field name="descripcion"/></div>
+                            <div class="text-muted small">
+                                <t t-if="record.paso_n.raw_value">paso <field name="paso_n"/> · </t>
+                                <field name="reportado_por"/> · <field name="create_date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_formacion_gap_list" model="ir.ui.view">
+        <field name="name">formacion.gap.list</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="create_date" string="Fecha" readonly="1"/>
+                <field name="ficha_id" readonly="id"/>
+                <field name="area_id" optional="show"/>
+                <field name="paso_n" readonly="id"/>
+                <field name="descripcion" readonly="id"/>
+                <field name="reportado_por" readonly="id"/>
+                <field name="estado" widget="badge" decoration-danger="estado == 'abierto'"
+                       decoration-success="estado == 'corregido'"/>
+                <field name="respuesta"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_formacion_areas" model="ir.actions.act_window">
+        <field name="name">Áreas</field>
+        <field name="res_model">formacion.area</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin áreas todavía</p>
+            <p>Crea las áreas con las que el cliente agrupará sus guías: TPV, Inventario, Compras...</p>
+        </field>
+    </record>
+
+    <record id="view_formacion_area_list" model="ir.ui.view">
+        <field name="name">formacion.area.list</field>
+        <field name="model">formacion.area</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="ficha_count" string="Guías"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- "Desarrollos": los gaps en SOLO LECTURA, sin puerta — para consultar y para enseñar -->
+    <record id="view_formacion_gap_kanban_ro" model="ir.ui.view">
+        <field name="name">formacion.gap.kanban.ro</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="estado" create="false" quick_create="false" records_draggable="false">
+                <field name="estado"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="p-2">
+                            <div class="fw-bolder"><field name="ficha_id"/></div>
+                            <div class="small"><field name="descripcion"/></div>
+                            <div class="text-muted small">
+                                <t t-if="record.paso_n.raw_value">paso <field name="paso_n"/> · </t>
+                                <field name="reportado_por"/> · <field name="create_date"/>
+                            </div>
+                            <div class="small text-success" invisible="not respuesta">↳ <field name="respuesta"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_formacion_gap_list_ro" model="ir.ui.view">
+        <field name="name">formacion.gap.list.ro</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="create_date" string="Fecha"/>
+                <field name="ficha_id"/>
+                <field name="area_id" optional="show"/>
+                <field name="paso_n"/>
+                <field name="descripcion"/>
+                <field name="reportado_por"/>
+                <field name="estado" widget="badge" decoration-danger="estado == 'abierto'"
+                       decoration-success="estado == 'corregido'"/>
+                <field name="respuesta"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_formacion_gap_form" model="ir.ui.view">
+        <field name="name">formacion.gap.form</field>
+        <field name="model">formacion.gap</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="estado" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="ficha_id" readonly="id" options="{'no_open': False}"
+                                   placeholder="¿Sobre qué guía es?"/></h1>
+                        <h3 class="text-muted" invisible="not id">
+                            <field name="area_id" readonly="1"/>
+                            <span invisible="not paso_n"> · sobre el paso <field name="paso_n" readonly="1" class="oe_inline"/></span>
+                            <span invisible="paso_n"> · sobre la guía en general</span>
+                        </h3>
+                    </div>
+                    <group>
+                        <group string="Quién y cuándo">
+                            <field name="reportado_por" readonly="id" placeholder="Quién nos lo ha contado"/>
+                            <field name="create_date" string="Reportado el" readonly="1"/>
+                        </group>
+                        <group string="Dónde" invisible="id">
+                            <field name="paso_n" string="Paso nº (0 = en general)"/>
+                        </group>
+                    </group>
+                    <group string="Qué no cuadra (palabras del cliente — no se editan después)">
+                        <field name="descripcion" nolabel="1" readonly="id"
+                               placeholder="Qué no coincide con su Odoo, tal y como nos lo han contado..."/>
+                    </group>
+                    <group string="Nuestra respuesta / corrección">
+                        <field name="respuesta" nolabel="1"
+                               placeholder="Qué hemos arreglado (el cliente lo verá en su tablero de avisos)..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- variante de SOLO LECTURA para Desarrollos -->
+    <record id="view_formacion_gap_form_ro" model="ir.ui.view">
+        <field name="name">formacion.gap.form.ro</field>
+        <field name="model">formacion.gap</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="view_formacion_gap_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="edit">false</attribute>
+                <attribute name="delete">false</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_formacion_gaps" model="ir.actions.act_window">
+        <field name="name">Gaps</field>
+        <field name="res_model">formacion.gap</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_formacion_gap_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_formacion_gap_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_formacion_gap_form')})]"/>
+        <field name="search_view_id" ref="view_formacion_gap_search"/>
+        <field name="context">{'search_default_abiertos': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Sin gaps — todo cuadra</p></field>
+    </record>
+
+    <record id="action_formacion_desarrollos" model="ir.actions.act_window">
+        <field name="name">Desarrollos</field>
+        <field name="res_model">formacion.gap</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_formacion_gap_kanban_ro')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_formacion_gap_list_ro')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_formacion_gap_form_ro')})]"/>
+        <field name="search_view_id" ref="view_formacion_gap_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Sin desarrollos reportados</p></field>
+    </record>
+
+    <!-- ══ Plantillas: guías "esqueleto" que no ve el cliente ══ -->
+    <record id="action_formacion_plantillas" model="ir.actions.act_window">
+        <field name="name">Plantillas</field>
+        <field name="res_model">formacion.ficha</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('es_plantilla', '=', True)]</field>
+        <field name="context">{'default_es_plantilla': 1}</field>
+        <field name="search_view_id" ref="view_formacion_ficha_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin plantillas</p>
+            <p>Una plantilla es una guía "esqueleto": prepara una con las secciones y pasos típicos
+               y arranca cada guía nueva con su botón "Crear guía desde esta plantilla".</p>
+        </field>
+    </record>
+
+    <!-- ══ Importar guías desde un ZIP (sin consola) ══ -->
+    <record id="view_formacion_importar_form" model="ir.ui.view">
+        <field name="name">formacion.importar.form</field>
+        <field name="model">formacion.importar</field>
+        <field name="arch" type="xml">
+            <form>
+                <p>Sube un <b>ZIP</b> con las guías: un fichero <code>.md</code> por guía (con su
+                   cabecera <code>---</code> de id, título, área...) y las imágenes que referencian,
+                   en cualquier carpeta del ZIP.</p>
+                <p class="text-muted">Vale la exportación de este mismo módulo (botón "Exportar ZIP"),
+                   el repo del asistente web original o cualquier carpeta equivalente. Si una guía ya
+                   existe (mismo id técnico) se actualiza: pasos e imágenes se sustituyen por los del ZIP.</p>
+                <group>
+                    <field name="fichero" filename="nombre_fichero"/>
+                    <field name="nombre_fichero" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_importar" type="object" string="Importar" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_formacion_importar" model="ir.actions.act_window">
+        <field name="name">Importar guías (ZIP)</field>
+        <field name="res_model">formacion.importar</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Exportar desde la lista: seleccionar guías → menú Acciones → Exportar guías (ZIP) -->
+    <record id="action_servidor_exportar_zip" model="ir.actions.server">
+        <field name="name">Exportar guías (ZIP)</field>
+        <field name="model_id" ref="model_formacion_ficha"/>
+        <field name="binding_model_id" ref="model_formacion_ficha"/>
+        <field name="binding_view_types">list,kanban</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_exportar_zip()</field>
+    </record>
+
+    <record id="action_puerta_guias" model="ir.actions.client">
+        <field name="name">Guías</field>
+        <field name="tag">grupadoo_formacion_puerta</field>
+        <field name="params" eval="{'destino': 'grupadoo_formacion.action_formacion_fichas'}"/>
+    </record>
+    <record id="action_puerta_gaps" model="ir.actions.client">
+        <field name="name">Gaps</field>
+        <field name="tag">grupadoo_formacion_puerta</field>
+        <field name="params" eval="{'destino': 'grupadoo_formacion.action_formacion_gaps'}"/>
+    </record>
+    <record id="action_puerta_areas" model="ir.actions.client">
+        <field name="name">Áreas</field>
+        <field name="tag">grupadoo_formacion_puerta</field>
+        <field name="params" eval="{'destino': 'grupadoo_formacion.action_formacion_areas'}"/>
+    </record>
+    <record id="action_puerta_plantillas" model="ir.actions.client">
+        <field name="name">Plantillas</field>
+        <field name="tag">grupadoo_formacion_puerta</field>
+        <field name="params" eval="{'destino': 'grupadoo_formacion.action_formacion_plantillas'}"/>
+    </record>
+
+    <!-- ══ El visor (client action OWL) ══ -->
+    <record id="action_formacion_visor" model="ir.actions.client">
+        <field name="name">Formaciones</field>
+        <field name="tag">grupadoo_formacion_visor</field>
+    </record>
+
+    <menuitem id="menu_formacion_root" name="Formación" sequence="102"
+              web_icon="grupadoo_formacion,static/description/icon.png"/>
+    <menuitem id="menu_formacion_visor" name="Formaciones" parent="menu_formacion_root"
+              action="action_formacion_visor" sequence="10"/>
+    <menuitem id="menu_formacion_desarrollos" name="Desarrollos" parent="menu_formacion_root"
+              action="action_formacion_desarrollos" sequence="20"/>
+    <menuitem id="menu_formacion_apunts" name="Apunts" parent="menu_formacion_root" sequence="90"
+              groups="grupadoo_formacion.group_formacion_constructor"/>
+    <menuitem id="menu_formacion_fichas" name="Guías" parent="menu_formacion_apunts"
+              action="action_puerta_guias" sequence="10"/>
+    <menuitem id="menu_formacion_gaps" name="Gaps" parent="menu_formacion_apunts"
+              action="action_puerta_gaps" sequence="20"/>
+    <menuitem id="menu_formacion_areas" name="Áreas" parent="menu_formacion_apunts"
+              action="action_puerta_areas" sequence="30"/>
+    <menuitem id="menu_formacion_plantillas" name="Plantillas" parent="menu_formacion_apunts"
+              action="action_puerta_plantillas" sequence="40"/>
+    <menuitem id="menu_formacion_importar" name="Importar guías (ZIP)" parent="menu_formacion_apunts"
+              action="action_formacion_importar" sequence="50"/>
+
+</odoo>

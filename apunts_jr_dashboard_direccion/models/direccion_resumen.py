@@ -218,7 +218,9 @@ class ApuntsDireccionResumen(models.TransientModel):
             # 9) Horas productivas: mismo cálculo que "Jornada cumplida" de
             #    los KPIs de fichaje (mes en curso)
             try:
-                kpi = self.env["apunts.taller.kpi"].create({})
+                # sudo: el panel lo abre un perfil contable sin acceso al modelo
+                # de taller; sin sudo, el create fallaba y el KPI caía a 0.
+                kpi = self.env["apunts.taller.kpi"].sudo().create({})
                 kpi._calcular()
                 rec.horas_prod_pct = kpi.pct_cumplimiento
             except Exception as e:

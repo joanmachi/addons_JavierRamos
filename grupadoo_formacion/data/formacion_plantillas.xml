@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Plantilla de arranque: una guía "esqueleto" con las secciones y el ritmo
+         que usamos siempre. No la ve el cliente (es_plantilla). -->
+    <record id="area_general" model="formacion.area">
+        <field name="name">General</field>
+        <field name="sequence">99</field>
+    </record>
+
+    <record id="plantilla_guia_estandar" model="formacion.ficha">
+        <field name="id_tecnico">plantilla-guia-estandar</field>
+        <field name="name">Guía estándar Grupadoo</field>
+        <field name="es_plantilla" eval="True"/>
+        <field name="area_id" ref="area_general"/>
+        <field name="publico">dependiente</field>
+        <field name="version_odoo">18.0</field>
+        <field name="alias_text">escribe aquí cómo lo diría el usuario
+una frase por línea</field>
+        <field name="cuando">Explica en 1-2 frases CUÁNDO se usa esta pantalla: la situación real del día a día que lleva al usuario hasta aquí.</field>
+        <field name="antes">Lo que hay que tener listo ANTES de empezar: sesión iniciada, permisos, datos a mano... Si no hace falta nada, borra esta sección.</field>
+        <field name="si_mal">Los tropiezos típicos y cómo salir de ellos: "si no ves el botón X...", "si sale el aviso Y...". En frases cortas, una por línea con guion.</field>
+        <field name="escalar">A quién acudir si el usuario se queda atascado de verdad, y qué contarle (pantalla, qué intentaba hacer, qué mensaje salió).</field>
+    </record>
+
+    <record id="plantilla_paso_1" model="formacion.paso">
+        <field name="ficha_id" ref="plantilla_guia_estandar"/>
+        <field name="sequence">1</field>
+        <field name="texto">Primer paso: una sola acción, empezando por el verbo ("Pulsa...", "Escribe..."). Añade la captura real con lo que hay que pulsar marcado en rojo.</field>
+    </record>
+    <record id="plantilla_paso_2" model="formacion.paso">
+        <field name="ficha_id" ref="plantilla_guia_estandar"/>
+        <field name="sequence">2</field>
+        <field name="texto">Segundo paso: si el usuario tiene que comprobar algo, dilo aquí ("Verás que...").</field>
+    </record>
+    <record id="plantilla_paso_3" model="formacion.paso">
+        <field name="ficha_id" ref="plantilla_guia_estandar"/>
+        <field name="sequence">3</field>
+        <field name="texto">Último paso: cómo sabe el usuario que ha terminado bien (el resultado visible).</field>
+    </record>
+</odoo>

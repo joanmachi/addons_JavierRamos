@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Clave de la PUERTA de la zona de construcción (menú Apunts), por sesión.
+         Vacía = puerta abierta. Se gestiona como parámetro del sistema a propósito
+         (decisión de producto): no aparece en Ajustes. El grupo "Formación:
+         constructor" sigue siendo la seguridad real; esto es el candado del día a día. -->
+    <record id="icp_clave_acceso" model="ir.config_parameter">
+        <field name="key">grupadoo_formacion.clave_acceso</field>
+        <field name="value"></field>
+    </record>
+
+    <!-- Soporte post-proyecto: destino de los tickets de asistencia. El interruptor
+         (grupadoo_formacion.soporte) se enciende desde Ajustes al cerrar el proyecto.
+         El correo debe ser el alias del equipo de Helpdesk del Odoo de Grupadoo
+         (editable en Ajustes → Formación). -->
+    <record id="icp_email_soporte" model="ir.config_parameter">
+        <field name="key">grupadoo_formacion.email_soporte</field>
+        <field name="value">grupapunts@grupapunts.es</field>
+    </record>
+    <record id="icp_url_soporte" model="ir.config_parameter">
+        <field name="key">grupadoo_formacion.url_soporte</field>
+        <field name="value">https://www.grupadoo.com/helpdesk/servicio-tecnico-incidencias-2</field>
+    </record>
+</odoo>

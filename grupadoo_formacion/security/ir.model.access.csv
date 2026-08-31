@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_formacion_area_user,formacion.area user,model_formacion_area,base.group_user,1,0,0,0
+access_formacion_ficha_user,formacion.ficha user,model_formacion_ficha,base.group_user,1,0,0,0
+access_formacion_paso_user,formacion.paso user,model_formacion_paso,base.group_user,1,0,0,0
+access_formacion_gap_user,formacion.gap user,model_formacion_gap,base.group_user,1,0,0,0
+access_formacion_validacion_user,formacion.validacion user,model_formacion_validacion,base.group_user,1,0,0,0
+access_formacion_area_constructor,formacion.area constructor,model_formacion_area,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_ficha_constructor,formacion.ficha constructor,model_formacion_ficha,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_paso_constructor,formacion.paso constructor,model_formacion_paso,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_gap_constructor,formacion.gap constructor,model_formacion_gap,grupadoo_formacion.group_formacion_constructor,1,1,1,0
+access_formacion_validacion_constructor,formacion.validacion constructor,model_formacion_validacion,grupadoo_formacion.group_formacion_constructor,1,0,0,0
+access_formacion_adjunto_user,formacion.adjunto user,model_formacion_adjunto,base.group_user,1,0,0,0
+access_formacion_adjunto_constructor,formacion.adjunto constructor,model_formacion_adjunto,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_tiempo_constructor,formacion.tiempo constructor,model_formacion_tiempo,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_comentario_user,formacion.comentario user,model_formacion_comentario,base.group_user,1,0,0,0
+access_formacion_comentario_constructor,formacion.comentario constructor,model_formacion_comentario,grupadoo_formacion.group_formacion_constructor,1,1,1,1
+access_formacion_importar_constructor,formacion.importar constructor,model_formacion_importar,grupadoo_formacion.group_formacion_constructor,1,1,1,1

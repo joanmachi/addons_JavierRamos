@@ -62,7 +62,10 @@ class ApuntsTallerKpi(models.TransientModel):
 
     def _calcular(self):
         self.ensure_one()
-        Prod = self.env['mrp.workcenter.productivity']
+        # sudo en todas las lecturas: este KPI es un agregado de solo lectura que
+        # también consulta el Panel Dirección (perfil contable, sin permisos de
+        # taller ni RRHH). Sin sudo, esas lecturas fallan y el KPI caía a 0.
+        Prod = self.env['mrp.workcenter.productivity'].sudo()
         ini, fin = self._rango_utc()
         dom = [
             ('date_start', '>=', ini), ('date_start', '<=', fin),
@@ -83,11 +86,15 @@ class ApuntsTallerKpi(models.TransientModel):
 
         # ── Cumplimiento de jornada (agregado: presencia + ausencias / esperadas) ──
         dias_lab = self._dias_laborables(self.fecha_desde, self.fecha_hasta)
-        empleados = self.env['hr.employee'].search([
+        # sudo: este KPI de jornada (presencia + ausencias) lo consultan usuarios
+        # SIN permisos de RRHH — el propio Panel Dirección (perfil contable de solo
+        # lectura). Sin sudo, la lectura de hr.attendance/hr.leave falla y el
+        # cumplimiento caía a 0,0 %. Es un agregado de solo lectura, seguro con sudo.
+        empleados = self.env['hr.employee'].sudo().search([
             ('active', '=', True), ('resource_calendar_id', '!=', False),
         ])
-        Att = self.env['hr.attendance']
-        Leave = self.env['hr.leave']
+        Att = self.env['hr.attendance'].sudo()
+        Leave = self.env['hr.leave'].sudo()
         total_esp = total_cumpl = 0.0
         filas = []
         for emp in empleados:
