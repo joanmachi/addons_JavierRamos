@@ -1,0 +1,113 @@
+// ================================================================
+//  BASE DE DISEÑO Grupadoo — la MISMA para todos los módulos
+//  Envuelve la raíz de tu pantalla en <div class="gd"> y usa .gd_*
+//  Color de marca: morado #7a1e5c (Grupadoo). Logo real en la cabecera.
+// ================================================================
+.gd {
+    --go-purple: #7a1e5c;
+    --go-purple-2: #9d2f78;
+    --go-purple-soft: #f4e7f0;
+    --go-grey: #8c8c8c;
+    --go-ink: #24202a;
+    --go-muted: #6d6675;
+    --go-bg: #f5f3f6;
+    --go-card: #ffffff;
+    --go-line: #e4dee8;
+
+    height: 100%;
+    overflow: auto;
+    background: var(--go-bg);
+    color: var(--go-ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 20px 24px 40px;
+    box-sizing: border-box;
+    * { box-sizing: border-box; }
+
+    // ---- Cabecera de marca (LOGO REAL + subtítulo del módulo) ----
+    .gd_top { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 16px; }
+    .gd_brand { display: flex; align-items: center; gap: 14px; }
+    .gd_symbol { height: 44px !important; width: auto; display: block; }
+    .gd_brand_txt { display: flex; flex-direction: column; gap: 4px; }
+    .gd_word { font-size: 26px; font-weight: 800; letter-spacing: .02em; line-height: 1; }
+    .gd_word .g { color: var(--go-grey); }
+    .gd_word .p { color: var(--go-purple); }
+    .gd_sub { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .13em; color: var(--go-muted); }
+    .gd_rule { height: 3px; border-radius: 3px; margin: -6px 0 18px;
+        background: linear-gradient(90deg, var(--go-purple) 0%, var(--go-purple-2) 100%); }
+
+    // ---- Campos / buscador ----
+    input, select, .gd_search {
+        font: inherit; font-size: 14px; color: var(--go-ink); background: var(--go-card);
+        border: 1px solid var(--go-line); border-radius: 9px; padding: 9px 12px;
+        &:focus { outline: 2px solid var(--go-purple); outline-offset: 1px; border-color: var(--go-purple); }
+    }
+
+    // ---- Toggle píldora segmentado (todo morado) ----
+    .gd_seg { display: inline-flex; background: var(--go-card); border: 1px solid var(--go-line); border-radius: 999px; padding: 3px;
+        button { border: 0; background: transparent; color: var(--go-muted); font: inherit; font-size: 13px; font-weight: 600;
+            padding: 6px 16px; border-radius: 999px; cursor: pointer; &.on { background: var(--go-purple); color: #fff; } } }
+
+    // ---- Tarjeta ----
+    .gd_card { background: var(--go-card); border: 1px solid var(--go-line); border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(122, 30, 92, .06); overflow: hidden;
+        h2 { font-size: 12px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--go-muted); margin: 0 0 12px; } }
+
+    // ---- Píldoras de estado / tipo ----
+    .gd_pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .gd_pill.morada { background: var(--go-purple-soft); color: var(--go-purple); }
+    .gd_pill.alt { background: #eef1f6; color: #55607a; }
+    .gd_pill.ok { background: #e7f6ec; color: #1a7f43; }
+    .gd_pill.ko { background: #fdecec; color: #c0392b; }
+
+    // ---- Tabla ----
+    .gd_table { width: 100%; border-collapse: collapse; font-size: 14px;
+        th { text-align: left; background: var(--go-purple-soft); color: var(--go-purple); padding: 10px 12px;
+            font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 800; }
+        td { padding: 10px 12px; border-top: 1px solid var(--go-line); vertical-align: top; }
+        tbody tr:hover td { background: #faf6fa; } }
+
+    // ---- Botones ----
+    .gd_btn { border: 0; border-radius: 9px; padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer;
+        background: var(--go-purple); color: #fff; &:hover { background: var(--go-purple-2); }
+        &.sec { background: var(--go-card); color: var(--go-purple); border: 1px solid var(--go-purple); &:hover { background: var(--go-purple-soft); } } }
+
+    // ---- Cuadraditos de ruta (breadcrumb) ----
+    .gd_crumb { display: inline-block; background: var(--go-card); border: 1px solid var(--go-purple); color: var(--go-purple);
+        border-radius: 8px; padding: 4px 10px; font-size: 12.5px; font-weight: 700; }
+    .gd_arrow { color: var(--go-purple); font-weight: 800; margin: 0 4px; }
+
+    // ---- Desplegable de resultados (buscador relacionado con Odoo) ----
+    .gd_lookup { position: relative; }
+    .gd_results { position: absolute; z-index: 50; left: 0; right: 0; margin-top: 4px; max-height: 260px; overflow-y: auto;
+        background: var(--go-card); border: 1px solid var(--go-line); border-radius: 10px; box-shadow: 0 10px 30px rgba(122, 30, 92, .14); }
+    .gd_result { padding: 9px 12px; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--go-line);
+        &:last-child { border-bottom: 0; } &:hover { background: var(--go-purple-soft); } }
+
+    @media (max-width: 900px) { .gd_table { font-size: 12px; } }
+
+    // ---- Neutraliza clases Bootstrap de color que se cuelen en pantallas de marca ----
+    //      (regla dura Grupadoo: cero naranja/ámbar/azul-bootstrap dentro de .gd)
+    .text-warning, .text-info, .text-primary { color: var(--go-purple) !important; }
+    .btn-warning, .btn-info {
+        background: var(--go-purple) !important; border-color: var(--go-purple) !important; color: #fff !important;
+        &:hover { background: var(--go-purple-2) !important; border-color: var(--go-purple-2) !important; }
+    }
+    .alert-info { background: var(--go-purple-soft) !important; border-color: var(--go-purple) !important; color: var(--go-ink) !important; }
+}
+
+// ---- Lightbox global (foto en grande + cerrar) ----
+.gd_lightbox { position: fixed; inset: 0; z-index: 100000; background: rgba(20, 16, 26, .82);
+    display: flex; align-items: center; justify-content: center; padding: 40px; cursor: zoom-out;
+    img { max-width: 94%; max-height: 90%; border-radius: 10px; box-shadow: 0 24px 70px rgba(0, 0, 0, .55); cursor: default; } }
+.gd_lbclose { position: fixed; top: 20px; right: 26px; z-index: 100001; width: 44px; height: 44px; border-radius: 50%;
+    border: 0; cursor: pointer; background: #7a1e5c; color: #fff; font-size: 20px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); }
+
+// ---- Notebook y tablas dentro del bloque (feedback Alex 2026-07-25) ----
+//      El notebook/tabla debe respetar el margen lateral del .gd (no pegarse
+//      a los bordes ni "salirse" del bloque de arriba). Vale para TODOS los módulos.
+.gd .o_notebook { margin: 12px 0 0 !important; max-width: 100% !important; }
+.gd .o_notebook_headers { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; }
+.gd .o_notebook .o_list_renderer,
+.gd .o_notebook .table-responsive,
+.gd .table-responsive { overflow-x: auto !important; max-width: 100% !important; }
