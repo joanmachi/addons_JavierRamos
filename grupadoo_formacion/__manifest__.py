@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {'name': 'Asistente de Formación',
- 'version': '18.0.8.1.0',
+ 'version': '18.0.8.1.1',
  'category': 'Services',
  'summary': 'Guías paso a paso del Odoo del cliente, con capturas anotadas, validaciones '
             'con acta, gaps con tablero de seguimiento, enlace público sin usuario y '

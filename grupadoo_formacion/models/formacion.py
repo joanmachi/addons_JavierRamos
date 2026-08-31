@@ -145,7 +145,8 @@ class FormacionFicha(models.Model):
         nueva = self.copy({'es_plantilla': False, 'name': self.name,
                            'id_tecnico': self._id_tecnico_libre(self._slugify(self.name))})
         return {'type': 'ir.actions.act_window', 'res_model': 'formacion.ficha',
-                'res_id': nueva.id, 'view_mode': 'form', 'target': 'current'}
+                'res_id': nueva.id, 'view_mode': 'form',
+                'views': [[False, 'form']], 'target': 'current'}
 
     def write(self, vals):
         # Nadie valida con gaps abiertos — ni arrastrando en el kanban

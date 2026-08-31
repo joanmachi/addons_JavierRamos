@@ -53,6 +53,11 @@ class FormacionImportar(models.TransientModel):
                 'sticky': bool(res['avisos']),
                 'next': {'type': 'ir.actions.act_window', 'name': 'Guías importadas',
                          'res_model': 'formacion.ficha', 'view_mode': 'list,form',
+                         # `views` explícito: sin él, _preprocessAction de Odoo 18
+                         # hace .map sobre undefined y peta ("Cannot read
+                         # properties of undefined (reading 'map')"). La import
+                         # sí se hace; solo fallaba abrir la lista al terminar.
+                         'views': [[False, 'list'], [False, 'form']],
                          'domain': [('id', 'in', res['ids'])]},
             },
         }
