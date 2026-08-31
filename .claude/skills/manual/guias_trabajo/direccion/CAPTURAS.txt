@@ -1,0 +1,65 @@
+# CAPTURAS — Dirección / Carga de centros
+
+Requisito común: iniciar sesión con un usuario que tenga el permiso contable de solo lectura
+(`account.group_account_readonly`), si no el menú **Dirección** no aparece.
+
+---
+
+## dir-panel-10-kpis — "Abrir el Panel Dirección y leer los 10 indicadores"
+
+- **dir-panel-10-kpis-01.png** — Menú superior de Odoo con el módulo **Dirección** visible.
+  - Recuadrar en rojo la entrada **Dirección** de la barra de apps.
+- **dir-panel-10-kpis-02.png** — Menú **Dirección** desplegado (submenús Panel Dirección / Evolución semanal).
+  - Recuadrar en rojo **Panel Dirección**.
+- **dir-panel-10-kpis-03.png** — Panel Dirección abierto, rejilla completa de las 10 tarjetas
+  numeradas (formulario solo lectura, sin botones de guardar).
+  - Recuadrar en rojo el número + título de la tarjeta **1 · Facturación del año** y su subtexto
+    "Esta semana". Encuadre que deje ver las 10 tarjetas.
+- **dir-panel-10-kpis-04.png** — Misma pantalla, foco en una tarjeta.
+  - Recuadrar en rojo el botón **Ver detalle** de la tarjeta **3 · Cartera pendiente**.
+
+---
+
+## dir-evolucion-semanal — "Ver la evolución semanal de los indicadores"
+
+- **dir-evolucion-semanal-01.png** — Panel Dirección, parte de arriba.
+  - Recuadrar en rojo el botón oscuro **📈 Evolución semanal de todos los KPIs**.
+- **dir-evolucion-semanal-02.png** — Vista gráfico de líneas "Evolución semanal KPIs" recién
+  abierta (agrupada por KPI, varias líneas mezcladas).
+  - Sin recuadro, o recuadrar el conjunto del gráfico para mostrar la mezcla de líneas.
+- **dir-evolucion-semanal-03.png** — Mismo gráfico con un filtro de KPI aplicado (p. ej. Cartera):
+  una sola línea limpia.
+  - Recuadrar en rojo el filtro de KPI activo en la barra de búsqueda (chip **Cartera**) y la línea resultante.
+- **dir-evolucion-semanal-04.png** — Vista de **lista** de las fotos semanales (fecha, KPI, valor).
+  - Recuadrar en rojo el conmutador de vista lista (arriba a la derecha).
+
+---
+
+## dir-carga-centros-historico — "Carga de centros: ver el histórico de horas"
+
+- **dir-carga-centros-historico-01.png** — Menú **Carga centros** desplegado (Resumen / Lista de centros / Evolución carga).
+  - Recuadrar en rojo **Resumen**.
+- **dir-carga-centros-historico-02.png** — Resumen carga centros, barra superior gris con
+  **Vista:** y el radio En curso / Histórico.
+  - Recuadrar en rojo el radio **Histórico**.
+- **dir-carga-centros-historico-03.png** — Vista Histórico activa con la fila **Fichajes entre**
+  Desde – Hasta rellena.
+  - Recuadrar en rojo las casillas **Desde** y **Hasta**.
+- **dir-carga-centros-historico-04.png** — Rejilla de tarjetas del histórico visible.
+  - Recuadrar en rojo la tarjeta **Eficiencia** (con su % y la leyenda de "más/menos de 100%").
+- **dir-carga-centros-historico-05.png** — Zona de botones de la vista Histórico.
+  - Recuadrar en rojo los botones **HISTÓRICO — desglose por centro** y **Teórico vs real por centro**.
+
+---
+
+## dir-carga-evolucion — "Carga de centros: ver la evolución diaria por centro"
+
+- **dir-carga-evolucion-01.png** — Menú **Carga centros** desplegado.
+  - Recuadrar en rojo **Evolución carga**.
+- **dir-carga-evolucion-02.png** — Gráfico de líneas "Evolución de la carga pendiente" con
+  varias líneas de centros y su leyenda de colores.
+  - Recuadrar en rojo la leyenda de centros.
+- **dir-carga-evolucion-03.png** — Mismo gráfico con el filtro **Solo fotos reales** aplicado.
+  - Recuadrar en rojo el filtro **Solo fotos reales** (en el desplegable Filtros o como chip activo).
+- **dir-carga-evolucion-04.png** — Vista **pivote** (centro en filas × semana en columnas, horas pendientes).
+  - Recuadrar en rojo el conmutador de vista pivote (arriba a la derecha).

@@ -1,0 +1,90 @@
+# CAPTURAS — Compras y recepciones por peso
+
+Módulo: `apunts_secondary_uom_pack` (sobre OCA `product_secondary_unit` +
+`purchase_order_secondary_unit`). Público: oficina. Dispositivo: ordenador.
+
+Necesitas un **producto ya configurado por peso** (con `kg` como Segunda unidad
+de medida) para poder mostrar los avisos azules y las columnas de kg. Si haces
+las capturas en orden (producto → pedido → recepción → factura), reutilizas el
+mismo pedido para las guías 2 a 5.
+
+---
+
+## Guía 1 — compras-producto-por-peso
+
+**compras-producto-por-peso-01.png**
+- Pantalla: **Compras → Productos → Productos**, abre un producto por peso → pestaña **Información general** → grupo **Segunda unidad de medida** con **una fila** rellena.
+- Debe verse: la fila con Código, Nombre (`kg`), **Segunda unidad de medida** = `kg`, **Factor segunda unidad** y **Tipo de dependencia** = **Dependiente**.
+- Recuadrar en rojo: la columna **Segunda unidad de medida** y la columna **Factor segunda unidad** de esa fila.
+
+**compras-producto-por-peso-02.png**
+- Pantalla: misma pestaña **Información general**, zona de unidades de compra.
+- Debe verse: el campo **Ud de compra secundaria por defecto** con valor **kg**, junto a la unidad de compra.
+- Recuadrar en rojo: el campo **Ud de compra secundaria por defecto**.
+
+---
+
+## Guía 2 — compras-pedido-kg
+
+**compras-pedido-kg-01.png**
+- Pantalla: **Compras → Pedidos → Nuevo**, con proveedor y una línea de producto por peso; pedido aún en borrador.
+- Debe verse: el **aviso azul "⚖️ Materiales por peso..."** encima de las líneas y la línea con las columnas **Kg (pedido)**, **Cantidad** (metros) y **UdM** (kg).
+- Recuadrar en rojo: la columna **Kg (pedido)** (donde se escribe) y la columna **Cantidad** (los metros estimados que no se tocan).
+
+**compras-pedido-kg-02.png**
+- Pantalla: mismo pedido, parte superior con los botones.
+- Debe verse: el botón **Confirmar pedido**.
+- Recuadrar en rojo: el botón **Confirmar pedido**.
+
+---
+
+## Guía 3 — compras-recepcion-kg-metros
+
+**compras-recepcion-kg-metros-01.png**
+- Pantalla: la **recepción** del pedido anterior (botón **Recepción** del pedido, o **Inventario → Recepciones**) → sección **Operaciones**, con datos reales ya escritos.
+- Debe verse: el **aviso azul "⚖️ Materiales por peso — rellena SIEMPRE las dos cantidades..."** y las columnas **Kg (pedido)**, **Kg (recibido)** y **Cantidad** (metros).
+- Recuadrar en rojo: **Kg (pedido)**, **Kg (recibido)** y **Cantidad** (las tres columnas del trío).
+
+**compras-recepcion-kg-metros-02.png**
+- Pantalla: misma recepción, parte superior con los botones (antes de validar).
+- Debe verse: el botón **Validar**.
+- Recuadrar en rojo: el botón **Validar**.
+
+---
+
+## Guía 4 — compras-factura-kg
+
+**compras-factura-kg-01.png**
+- Pantalla: **factura de proveedor** creada desde el pedido (botón **Crear factura**), en borrador, con la línea del material por peso.
+- Debe verse: la columna **UdM** de la línea mostrando **kg** y la cantidad en kg.
+- Recuadrar en rojo: la columna **UdM** (que muestra **kg**).
+
+**compras-factura-kg-02.png**
+- Pantalla: el **pedido de compra** de origen, líneas.
+- Debe verse: las columnas **Facturado** (metros) y **Facturado (kg)**.
+- Recuadrar en rojo: las columnas **Facturado** y **Facturado (kg)**.
+
+---
+
+## Guía 5 — compras-corregir-linea
+
+**compras-corregir-linea-01.png**
+- Pantalla: el **pedido de compra** con una línea ya recibida (recepción validada).
+- Debe verse: la columna **Real** marcada en esa línea, junto a **Kg (pedido)** y **Cantidad**.
+- Recuadrar en rojo: la columna **Real** (la marca de línea ya fijada a lo pesado/medido).
+
+---
+
+## DUDA importante a verificar en pantalla (guías 2 y 4)
+El aviso azul del pedido dice: *"El Precio es por kg (subtotal = kg × precio)"*.
+Pero en el código el subtotal del **pedido** se calcula sobre **product_qty
+(metros)**, no sobre los kg: `precio × metros`. La **factura**, en cambio, se crea
+con `quantity = kg` (`secondary_uom_qty`) y el mismo precio → subtotal = **kg ×
+precio**. Es decir, el precio unitario significa cosas distintas en pedido (por
+metro) y en factura (por kg) salvo que el factor sea 1.
+- Comprobar en un caso real: ¿el subtotal del **pedido** coincide con `kg × precio`
+  o con `metros × precio`?
+- Comprobar si el **total del pedido** y el **total de la factura** cuadran o
+  divergen por el factor.
+- Anotar el resultado para decidir si hay que ajustar la leyenda del aviso azul o
+  el cálculo del subtotal del pedido.

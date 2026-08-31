@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -nA22 \"def _apunts_revenue_total\" apunts_costes_of/models/mrp_production.py)",
+      "Bash(python3 -m py_compile apunts_costes_of/models/mrp_production.py apunts_jr_wip_costes_of/models/mrp_production.py)",
+      "Bash(sed -i '' \"s/\\\\\"version\\\\\": \\\\\"18.0.1.3.1\\\\\"/\\\\\"version\\\\\": \\\\\"18.0.1.3.2\\\\\"/\" apunts_jr_wip_costes_of/__manifest__.py)",
+      "Bash(grep -nB1 -A8 \"sale.order.line\\\\|sale_order_line\\\\|galletas\\\\|A VIGILAR\" PENDIENTE.MD)",
+      "Bash(grep -nB1 -A10 \"^Fabricación:\\\\|galbanizar\\\\|galvaniz\\\\|tratamientos\" PENDIENTE.MD)",
+      "Bash(python3 -m py_compile apunts_jr_wip_costes_of/models/purchase_order_line.py apunts_jr_wip_costes_of/models/mrp_production.py lira_mfg_supervisor/wizards/lira_validate_wizard.py)",
+      "Bash(sed -i '' 's/\"version\": \"18.0.1.3.3\"/\"version\": \"18.0.1.4.0\"/' apunts_jr_wip_costes_of/__manifest__.py)",
+      "Bash(sed -i '' \"s/'version': '18.0.1.4.0'/'version': '18.0.1.5.0'/\" lira_mfg_supervisor/__manifest__.py)",
+      "Bash(python3 -m py_compile apunts_barcode_workorder/models/mrp_workorder.py lira_mfg_supervisor/models/lira_refabricacion.py lira_mfg_supervisor/models/lira_supervisor_workorder.py lira_mfg_supervisor/models/purchase_order.py lira_mfg_supervisor/wizards/lira_validate_wizard.py)",
+      "Bash(python3 -c \"import xml.dom.minidom as m; m.parse\\('apunts_barcode_workorder/static/src/xml/main.xml'\\); print\\('OK xml'\\)\")",
+      "Bash(sed -i '' \"s/'version': '18.0.1.5.0'/'version': '18.0.1.6.0'/\" apunts_barcode_workorder/__manifest__.py)",
+      "Bash(sed -i '' \"s/'version': '18.0.1.5.0'/'version': '18.0.1.6.0'/\" lira_mfg_supervisor/__manifest__.py)",
+      "Read(//usr/lib/**)",
+      "Bash(python3 -c \"import odoo; print\\(odoo.__file__\\)\")",
+      "Bash(git restore *)",
+      "Bash(docker network *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(grep -v \"^$\")",
+      "Bash(find / -type d -name \"purchase_order_secondary_unit\")",
+      "Bash(docker compose *)"
+    ]
+  }
+}

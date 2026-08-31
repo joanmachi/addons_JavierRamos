@@ -1,0 +1,31 @@
+CAPTURAS — "Venta y margen de la OF" (2 guías, extensas). BD javierramos_prod, http://localhost:8069.
+Feature: campo "Ventas de esta OF (para el margen)" + botón "Cargar líneas del pedido" en el panel COSTE OF
+(y en la OF, pestaña Varios). Módulo apunts_jr_wip_costes_of.
+
+OFs a usar (tienen enlace persistido; para mostrar el "antes"/"después" hay que VACIAR y RECARGAR, acción reversible):
+- FAB/MO/01019: producto no está en el pedido S00458 (6 líneas). Vacío -> margen 0; con las 6 -> venta 23.797,80 / margen ~14.759.
+- FAB/MO/00832: fabrica 2, pedido S00330 tiene 1 línea (15.665). Vacío -> margen ~30.059 (disparado); con la línea -> margen ~14.394.
+IMPORTANTE: cada OF debe QUEDAR como está ahora (01019: 6 líneas de S00458; 00832: 1 línea de S00330). Vaciar solo para la foto y recargar/re-enlazar.
+
+GUÍA 1 (coste-enlace-ventas) — usa 01019:
+ 01-of        OF 01019 abierta en Fabricación (recuadrar la OF).
+ 02-costeof   smart button COSTE OF recuadrado.
+ 03-margen-mal  tras VACIAR el campo: tarjeta Margen actual a 0 (recuadrar).
+ 04-recuadro    recuadro "Ventas de esta OF (para el margen)" VACÍO (recuadrar el campo).
+ 05-boton       botón "Cargar líneas del pedido" recuadrado.
+ 06-lineas      tras pulsar: las 6 líneas como etiquetas (recuadrar el campo con etiquetas).
+ 07-margen-bien tarjeta Venta (23.797,80) y Margen (~14.759) cuadrando (recuadrar).
+ 08-quitar      la equis (✕) de una etiqueta para quitarla (recuadrar la ✕).  [luego vuelve a dejar las 6]
+ 09-anadir      el desplegable del campo abierto para añadir una línea a mano (recuadrar).
+ 10-guardar     botón Guardar/nube de la OF (recuadrar).
+ 11-varios      el mismo campo "Ventas de esta OF (margen)" en la pestaña Varios de la OF (recuadrar).
+
+GUÍA 2 (coste-venta-of-casos):
+ 01-832-mal   OF 00832, panel COSTE OF, tras VACIAR el enlace: Margen ~30.059 disparado (recuadrar).
+ 02-832-bien  OF 00832 con su 1 línea (S00330) enlazada: Margen ~14.394 (recuadrar la línea y el margen).
+ 03-1019-mal  OF 01019 vacío: Margen 0 (recuadrar).
+ 04-1019-bien OF 01019 con las 6 líneas: Venta 23.797,80 / Margen ~14.759 (recuadrar).
+ 05-varios    el desplegable del campo para añadir a mano una línea de OTRO pedido (recuadrar).
+
+Nombres de fichero EXACTOS como en cada .md (coste-enlace-ventas-NN-...png / coste-venta-of-casos-NN-...png).
+Al terminar, DEJA 01019 con sus 6 líneas de S00458 y 00832 con su 1 línea de S00330 (verificar).

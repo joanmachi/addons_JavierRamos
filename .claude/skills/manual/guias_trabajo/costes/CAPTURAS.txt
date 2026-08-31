@@ -1,0 +1,85 @@
+# Capturas — Costes y márgenes (público: oficina)
+
+Odoo real, BD `javierramos_prod`. Todas las pantallas salen de una OF (orden de fabricación).
+Elige para las fotos una OF "buena": **en curso**, con **venta vinculada**, con **material** y
+con **operarios que hayan fichado** (para que MP/MO/máquina reales tengan importe).
+Para las guías de hijas/parciales, usa una OF de conjunto (madre con hijas) y una OF partida en
+back-orders. Recuadros en rojo, numerados según el paso.
+
+Nombre de fichero = `<id-guia>-NN.png`. El importador casa por nombre.
+
+---
+
+## coste-ver-coste-of — "Ver el coste de una orden de fabricación"
+- **coste-ver-coste-of-01.png**: Fabricación → menú **Órdenes de fabricación** (lista). Recuadro rojo en la entrada de menú "Órdenes de fabricación".
+- **coste-ver-coste-of-02.png**: la lista de OFs; recuadro rojo en la fila de la OF elegida (que se va a abrir).
+- **coste-ver-coste-of-03.png**: OF abierta (vista normal). Recuadro rojo en el smart button **COSTE OF** (icono € fa-eur) de la fila de botones, arriba a la derecha.
+- **coste-ver-coste-of-04.png**: pantalla **COSTE OF** completa (cabecera nº OF · producto · cantidad · estado, las 4 tarjetas y arriba los botones "← Volver a OF" / "↻ Refrescar"). Recuadro rojo en la cabecera y sin marcar el resto.
+
+## coste-leer-tarjetas — "Leer las 4 tarjetas"
+Todas sobre la pantalla COSTE OF, fila de 4 tarjetas.
+- **coste-leer-tarjetas-01.png**: recuadro rojo en la tarjeta **Venta** (borde verde).
+- **coste-leer-tarjetas-02.png**: recuadro rojo en la tarjeta **En curso (real)** (borde ámbar).
+- **coste-leer-tarjetas-03.png**: recuadro rojo en la tarjeta **Coste teórico OF** (borde azul).
+- **coste-leer-tarjetas-04.png**: recuadro rojo en la tarjeta **Margen actual**, marcando también las líneas **Factor: …x** y **Avance: …%** de dentro de esa tarjeta. Ideal que el margen esté en verde para que se vea el semáforo.
+
+## coste-desglose-concepto — "Ver el desglose por concepto"
+Pantalla COSTE OF, sección **Desglose por concepto** (tabla Concepto/Teórico/Real).
+- **coste-desglose-concepto-01.png**: recuadro rojo en la cabecera de la tabla (título "Desglose por concepto" + fila de columnas Concepto/Teórico/Real).
+- **coste-desglose-concepto-02.png**: recuadro rojo en la fila **MP (Materia Prima)**.
+- **coste-desglose-concepto-03.png**: recuadro rojo en la fila **Tiempo de fabricación** (con su detalle /pieza).
+- **coste-desglose-concepto-04.png**: recuadro rojo abarcando las filas **↳ Coste operario**, **↳ Coste máquina** y **TOTAL**. Si la OF tiene servicios externos, que se vea la fila **Servicios externos**.
+- NOTA capturista: si consigues una OF con **BoM incompleta**, saca además el aviso amarillo "Esta orden está gastando mucho más material del previsto" (no es captura numerada aparte; entra en la 04 si cabe).
+
+## coste-detalle-material — "Ver el detalle de material"
+Pantalla COSTE OF, pestaña **Material**.
+- **coste-detalle-material-01.png**: recuadro rojo en la pestaña **Material** (antes de pulsarla o justo al pulsar).
+- **coste-detalle-material-02.png**: tabla de material; recuadro rojo en las columnas **Necesario / Consumido / Reservado / De camino / Falta sin PO**.
+- **coste-detalle-material-03.png**: recuadro rojo en las columnas de dinero **Coste (€)**, **Recibido proveedor (€)** y **Proveedor preferido**.
+- **coste-detalle-material-04.png**: usa una OF de conjunto; recuadro rojo en el botón/vínculo **Ver OF hija** de una fila de subconjunto.
+- NOTA: si la fila tiene "Falta sin PO" > 0 se verá el botón **Crear PO faltante**; puede entrar en la 02.
+
+## coste-pdf — "Imprimir el PDF de coste de una OF"
+Sobre la OF (vista normal).
+- **coste-pdf-01.png**: OF abierta; recuadro rojo en el menú **Imprimir** (barra superior de acciones).
+- **coste-pdf-02.png**: menú Imprimir desplegado; recuadro rojo en la opción **Coste de OF**.
+- **coste-pdf-03.png**: el PDF generado (primera página: cabecera con logo + datos empresa, título "Coste de OF — <nº>", las 4 tarjetas y comienzo del desglose). Sin recuadro o recuadro suave en la cabecera.
+
+## coste-enlace-ventas — "Indicar la venta de una OF para el margen"
+Pantalla COSTE OF, recuadro superior gris **Ventas de esta OF (para el margen)**.
+- **coste-enlace-ventas-01.png**: recuadro rojo en el bloque **Ventas de esta OF (para el margen):** (etiqueta + campo vacío + texto de ayuda).
+- **coste-enlace-ventas-02.png**: recuadro rojo en el botón **Cargar líneas del pedido**.
+- **coste-enlace-ventas-03.png**: mismo bloque ya con una o varias líneas de pedido enlazadas (tags en el campo); recuadro rojo en las líneas enlazadas. Idealmente en la misma toma se vean las tarjetas Venta/Margen actualizadas arriba.
+
+## coste-ver-hijas — "Ver las OF hijas de un conjunto"
+OF madre de un conjunto.
+- **coste-ver-hijas-01.png**: OF madre (vista normal); recuadro rojo en el smart button **Orden de fabricación hija** (fila de botones, arriba a la derecha).
+- **coste-ver-hijas-02.png**: lista de OF hijas que abre ese botón; recuadro rojo en la lista.
+- **coste-ver-hijas-03.png**: COSTE OF de la madre → pestaña **Material**; recuadro rojo en una fila de subconjunto que muestra su coste real y el vínculo **Ver OF hija**.
+
+## coste-enlazar-hija — "Enlazar una OF hija que se lanzó suelta"
+OF hija (la que fabrica el componente), vista normal.
+- **coste-enlazar-hija-01.png**: recuadro rojo en la pestaña **Varios** del formulario de la OF.
+- **coste-enlazar-hija-02.png**: recuadro rojo en el campo **OF madre (si es una hija suelta)** con el desplegable de selección abierto o un valor elegido.
+- **coste-enlazar-hija-03.png**: recuadro rojo en el botón **Guardar** (icono nube/disquete) tras rellenar el campo.
+- NOTA: este campo se muestra junto a "Ventas de esta OF (margen)" en la pestaña Varios (después del campo Origen). DUDA capturista abajo.
+
+## coste-cadena-parciales — "Ver el coste de una cadena de OFs parciales"
+OF partida en parciales/back-orders (que sí muestre el botón).
+- **coste-cadena-parciales-01.png**: OF (vista normal); recuadro rojo en el smart button **Coste cadena** (muestra "N OFs"). Solo visible si la OF es parcial.
+- **coste-cadena-parciales-02.png**: pantalla **Costes cadena**; recuadro rojo en la fila de 4 tarjetas consolidadas (Venta / En curso / Coste teórico / Margen actual + Factor).
+- **coste-cadena-parciales-03.png**: misma pantalla, más abajo; recuadro rojo en el **Desglose por concepto** y la lista **OFs de la cadena**.
+- **coste-cadena-parciales-04.png**: en la OF, pestaña **Parciales**; recuadro rojo en la pestaña y en la lista de lotes (columnas Lote / Nº OF / piezas / MP-MO-Máquina real).
+
+## coste-resumen-wip — "Ver todas las OFs en curso (Resumen WIP)"
+- **coste-resumen-wip-01.png**: menú **WIP** desplegado; recuadro rojo en las entradas **Resumen** y **OFs en curso** (y se ve también "Buscar Coste OF").
+- **coste-resumen-wip-02.png**: lista **OFs en curso**; recuadro rojo en la cabecera de columnas de dinero (**Venta (€) / Coste teórico OF (€) / EN CURSO real (€) / Margen real (€) / Factor (×) / Avance %**).
+- **coste-resumen-wip-03.png**: barra de búsqueda con filtros desplegados; recuadro rojo en los filtros **Con venta vinculada / Sin venta vinculada / ⚠ BoM incompleta**.
+
+---
+
+## DUDAS para revisar en pantalla real
+- **DUDA (coste-enlazar-hija / coste-enlace-ventas)**: el campo **OF madre (si es una hija suelta)** y el bloque **Ventas de esta OF (margen)** se insertan justo después del campo **Origen** del formulario nativo de la OF. En Odoo 18 ese campo Origen vive en la pestaña **Varios** ("Miscellaneous"), por eso las guías dicen "pestaña Varios". Confirmar en el Odoo real que efectivamente aparecen en la pestaña Varios y no en la cabecera del formulario; ajustar el paso si estuvieran en otro sitio.
+- **DUDA (coste-pdf)**: el informe **Coste de OF** está registrado como binding sobre la OF, así que debería salir en el menú **Imprimir**. Confirmar la etiqueta exacta del menú ("Imprimir") y que la opción aparece con permisos de usuario de oficina (no solo admin).
+- **DUDA (coste-cadena-parciales)**: el botón **Coste cadena** solo aparece si `jr_is_parcial` es verdadero. Asegurar que la OF elegida para las fotos es realmente una parcial con back-orders; si no, el botón no saldrá.
+- **DUDA (coste-resumen-wip)**: el menú **Resumen** abre una pantalla con selector de modo (En curso / Histórico) y botones grandes ("EN CURSO — abrir lista detallada", "↻ Forzar recompute"). La guía manda directo a **OFs en curso** para la lista; confirmar si el cliente prefiere que la guía entre por Resumen o por OFs en curso.

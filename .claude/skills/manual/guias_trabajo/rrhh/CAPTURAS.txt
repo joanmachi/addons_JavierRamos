@@ -1,0 +1,78 @@
+# CAPTURAS — Empleados y RRHH (oficina)
+
+Todas en ordenador, sesión de oficina/administración (grupo RRHH y responsable de
+fabricación). Base de datos: javierramos_prod.
+
+## Guía 1 — rrhh-entrada-empresa
+
+- **rrhh-entrada-empresa-01.png**
+  - Pantalla: menú principal de Odoo, aplicación **Empleados**.
+  - Acción: mostrar el acceso a **Empleados** (barra superior o menú de apps).
+  - Recuadro rojo: el icono/entrada **Empleados**.
+
+- **rrhh-entrada-empresa-02.png**
+  - Pantalla: lista de empleados (**Empleados → Empleados**).
+  - Acción: señalar la fila de un operario cualquiera antes de abrir su ficha.
+  - Recuadro rojo: el nombre del operario de ejemplo en la lista.
+
+- **rrhh-entrada-empresa-03.png**
+  - Pantalla: ficha del empleado abierta, zona baja del formulario.
+  - Acción: mostrar el grupo **Datos empresa** con el campo **Entrada a empresa** visible.
+  - Recuadro rojo: el campo **Entrada a empresa** (etiqueta + casilla de fecha).
+  - Nota: en la misma ficha, más abajo, está el grupo **Control taller (Apunts)**
+    (Bloqueado / Motivo del bloqueo / Fecha) — que NO se marca aquí.
+
+- **rrhh-entrada-empresa-04.png**
+  - Pantalla: mismo campo con el **calendario desplegado** al pulsar en la fecha.
+  - Acción: elegir un día en el calendario.
+  - Recuadro rojo: el día seleccionado en el calendario.
+
+- **rrhh-entrada-empresa-05.png**
+  - Pantalla: cabecera de la ficha del empleado con cambios sin guardar.
+  - Acción: señalar el botón de **guardar** (icono nube/disquete) arriba a la izquierda.
+  - Recuadro rojo: el icono de guardar.
+
+## Guía 2 — rrhh-ausencia-horas
+
+> Preparar antes: un operario **bloqueado por "Jornada insuficiente"**. Si no hay ninguno en
+> el momento de capturar, avisar para reproducir el bloqueo por jornada (o capturar sobre uno
+> real bloqueado). No corregir su fichaje al aplicar.
+
+- **rrhh-ausencia-horas-01.png**
+  - Pantalla: menú **Gestión Taller** desplegado.
+  - Acción: mostrar la opción **Corregir fichaje / desbloquear**.
+  - Recuadro rojo: la entrada de menú **Corregir fichaje / desbloquear**.
+
+- **rrhh-ausencia-horas-02.png**
+  - Pantalla: asistente **Desbloquear operario** abierto (ventana emergente).
+  - Acción: operario seleccionado en **Operario**; arriba se ve el aviso gris del bloqueo con
+    el texto que incluye **Jornada insuficiente** y la fecha.
+  - Recuadro rojo: el campo **Operario** y el aviso de bloqueo con "Jornada insuficiente".
+
+- **rrhh-ausencia-horas-03.png**
+  - Pantalla: mismo asistente, pie de la ventana; OF/fase en blanco (sin corregir fichaje).
+  - Acción: señalar el botón **Aplicar y desbloquear**.
+  - Recuadro rojo: el botón **Aplicar y desbloquear**.
+
+- **rrhh-ausencia-horas-04.png**
+  - Pantalla: ficha del operario, panel de **historial de mensajes (chatter)** a la derecha.
+  - Acción: mostrar el mensaje automático del desbloqueo con el texto
+    "Ausencia en borrador creada automáticamente: tipo «...», N h el AAAA-MM-DD..."
+  - Recuadro rojo: la línea del mensaje que menciona la **ausencia en borrador creada**.
+
+- **rrhh-ausencia-horas-05.png**
+  - Pantalla: **RRHH → Ausencias** (Time Off), lista de ausencias.
+  - Acción: señalar la ausencia del operario en estado **Borrador / Por aprobar** con la
+    descripción "Jornada incompleta ... creada automáticamente".
+  - Recuadro rojo: la fila de esa ausencia (operario + estado borrador).
+
+- **rrhh-ausencia-horas-06.png**
+  - Pantalla: la ausencia abierta.
+  - Acción: mostrar el campo **Tipo de ausencia** desplegado con las opciones (enfermedad /
+    horas libres).
+  - Recuadro rojo: el campo **Tipo de ausencia** y la opción a elegir.
+
+- **rrhh-ausencia-horas-07.png**
+  - Pantalla: cabecera de la ausencia.
+  - Acción: señalar el botón de **aprobar / validar** de la cabecera.
+  - Recuadro rojo: el botón de aprobar.

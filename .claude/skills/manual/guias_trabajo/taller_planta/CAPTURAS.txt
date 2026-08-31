@@ -1,0 +1,137 @@
+# Capturas — bloque TALLER/FICHAJES · PLANTA (tablet)
+
+Todas sobre **javierramos_prod** en http://localhost:8069, en la **pantalla de taller de la
+tablet** (vista barcode de una OF: `mrp.production`). Para llegar: abre una OF en estado
+**Confirmado/En progreso** que tenga fases con trabajo pendiente y entra en su vista de taller
+(la pantalla OWL con la card "Materiales", "Fases de fabricación", banner y barra de acciones
+con el botón **FICHAR**). Formato tablet (pantalla apaisada tipo tablet).
+
+Marca los recuadros/números en **rojo**. La numeración de abajo es el orden de los recuadros.
+
+---
+
+## taller-identificarse-carne
+
+**taller-identificarse-carne-01-barra-sin-fichar.png**
+- Pantalla: vista de taller de una OF, SIN nadie identificado (recién abierta / recargada).
+- Refleja: el estado de partida "Sin fichar".
+- Recuadrar: (1) la barra de acciones inferior con el texto en gris **Sin fichar** (icono de persona).
+
+**taller-identificarse-carne-02-boton-fichar.png**
+- Pantalla: la misma barra de acciones.
+- Refleja: dónde se pulsa para identificarse sin lector.
+- Recuadrar: (1) el botón azul **FICHAR** (icono de QR).
+
+**taller-identificarse-carne-03-dialogo-fichar.png**
+- Pantalla: cuadro de diálogo abierto tras pulsar FICHAR.
+- Refleja: dónde se escanea o teclea el PIN.
+- Recuadrar: (1) la cabecera **Fichar** con la pista "Escanea o introduce tu PIN"; (2) el campo
+  de texto; (3) el botón **Fichar** del pie.
+
+**taller-identificarse-carne-04-fichado-como.png**
+- Pantalla: vista de taller ya identificado (a poder ser con el aviso emergente aún visible).
+- Refleja: la confirmación de que quedaste identificado.
+- Recuadrar: (1) el aviso **Fichado como (nombre)**; (2) el nombre del operario escrito en la
+  barra de acciones (donde antes ponía "Sin fichar").
+
+---
+
+## taller-iniciar-fase
+
+**taller-iniciar-fase-01-boton-iniciar.png**
+- Pantalla: vista de taller ya identificado, lista **Fases de fabricación**, con una fase que
+  aún NO has arrancado (muestra el botón INICIAR / play).
+- Refleja: dónde se arranca una fase.
+- Recuadrar: (1) la tarjeta de la fase; (2) el botón **INICIAR** (icono play) de esa fase.
+
+**taller-iniciar-fase-02-banner-fase-activa.png**
+- Pantalla: la misma OF ya con una fase arrancada.
+- Refleja: la señal de que la fase está activa.
+- Recuadrar: (1) el banner superior de **fase activa** (punto verde parpadeando + nombre de la
+  fase); (2) los contadores **x hacer** y **val.** del banner.
+
+---
+
+## taller-pausar-piezas
+
+**taller-pausar-piezas-01-boton-pausar.png**
+- Pantalla: vista de taller con una fase ACTIVA (estás fichado en ella).
+- Refleja: dónde se pausa y se apuntan piezas.
+- Recuadrar: (1) el botón **PAUSAR** (icono pausa) de la fase activa.
+
+**taller-pausar-piezas-02-dialogo-cantidad.png**
+- Pantalla: cuadro de cantidad abierto tras pulsar PAUSAR.
+- Refleja: dónde se teclean las piezas hechas.
+- Recuadrar: (1) la cabecera **Registrar cantidad**; (2) la pista **Máximo: N**; (3) el campo
+  numérico; (4) el botón **Registrar** del pie.
+
+---
+
+## taller-varias-ofs
+
+**taller-varias-ofs-01-wizard-sobre-fichaje.png**
+- Pantalla: ventana **Sobre-fichaje detectado** (aparece al arrancar una 2ª OF teniendo otra
+  con fichaje abierto). Para provocarla: identifícate, ficha en una OF (INICIAR), y desde otra
+  OF distinta escanea/inicia su código.
+- Refleja: el aviso de que ya estás fichado en otra OF y cómo continuar con las dos.
+- Recuadrar: (1) el aviso amarillo **Ya estás fichado en otra/s OF**; (2) la tabla **OFs en las
+  que ya estás fichado** (columnas OF / OT / Fichado desde); (3) el botón del pie **Continuar y
+  arrancar otra OF (mantengo las anteriores)**.
+
+---
+
+## taller-fin-jornada
+
+**taller-fin-jornada-01-boton-fin-jornada.png**
+- Pantalla: barra de acciones de la vista de taller (identificado).
+- Refleja: dónde se cierra el día.
+- Recuadrar: (1) el botón rojo **FIN JORNADA** (icono de salida) en la barra de acciones.
+
+**taller-fin-jornada-02-resumen-presencia.png**
+- Pantalla: wizard **Fin de jornada** DESPUÉS de pulsar "Ver mi resumen" (con el resumen ya
+  cargado). Provócalo: identifícate primero para que el PIN venga precargado, pulsa FIN JORNADA
+  y luego "Ver mi resumen".
+- Refleja: el resumen del día y el cierre.
+- Recuadrar: (1) la línea **Presencia hoy: Xh YYm**; (2) la línea **Entrada / salida** con los
+  tramos; (3) la tabla de fichajes en OF (OF / OT / Inicio / Fin / Tiempo en OF); (4) el botón
+  del pie **Confirmar y salir**.
+
+---
+
+## DUDAS (revisar con Joan antes de dar por buenas las guías)
+
+- **DUDA (colores de INICIAR/PAUSAR):** el guion pedía "INICIAR verde" y "PAUSAR rojo", pero en
+  `workorder.css` el botón play (`apunts-play-btn-play`) es azul marino (`--ap-navy`) y el pause
+  (`apunts-play-btn-pause`) es gris pizarra (`--ap-slate`). El verde es el punto del banner de
+  fase activa, no el botón. En las guías he descrito los botones por su etiqueta e icono
+  (INICIAR/play, PAUSAR/pausa) sin insistir en el color. Confirmar el color real en pantalla.
+
+- **DUDA (diálogo FICHAR):** el título interno que pasa el código es "Introduzca su PIN"
+  (main.js), pero la cabecera visible del diálogo (`fichar_dialog.xml`) es **Fichar** con la
+  pista "Escanea o introduce tu PIN" y el botón del pie también dice **Fichar**. He usado los
+  textos visibles ("Fichar"). Verificar cuál se ve realmente en la tablet.
+
+- **DUDA (diálogo de piezas al PAUSAR):** el guion decía cabecera "Piezas hechas en <fase>" y
+  botón "Confirmar". El botón **PAUSAR** llama a `openQtyDialog` → `QtyInputDialog`, cuya
+  plantilla (`elegir_cantidad`) muestra cabecera **Registrar cantidad**, pista **Máximo: N** y
+  botón **Registrar** (con tope = piezas pendientes, que es la protección contra teclear el nº de
+  carné). El texto "Piezas hechas en <fase>" es el *título interno* que se pasa por otra vía
+  (reescaneo de la OF, `QtyInputDialogZero`), pero esa plantilla es la misma y la cabecera visible
+  sigue siendo "Registrar cantidad". He usado los textos visibles. Confirmar en pantalla.
+
+- **DUDA (reescanear la OF para desficharse):** el guion afirmaba que reescanear la OF muestra
+  "usa el botón PAUSAR y registra las piezas". En el código actual, `apunts_taller_control`
+  (`sobre_fichaje_y_qty.js`) intercepta `iniciar_parar_orden`: si ya estás fichado, **abre el
+  diálogo de piezas** (QtyInputDialogZero, "Pon 0 si no produjiste piezas…") en lugar de dar ese
+  error. El mensaje "usa el botón PAUSAR…" solo vive en `apunts_barcode_workorder` y queda tapado
+  por el patch de taller_control. Por eso NO he incluido esa afirmación en la guía. Confirmar el
+  comportamiento real (¿reescanear abre el diálogo de piezas?).
+
+- **DUDA (botón sobre-fichaje):** el guion pedía botón "Mantener ambas"; el real
+  (`sobre_fichaje_wizard_view.xml`) es **Continuar y arrancar otra OF (mantengo las anteriores)**.
+  He usado el texto real. Además hay un botón por línea **Ir a esta OF (taller)** que he
+  aprovechado en "Si algo va mal".
+
+- **DUDA (FIN JORNADA — inyección del botón):** el botón FIN JORNADA se añade por JS a la barra
+  de acciones (`fin_jornada_btn.js`, rojo `#dc3545`, icono `fa-sign-out`). Al depender de un
+  MutationObserver, verificar que aparece siempre y no tarda/parpadea al abrir la vista.

@@ -8,3 +8,4 @@ __pycache__/
 
 # Paquetes de módulos (artefactos de despliegue, no fuente)
 *.zip
+addons-[0-9][0-9]-[0-9][0-9]/

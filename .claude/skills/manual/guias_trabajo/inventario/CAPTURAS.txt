@@ -1,0 +1,96 @@
+# CAPTURAS — Inventario y albaranes (oficina)
+
+BD de trabajo: `javierramos_prod`. Todas las capturas en ordenador (pantalla completa del backend).
+Nombre de fichero plano `<id>-NN.png`; el importador las casa por nombre.
+
+---
+
+## inv-albaran-valorado — "Imprimir el albarán valorado (con precios)"
+Módulo: `stock_picking_report_valued`. Necesitas un albarán de SALIDA de un cliente con
+`valued_picking` activo y con pedido de venta (para que salgan precios).
+
+- **01** — App **Inventario**, vista de inicio (kanban de tipos de traslado). Marcar en rojo el icono/entrada de la app Inventario en el menú superior.
+- **02** — **Inventario → Traslados** (lista de albaranes). Marcar en rojo el menú "Traslados" y la línea del albarán del cliente que se va a abrir.
+- **03** — Formulario del albarán abierto (estado Hecho/Validado). Marcar en rojo la referencia del albarán y el cliente en la cabecera.
+- **04** — Mismo formulario, con el botón **Imprimir** de la barra superior desplegado o resaltado. Marcar en rojo el botón "Imprimir".
+- **05** — Menú **Imprimir** abierto mostrando las opciones. Marcar en rojo la opción **"Albarán de entrega"**. IMPORTANTE: capturar el menú completo tal cual aparece (ver DUDA 1).
+- **06** — PDF del albarán valorado. Marcar en rojo las columnas **Precio unidad**, **Subtotal**, **Impuestos** y la tabla de totales al pie (Base imponible / Impuestos / Total).
+
+## inv-albaran-rectificado — "Imprimir el albarán rectificado (neteando devoluciones)"
+Módulo: `javier_ramos_pedidos` (server action "Albarán Rectificado", binding report).
+Necesitas un albarán de entrega VALIDADO con una devolución parcial validada asociada.
+
+- **01** — **Inventario → Traslados** (lista). Marcar en rojo el menú "Traslados".
+- **02** — Formulario del albarán con devolución, abierto. Marcar en rojo la referencia y, si se ve, el botón inteligente de Devoluciones.
+- **03** — Botón **Imprimir** de la barra superior resaltado. Marcar en rojo "Imprimir".
+- **04** — Menú Imprimir desplegado. Marcar en rojo la opción **"Albarán Rectificado"**.
+- **05** — PDF del albarán rectificado. Marcar en rojo una línea con cantidad NETA (p. ej. 8 en vez de 10) y señalar que una línea totalmente devuelta NO aparece.
+
+## inv-etiquetas — "Imprimir etiquetas del albarán"
+Módulo: `javier_ramos_taller_simple` (report "Etiqueta", 150×105 mm, binding report).
+Sirve un albarán de SALIDA (etiqueta de expedición) o de ENTRADA (recepción). El tipo lo
+decide el albarán automáticamente.
+
+- **01** — **Inventario → Traslados** (lista). Marcar en rojo el menú "Traslados".
+- **02** — Formulario del albarán abierto. Marcar en rojo la referencia del albarán.
+- **03** — Botón **Imprimir** de la barra superior resaltado. Marcar en rojo "Imprimir".
+- **04** — Menú Imprimir desplegado. Marcar en rojo la opción **"Etiqueta"**.
+- **05** — PDF de una etiqueta (preferible expedición: "FASE DE EXPEDICIÓN CONFORME"). Marcar en rojo: la cabecera "FASE DE EXPEDICIÓN CONFORME", los dos códigos de barras (ARTICULO / ORDEN), REF. CLIENTE, PEDIDO JR y CANTIDAD/LONGITUD.
+
+## inv-fechas-entrega-rojo — "Ver las fechas de entrega y los pedidos en rojo"
+Módulo: `lira_dashboard_contabilidad`. Ruta: **Contabilidad → ANÁLISIS DE SITUACIÓN → Ventas → Pedidos pendientes de entrega**.
+
+- **01** — App **Contabilidad**, vista de inicio. Marcar en rojo la entrada de la app Contabilidad.
+- **02** — Menú de Contabilidad abierto mostrando **ANÁLISIS DE SITUACIÓN → Ventas → Pedidos pendientes de entrega**. Marcar en rojo esa ruta de menú.
+- **03** — Ficha "Pedidos Pendientes de Entrega" (formulario con KPIs). Marcar en rojo el botón **Actualizar**.
+- **04** — Misma ficha, panel inferior. Marcar en rojo el botón **Ver tabla**.
+- **05** — Lista de líneas pendientes. Marcar en rojo una celda de la columna **Fecha entrega** que salga en ROJO (fecha vencida). Asegurar que hay al menos una fecha roja visible.
+- **06** — Misma lista (o zoom). Marcar en rojo una **fila entera roja** (>30 días de espera) y, si hay, una fila naranja (14–30 días). Señalar la columna "Días espera".
+
+## inv-supervisor-abrir-of — "Abrir la OF desde el Supervisor de Planta"
+Módulo: `lira_mfg_supervisor`. App independiente **Supervisor Planta**.
+
+- **01** — Pantalla de apps de Odoo o menú, con la app **Supervisor Planta** resaltada. Marcar en rojo la app.
+- **02** — Menú de Supervisor Planta abierto: **Panel en tiempo real** e **Historial del día**. Marcar en rojo "Panel en tiempo real".
+- **03** — Lista del Panel en tiempo real (varias filas de fases). Marcar en rojo una fila cualquiera indicando "clic aquí abre la OF" y, aparte, señalar los botones **✓ Validar** / **✗ Rechazar** de una fila en estado "Pendiente de validar".
+- **04** — Formulario de la **orden de fabricación** que se abre tras el clic. Marcar en rojo la referencia de la OF en la cabecera (confirmar que es la OF completa, no la fase).
+
+## inv-fecha-vencimiento-facturas — "Ver la fecha de vencimiento en la lista de facturas"
+Módulo: `javier_ramos_pedidos` (columna `invoice_due_date_display`, string "Fecha Venc.", optional show).
+Ruta: **Contabilidad → Clientes → Facturas** (vista LISTA, no formulario).
+
+- **01** — App **Contabilidad**, vista de inicio. Marcar en rojo la entrada de la app.
+- **02** — Menú **Clientes → Facturas**. Marcar en rojo esa ruta de menú.
+- **03** — Lista de facturas de cliente. Marcar en rojo la cabecera de la columna **"Fecha Venc."** y una o dos celdas con fecha.
+- **04** — Icono de **opciones de columnas** (arriba a la derecha de la lista) desplegado, con **"Fecha Venc."** marcado. Marcar en rojo el icono y la casilla.
+
+---
+
+# DUDAS A CONFIRMAR EN PANTALLA
+
+1. **(inv-albaran-valorado — PRIORITARIA)** `CAMBIOS.md [003]` describía un server action de impresión
+   llamado **"Imprimir Albarán Valorado"** (`binding_type=report`) con método
+   `action_print_valued_albaran()` + variable `show_valued`/`force_valued`. **En el código ACTUAL
+   ese server action y ese método YA NO EXISTEN**: `stock_picking_report_valued/report/stock_picking_report_valued.xml`
+   solo tiene la herencia del template `stock.report_delivery_document`, y `models/stock_picking.py`
+   no tiene el método. Es decir, hoy el albarán sale valorado **por la opción estándar "Albarán de entrega"
+   (Delivery Slip)** y depende de la casilla `valued_picking` del cliente, NO de una opción propia en Imprimir.
+   → CONFIRMAR EN PANTALLA: ¿qué opciones EXACTAS aparecen en el menú **Imprimir** de un albarán?
+   ¿Existe todavía alguna opción "Imprimir Albarán Valorado" (residuo en BD) o solo "Albarán de entrega",
+   "Albarán Rectificado" y "Etiqueta"? La guía 1 está escrita asumiendo "Albarán de entrega"; ajustar el
+   nombre del paso 5 si en pantalla figura otro texto.
+
+2. **(nombre en español del report estándar)** El report `stock.action_report_delivery` puede mostrarse
+   como "Albarán de entrega" o "Delivery Slip" según la traducción cargada. Confirmar el texto literal
+   que ve el usuario y usarlo tal cual en el paso 5 de la guía 1.
+
+3. **(inv-fecha-vencimiento-facturas — "días restantes")** El brief mencionaba una columna de "días
+   restantes" junto a "Fecha Venc.". En el código solo consta el campo custom `invoice_due_date_display`
+   (string "Fecha Venc.", optional show) añadido tras `invoice_date_due`. No he encontrado columna propia
+   de "días restantes". Confirmar en pantalla si existe alguna columna/indicador de días (nativo de Odoo o
+   custom); si no, la guía queda solo con "Fecha Venc." (ya redactada así).
+
+4. **(inv-etiquetas — selección múltiple)** El report "Etiqueta" tiene `binding_type=report` sobre
+   `stock.picking`, así que debería poder lanzarse desde la lista con varios albaranes marcados.
+   Confirmar en pantalla que, seleccionando varios traslados en la lista, aparece "Etiqueta" en Imprimir
+   (mencionado en el apartado "Si algo va mal" de la guía).

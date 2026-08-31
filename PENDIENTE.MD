@@ -408,3 +408,26 @@ Ausencia en bloqueo de jornada injustificado - HECHO
 Explicación de fecha confirmación y fecha de recepción.
 
 Sincronización horas del primer fichaje del día. - HECHO
+
+Reestructuración de código para crear asistencia - HECHO
+
+
+
+
+Puntos correo:
+
+Correo electrónico sin espacio
+
+Reprogramación de precio material en coste de of
+
+Nuevo historico aposta para ver cuando se bloquean los usuarios y el porque. Se quejan de que todo el rato los usuarios son bloqueados sin motivo.
+
+Historicos a partir de ahora en Centros Carga
+
+Nuevo modulo de Dirección
+
+Reprogramación de las recepciones (automatización y simplicación de procesos)
+
+Correciones de los pedidos P00425 i 460 junto a Paula y Cynthia
+
+Corrección de albarán rectificado.

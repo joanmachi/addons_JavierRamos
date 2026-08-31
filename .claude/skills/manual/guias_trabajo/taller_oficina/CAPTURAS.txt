@@ -1,0 +1,140 @@
+# CAPTURAS — Taller y fichajes (OFICINA)
+
+Módulos: `apunts_jr_gestion_taller` (menú superior **Gestión Taller**) y `apunts_taller_control`
+(guía 9, en Ajustes). Público: oficina. Terminología del cliente: **OF**, **fase/OT**,
+**presencia** vs **fichaje en OF**, **bloqueado/desbloquear**, **ausencia**.
+
+Preparación de datos (recomendado antes de capturar): que haya al menos un operario **fichado**
+(fila verde) y uno **bloqueado** (fila roja) para que se vean colores y botones. Para la guía 8
+conviene tener en el histórico de desbloqueos al menos una fila roja (sin OF) y una amarilla
+(cumplía al desbloquear).
+
+---
+
+## Guía 1 — taller-of-ver-fichados
+
+- **taller-of-ver-fichados-01.png**
+  - Pantalla: menú superior de Odoo con **Gestión Taller** abierto (desplegable visible).
+  - Recuadrar en rojo: **(1)** la entrada de menú **Gestión Taller** o directamente **Operarios fichados** dentro del desplegable.
+
+- **taller-of-ver-fichados-02.png**
+  - Navegación: **Gestión Taller → Operarios fichados**. Lista agrupada por operario, con al menos una fila verde y una roja.
+  - Recuadrar en rojo, numerado: **(1)** la barra de columnas (Operario / OF / OT (fase) / Fichado desde / Llevan (h) / Horas HOY / Horas semana); **(2)** una fila en rojo (operario bloqueado).
+
+- **taller-of-ver-fichados-03.png**
+  - Misma lista; foco en los botones de una fila.
+  - Recuadrar en rojo: **(1)** el botón **Cerrar fichaje** (icono stop, amarillo) de una fila con fichaje abierto. Opcional **(2)** botón **Ver OF**.
+
+---
+
+## Guía 2 — taller-of-estado-operarios
+
+- **taller-of-estado-operarios-01.png**
+  - Navegación: **Gestión Taller → Estado operarios**. Lista con filas verdes (fichados) y al menos una roja (bloqueado).
+  - Recuadrar en rojo: **(1)** una fila verde; **(2)** una fila roja; **(3)** columnas Horas HOY / Horas semana.
+
+- **taller-of-estado-operarios-02.png**
+  - Misma pantalla con la barra de búsqueda abierta y el filtro **Bloqueados** aplicado (queda visible solo el operario en rojo).
+  - Recuadrar en rojo: **(1)** el filtro **Bloqueados** en la barra de búsqueda; **(2)** la fila roja resultante.
+
+- **taller-of-estado-operarios-03.png**
+  - Misma lista; foco en la fila del bloqueado.
+  - Recuadrar en rojo: **(1)** el interruptor de la columna **Bloqueado**; **(2)** el botón **Desbloquear** (verde, icono candado abierto) de la fila.
+
+---
+
+## Guía 3 — taller-of-desbloquear-corregir
+
+Requiere un operario bloqueado. Se abre el asistente desde el menú (o desde el botón Desbloquear).
+
+- **taller-of-desbloquear-corregir-01.png**
+  - Pantalla: desplegable **Gestión Taller** abierto.
+  - Recuadrar en rojo: **(1)** la entrada **Corregir fichaje / desbloquear**.
+
+- **taller-of-desbloquear-corregir-02.png**
+  - Asistente **Desbloquear operario** abierto con un operario que tenga fichaje abierto (CASO 1) para que salga el aviso naranja "Fichaje abierto detectado".
+  - Recuadrar en rojo: **(1)** el aviso naranja del caso; **(2)** los campos **Orden de Fabricación (OF)** y **Fase (OT)** precargados; **(3)** el campo **Corregir salida a**.
+  - NOTA capturista: si el operario elegido NO tiene fichaje abierto, el aviso será **azul** ("Operario sin fichaje activo") — vale igual, pero intenta uno con fichaje abierto para que coincida con el paso 4 de la guía.
+
+- **taller-of-desbloquear-corregir-03.png**
+  - Mismo asistente; desplegar el campo **Motivo de la corrección** mostrando las 3 opciones.
+  - Recuadrar en rojo: **(1)** el selector **Motivo** con las opciones Falta OF / Responsabilidad operario / Fuerza mayor; **(2)** el botón **Aplicar y desbloquear** del pie.
+
+---
+
+## Guía 4 — taller-of-reasignar-fichaje
+
+- **taller-of-reasignar-fichaje-01.png**
+  - Navegación: **Fabricación → Órdenes de trabajo** → abrir una OT que tenga fichajes → pestaña **Seguimiento del tiempo**.
+  - Recuadrar en rojo: **(1)** la pestaña **Seguimiento del tiempo**; **(2)** el botón **Reasignar** (icono de dos flechas ⇄) en una fila de fichaje.
+
+- **taller-of-reasignar-fichaje-02.png**
+  - Asistente **Reasignar fichaje** abierto.
+  - Recuadrar en rojo: **(1)** el bloque "Reasignar a" con **OF** (production_id) y **fase (OT)** (workorder_id); **(2)** el botón **Reasignar** del pie.
+
+---
+
+## Guía 5 — taller-of-historico-fichajes
+
+- **taller-of-historico-fichajes-01.png**
+  - Navegación: **Gestión Taller → Histórico fichajes**. Lista con al menos una fila naranja (modificada a mano).
+  - Recuadrar en rojo: **(1)** una fila naranja; **(2)** la columna **Motivo corrección**.
+
+- **taller-of-historico-fichajes-02.png**
+  - Misma pantalla con la barra de búsqueda abierta.
+  - Recuadrar en rojo, numerado: **(1)** filtro **Modificados manualmente**; **(2)** filtros de fecha (Hoy / Últimos 7 / 15 / 30 días); **(3)** filtros de motivo (Falta OF / Responsabilidad operario / Fuerza mayor).
+
+- **taller-of-historico-fichajes-03.png**
+  - Cambiar a la vista **pivot** (Operario × OF en filas, Día en columnas, medida Minutos fichados).
+  - Recuadrar en rojo: **(1)** el selector de vista **pivot** (arriba derecha); **(2)** una celda de minutos.
+
+---
+
+## Guía 6 — taller-of-historico-presencia
+
+- **taller-of-historico-presencia-01.png**
+  - Navegación: **Gestión Taller → Histórico presencia**. Lista con filas de tipo **Presencia** (verde) y **Ausencia** (naranja).
+  - Recuadrar en rojo, numerado: **(1)** la columna **Tipo** con un badge Presencia y uno Ausencia; **(2)** columnas Inicio / Fin / Horas; **(3)** los filtros **Solo presencias** / **Solo ausencias** en la barra de búsqueda.
+
+---
+
+## Guía 7 — taller-of-kpis-fichaje
+
+- **taller-of-kpis-fichaje-01.png**
+  - Navegación: **Gestión Taller → KPIs de fichaje**. Panel calculado (con datos en el rango).
+  - Recuadrar en rojo: **(1)** los campos **Desde** / **Hasta**; **(2)** el botón **Actualizar**.
+
+- **taller-of-kpis-fichaje-02.png**
+  - Mismo panel, foco en las tarjetas y la tabla.
+  - Recuadrar en rojo, numerado: **(1)** la tarjeta **Corregidos** (%); **(2)** la tarjeta **Jornada cumplida** (%); **(3)** la tabla **Detalle por empleado**.
+
+---
+
+## Guía 8 — taller-of-historico-desbloqueos
+
+Requiere en el histórico al menos una fila roja (sin OF) y una amarilla (cumplía al desbloquear).
+
+- **taller-of-historico-desbloqueos-01.png**
+  - Navegación: **Gestión Taller → Histórico desbloqueos**.
+  - Recuadrar en rojo, numerado: **(1)** una fila **roja** (sin OF); **(2)** una fila **amarilla** (cumplía al desbloquear); **(3)** las columnas Con OF / Cumple ahora / Motivo / Desbloqueado por.
+
+- **taller-of-historico-desbloqueos-02.png**
+  - Misma pantalla con la barra de búsqueda abierta.
+  - Recuadrar en rojo: **(1)** el filtro **Sin OF (desbloqueo a pelo)**; **(2)** el filtro **Cumplía al desbloquear (bloqueo dudoso)**.
+
+---
+
+## Guía 9 — taller-of-configurar-bloqueos  (módulo apunts_taller_control)
+
+- **taller-of-configurar-bloqueos-01.png**
+  - Navegación: **Ajustes** → localizar el bloque **Apunts Taller Control → Bloqueos automáticos de operarios** (requiere usuario administrador).
+  - Recuadrar en rojo, numerado: **(1)** **Minutos sin fichaje activo para bloquear**; **(2)** **Horas continuas en OF para bloquear**; **(3)** la casilla **Bloquear por jornada insuficiente el día anterior** y el campo **Tolerancia (minutos)**; **(4)** el botón **Guardar** de la cabecera de Ajustes.
+
+---
+
+## Notas / dudas para el guionista
+
+- DUDA (guía 7): la etiqueta del botón en el código es **Actualizar** (`action_calcular` con `string="Actualizar"`), no "Calcular" como decía el encargo. Las guías usan **Actualizar**. Confirmar terminología preferida por el cliente.
+- DUDA (guías 2 y 1): el botón **Desbloquear** de las listas y el **Desbloquear taller** de la ficha del empleado NO desbloquean directamente: abren el mismo asistente de corrección (guía 3). Las guías lo reflejan así. Verificar que es el comportamiento deseado para el usuario de oficina.
+- DUDA (guía 4): la ruta exacta a la pestaña **Seguimiento del tiempo** depende de cómo el cliente entra a las órdenes de trabajo (Fabricación → Órdenes de trabajo). Si el capturista ve otra ruta más habitual en JR, anotarla para ajustar el paso 1.
+- Nota: el título de la acción de la guía 2 es "Operarios (resumen horas)" internamente, pero el menú se llama **Estado operarios**; las guías usan el nombre del menú.

@@ -1,0 +1,17 @@
+CAPTURAS — Apartado "Panel Dirección" (10 guías, de dónde sale cada número).
+BD javierramos_prod, http://localhost:8069. El menú Dirección requiere permiso contable de solo lectura.
+En CADA guía: 1ª foto = el Panel Dirección con SU tarjeta recuadrada; luego la(s) pantalla(s) de origen y el total que cuadra.
+Recuadrar en rojo con números lo indicado. Muchas fotos, no ahorrar. Cifras de referencia de hoy (pueden variar):
+
+01 Facturación año (812.555,09): panel; tarjeta; Contabilidad>Clientes>Facturas; filtro Este año+Publicado; total base imponible.
+02 Pedidos del mes (32.419,20 / año 703.353,68): panel; Ventas>Pedidos; filtro confirmados este mes; total sin impuestos.
+03 Cartera pendiente (185.956,40): panel; tablero Pedidos pendientes de entrega (Actualizar); indicador Valor pendiente; Ver tabla.
+04 Cobertura (1,4 meses): panel; Carga centros>Resumen; horas pendientes y horas reales 30 días.
+05 Tesorería (69.912,24): panel; Contabilidad>Plan contable; cuentas 570/572; saldo.
+06 Cobros pendientes (301.738,57): panel; Contabilidad>Clientes>Facturas; filtro Sin pagar; total importe adeudado.
+07 Margen bruto (482.990,36 / 59,7%): panel; Contabilidad>Informes>Pérdidas y Ganancias año; ingresos y cuentas 60x.
+08 Entregas en fecha (33,3% mes / 46,3% año): panel; Inventario>Transferencias salida validadas del mes; fecha validación vs comprometida.
+09 Horas productivas (62,1%): panel; Gestión Taller>KPIs de fichaje del mes (Actualizar); indicador Jornada cumplida.
+10 WIP (54.961,66): panel; WIP>OFs en curso; columna EN CURSO real; total al pie.
+
+Nombres de fichero: exactamente los que aparecen en cada .md (panel-dir-NN-...-NN-....png).
