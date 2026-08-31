@@ -126,7 +126,7 @@ class ApuntsDireccionResumen(models.TransientModel):
 
             # 4) Cobertura: horas pendientes / ritmo real mensual (30 días)
             try:
-                centros = self.env["mrp.workcenter"].search([("active", "=", True)])
+                centros = self.env["mrp.workcenter"].sudo().search([("active", "=", True)])
                 pendientes = sum(centros.mapped("apunts_horas_pendientes"))
                 ritmo_mes = sum(centros.mapped("apunts_horas_reales_30d"))
                 rec.cobertura_meses = pendientes / ritmo_mes if ritmo_mes else 0.0
@@ -167,7 +167,7 @@ class ApuntsDireccionResumen(models.TransientModel):
             #    "coste directo de ventas" o cuentas 60x)
             try:
                 ctas_60 = tuple(
-                    self.env["account.account"].search([("code", "=like", "60%")]).ids
+                    self.env["account.account"].sudo().search([("code", "=like", "60%")]).ids
                 ) or (0,)
                 row = self._sql_uno(
                     """
@@ -228,7 +228,7 @@ class ApuntsDireccionResumen(models.TransientModel):
 
             # 10) Valor WIP: coste real acumulado de las OFs en curso
             try:
-                wip = self.env["mrp.production"].search([("apunts_is_wip", "=", True)])
+                wip = self.env["mrp.production"].sudo().search([("apunts_is_wip", "=", True)])
                 rec.wip_valor = sum(wip.mapped("apunts_cost_total_real"))
             except Exception as e:
                 _logger.warning("Panel dirección: WIP falló: %s", e)

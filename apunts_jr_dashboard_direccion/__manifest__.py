@@ -17,7 +17,7 @@ carga centros, KPIs de fichaje...).
   de la fecha comprometida del pedido de venta (o su fecha de pedido si
   no hay comprometida).
     """,
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "category": "Reporting",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
