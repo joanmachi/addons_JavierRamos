@@ -157,6 +157,21 @@
   background: var(--ld-border);
   flex-shrink: 0;
 }
+/* P&G por Periodos: la cascada entera (8 cifras) en una sola fila a todo el ancho */
+.ld_pnl_kpis {
+  flex-basis: 100%;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  border-top: 1px solid var(--ld-border);
+  padding-top: 12px;
+}
+.ld_pnl_kpis .ld_hkpi { flex: 1 1 0; min-width: 0; padding: 0 8px; text-align: center; }
+.ld_pnl_kpis .ld_hkpi_value { white-space: nowrap; }
+.ld_pnl_kpis .ld_hkpi_trend { white-space: nowrap; }
+@media (max-width: 1150px) {
+  .ld_pnl_kpis { flex-wrap: wrap; justify-content: flex-start; row-gap: 12px; }
+  .ld_pnl_kpis .ld_hkpi { flex: 0 0 auto; padding: 0 20px; text-align: right; }
+}
 
 /* ── ALERTAS ─────────────────────────────────────────────────────────────── */
 .ld_alerts_panel {
@@ -1309,3 +1324,34 @@
   font-size: 0.85rem;
   color: var(--ld-muted);
 }
+
+
+/* Cuenta de resultados, distribución de costes y balance en UNA columna
+   (petición de dirección: el balance debajo de los costes, no al lado). */
+.ld_one_col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+.ld_one_col > .ld_col {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Préstamos, amortizaciones y existencias ── */
+.ld_fin_row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+.ld_fin_card {
+  flex: 1 1 300px; background: var(--ld-white); border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius); padding: 12px 14px; text-align: center;
+}
+.ld_fin_card .ld_cycle_formula .o_field_widget { display: inline; font-size: inherit; color: inherit; }
+.ld_fin_rows { text-align: left; margin-top: 10px; font-size: 0.78rem; }
+.ld_fin_rows > div { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-top: 1px dashed var(--ld-border); }
+.ld_fin_rows span { color: var(--ld-muted); }
+.ld_fin_rows b .o_field_widget { display: inline; font-size: inherit; font-weight: inherit; }
+.ld_fin_detail { text-align: left; margin-top: 8px; font-size: 0.72rem; }
+.ld_fin_table th { color: var(--ld-muted); font-weight: 600; border-bottom: 1px solid var(--ld-border); }
+.ld_fin_table td, .ld_fin_table th { padding: 2px 4px; white-space: nowrap; }
+.ld_fin_rows b .o_field_widget, .ld_fin_rows b .o_field_date { display: inline; }

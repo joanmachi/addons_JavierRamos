@@ -14,6 +14,17 @@ class ResConfigSettings(models.TransientModel):
     formacion_tablero_gaps = fields.Boolean('Tablero de avisos visible en el enlace público',
                                             config_parameter='grupadoo_formacion.tablero_gaps',
                                             help='Enciéndelo cuando quieras enseñar al cliente el seguimiento de sus avisos (y apágalo después).')
+    formacion_menu_desarrollos = fields.Boolean(
+        'Menú "Desarrollos" visible',
+        help='Apágalo para OCULTAR el menú Desarrollos (los gaps en solo lectura) '
+             'a todos los usuarios. El tablero del enlace público tiene su propio interruptor.')
+    formacion_publico_dependiente = fields.Char(
+        'Etiqueta del público 1', config_parameter='grupadoo_formacion.publico_dependiente',
+        help='Cómo se llama al personal "de a pie" en este cliente: 🛒 Tienda, 🏭 Planta, 🚚 Reparto… '
+             'Se ve en el visor, en las guías y en los filtros. Vacío = "🛒 Tienda".')
+    formacion_publico_oficina = fields.Char(
+        'Etiqueta del público 2', config_parameter='grupadoo_formacion.publico_oficina',
+        help='El segundo público (normalmente 🗂️ Oficina). Vacío = "🗂️ Oficina".')
     formacion_email_consultor = fields.Char('Correo del consultor',
                                             config_parameter='grupadoo_formacion.email_consultor',
                                             help='Si está relleno: correo automático al consultor cada vez que el '
@@ -46,6 +57,23 @@ class ResConfigSettings(models.TransientModel):
         self.env['ir.config_parameter'].sudo().set_param(
             'grupadoo_formacion.token_publico', secrets.token_urlsafe(12))
         return {'type': 'ir.actions.client', 'tag': 'reload'}
+
+    def get_values(self):
+        res = super().get_values()
+        menu = self.env.ref('grupadoo_formacion.menu_formacion_desarrollos',
+                            raise_if_not_found=False)
+        res['formacion_menu_desarrollos'] = bool(menu and menu.active)
+        return res
+
+    def set_values(self):
+        super().set_values()
+        # las etiquetas del público son labels de un Selection: vaciar la caché
+        # para que el cambio se vea sin reiniciar
+        self.env.registry.clear_cache()
+        menu = self.env.ref('grupadoo_formacion.menu_formacion_desarrollos',
+                            raise_if_not_found=False)
+        if menu and menu.active != self.formacion_menu_desarrollos:
+            menu.active = self.formacion_menu_desarrollos
 
     def action_formacion_abrir_enlace(self):
         token = self.env['ir.config_parameter'].sudo().get_param('grupadoo_formacion.token_publico')

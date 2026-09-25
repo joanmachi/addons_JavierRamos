@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_cmp_coste_categoria_list" model="ir.ui.view">
+        <field name="name">apunts.cmp.coste.categoria.list</field>
+        <field name="model">apunts.cmp.coste.categoria</field>
+        <field name="arch" type="xml">
+            <list string="Categorías de coste" editable="bottom">
+                <field name="secuencia" widget="handle"/>
+                <field name="name"/>
+                <field name="tipo"/>
+                <field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="workcenter_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="tarifa_hora" string="€/hora del centro"/>
+                <field name="cuenta_icap" string="ICAP" widget="boolean_toggle"/>
+                <field name="activo" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmp_coste_categoria" model="ir.actions.act_window">
+        <field name="name">Categorías de coste</field>
+        <field name="res_model">apunts.cmp.coste.categoria</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cómo se reparte el gasto del taller</p>
+            <p>Cada categoría puede alimentarse de <b>cuentas contables</b> (lo gastado de verdad)
+            y/o de <b>centros de trabajo</b> (horas fichadas × precio por hora). Así se replica
+            el reparto del cuadro de mando antiguo, usando los centros que existen hoy.</p>
+        </field>
+    </record>
+
+    <record id="apunts_cmp_coste_list" model="ir.ui.view">
+        <field name="name">apunts.cmp.coste.list</field>
+        <field name="model">apunts.cmp.coste</field>
+        <field name="arch" type="xml">
+            <list string="Precio por hora" create="0" delete="0" edit="0">
+                <field name="fecha" string="Mes"/>
+                <field name="categoria_id" string="Categoría"/>
+                <field name="tipo"/>
+                <field name="importe_cuentas" string="Gasto contable" sum="Total"/>
+                <field name="horas_centro" string="H. centros" optional="show"/>
+                <field name="importe_horas" string="Coste horas" sum="Total" optional="show"/>
+                <field name="importe" string="Importe" sum="Total"/>
+                <field name="horas_taller" string="Horas taller" optional="hide"/>
+                <field name="coste_hora" string="€/hora" sum="€/hora total"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_cmp_coste_pivot" model="ir.ui.view">
+        <field name="name">apunts.cmp.coste.pivot</field>
+        <field name="model">apunts.cmp.coste</field>
+        <field name="arch" type="xml">
+            <pivot string="Precio por hora" sample="1">
+                <field name="categoria_id" type="row"/>
+                <field name="fecha" interval="month" type="col"/>
+                <field name="coste_hora" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmp_coste" model="ir.actions.act_window">
+        <field name="name">Precio por hora</field>
+        <field name="res_model">apunts.cmp.coste</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cuánto cuesta una hora de taller</p>
+            <p>El gasto repartido por categorías y dividido entre las horas trabajadas.
+            La suma de la columna €/hora es el <b>punto muerto</b>: por debajo de ese precio,
+            la hora se trabaja a pérdida.</p>
+        </field>
+    </record>
+
+</odoo>

@@ -6,6 +6,13 @@
               groups="account.group_account_readonly"
               web_icon="apunts_jr_dashboard_direccion,static/description/icon.png"/>
 
+    <!-- Ajustes de los KPIs y del panel: solo para quien gestiona la contabilidad -->
+    <menuitem id="menu_apunts_kpi_config"
+              name="Configuración"
+              parent="menu_apunts_direccion_root"
+              groups="account.group_account_manager"
+              sequence="10"/>
+
     <menuitem id="menu_apunts_direccion_panel"
               name="Panel Dirección"
               parent="menu_apunts_direccion_root"
@@ -13,8 +20,62 @@
               sequence="1"/>
 
     <menuitem id="menu_apunts_direccion_evolucion"
-              name="Evolución semanal"
-              parent="menu_apunts_direccion_root"
+              name="Fotos diarias de los KPIs (motor de las fotos)"
+              parent="menu_apunts_kpi_config"
               action="apunts_action_direccion_snapshot"
+              sequence="7"/>
+
+    <menuitem id="menu_apunts_direccion_facturacion"
+              name="Facturación por mes"
+              parent="menu_apunts_direccion_root"
+              action="apunts_action_facturacion_mensual_srv"
+              sequence="3"/>
+
+    <menuitem id="menu_apunts_direccion_objetivos"
+              name="Objetivos del cuadro de mando (panel antiguo)"
+              parent="menu_apunts_kpi_config"
+              action="apunts_action_direccion_objetivo"
               sequence="2"/>
+
+
+    <!-- ═══ Los dos cuadros de mando, con una entrada por HOJA del Excel ═══ -->
+    <menuitem id="menu_apunts_direccion_cuadros" name="Cuadros de siempre (CMI · CMP)"
+              parent="menu_apunts_direccion_root" sequence="5"/>
+
+    <!-- ── Libro CMI (financiero) ── -->
+    <menuitem id="menu_cmi" name="CMI · Financiero"
+              parent="menu_apunts_direccion_cuadros" sequence="1"/>
+    <menuitem id="menu_cmi_registro" name="Registro semanal" parent="menu_cmi"
+              action="apunts_action_cmi_hoja_registro" sequence="1"/>
+    <menuitem id="menu_cmi_operaciones" name="Operaciones" parent="menu_cmi"
+              action="apunts_action_cmi_hoja_operaciones" sequence="2"/>
+    <menuitem id="menu_cmi_graficas" name="Gráficas" parent="menu_cmi" sequence="3"/>
+    <menuitem id="menu_cmi_g_cme" name="CME · Económico" parent="menu_cmi_graficas"
+              action="apunts_action_cmi_graf_cme" sequence="1"/>
+    <menuitem id="menu_cmi_g_cml" name="CML · Liquidez" parent="menu_cmi_graficas"
+              action="apunts_action_cmi_graf_cml" sequence="2"/>
+    <menuitem id="menu_cmi_g_cmp" name="CMP · Producción material" parent="menu_cmi_graficas"
+              action="apunts_action_cmi_graf_cmp" sequence="3"/>
+    <menuitem id="menu_cmi_g_cmv" name="CMC/CMV · Compras y ventas" parent="menu_cmi_graficas"
+              action="apunts_action_cmi_graf_cmv" sequence="4"/>
+    <menuitem id="menu_cmi_g_pot" name="Potencial de liquidez" parent="menu_cmi_graficas"
+              action="apunts_action_cmi_graf_potencial" sequence="5"/>
+
+    <!-- ── Libro CMP (producción) ── -->
+    <menuitem id="menu_cmp" name="CMP · Producción"
+              parent="menu_apunts_direccion_cuadros" sequence="2"/>
+    <menuitem id="menu_cmp_centros" name="Registro por centros" parent="menu_cmp"
+              action="apunts_action_cmp_centros" sequence="1"/>
+    <menuitem id="menu_cmp_operarios" name="Registro por operarios" parent="menu_cmp"
+              action="apunts_action_cmp_operarios" sequence="2"/>
+    <menuitem id="menu_cmp_seguimiento" name="Seguimiento horario" parent="menu_cmp"
+              action="apunts_action_cmp_seguimiento" sequence="3"/>
+    <menuitem id="menu_cmp_precio" name="Precio por hora" parent="menu_cmp"
+              action="apunts_action_cmp_coste" sequence="5"/>
+    <menuitem id="menu_cmp_categorias" name="⚙ Categorías de coste" parent="menu_cmp"
+              action="apunts_action_cmp_coste_categoria" sequence="9"/>
+
+    <menuitem id="menu_cmp_kpis" name="KPIs de producción" parent="menu_cmp"
+              action="apunts_action_cmp_indicadores" sequence="4"/>
+
 </odoo>

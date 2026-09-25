@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-from datetime import date
+from datetime import date, timedelta
 from collections import defaultdict
 
 
@@ -28,6 +28,13 @@ class LiraSalesLine(models.Model):
     kpi_date_to       = fields.Date('Hasta')
     kpi_agrupar_por   = fields.Char('Agrupación')
     kpi_fuente        = fields.Char('Fuente')
+
+    def action_grafica_semanal(self):
+        """Botón de la cabecera del ranking: la gráfica por semanas de este
+        mismo ranking (se calculó a la vez que la lista)."""
+        linea = self.env['lira.sales.line'].search([('user_id', '=', self.env.user.id)], limit=1)
+        return self.env['lira.ventas.semana']._accion(
+            linea.kpi_fuente if linea else None, linea.kpi_agrupar_por if linea else None)
 
     def action_open_source(self):
         """Abre los documentos origen (pedidos de venta o facturas) filtrados
@@ -136,6 +143,13 @@ class LiraSalesAnalysis(models.TransientModel):
         - groups: {key: {label, importe, qty, docs(set), fechas[]}}
         - cli_groups: {nombre_cliente: importe}  (para hallar el top cliente)
         """
+        movimientos = rec._movimientos(rec)
+        groups, clientes, productos, cli_groups = rec._agrupar(rec, movimientos)
+        return groups, len(clientes), len(productos), cli_groups
+
+    def _movimientos(self, rec):
+        """Los movimientos (líneas de pedido o de factura) del periodo, ya
+        normalizados: importe, unidades, fecha, producto, cliente, vendedor."""
         df = rec.date_from or date.today().replace(month=1, day=1)
         dt = rec.date_to   or date.today()
         company = self.env.company
@@ -145,22 +159,27 @@ class LiraSalesAnalysis(models.TransientModel):
             # Facturas y rectificativas de cliente, contabilizadas.
             # Solo líneas de producto (display_type='product'): excluye
             # secciones, notas, impuestos y términos de pago.
+            # La cifra es la CONTABLE: lo que las facturas llevan a las cuentas de
+            # ventas (70x), por fecha contable. Es la misma que el P&G y el Tablero.
+            # Una línea de factura que va a otra cuenta (p. ej. una retención de
+            # garantía en la 431) no es ingreso y no cuenta.
             mls = self.env['account.move.line'].search([
                 ('move_id.move_type', 'in', ['out_invoice', 'out_refund']),
                 ('move_id.state',     '=',  'posted'),
                 ('display_type',      '=',  'product'),
-                ('move_id.invoice_date', '>=', str(df)),
-                ('move_id.invoice_date', '<=', str(dt)),
+                ('account_id.code',   '=like', '70%'),
+                ('date',              '>=', str(df)),
+                ('date',              '<=', str(dt)),
                 ('company_id',        '=',  company.id),
             ])
             for l in mls:
                 mv = l.move_id
-                # La rectificativa (abono) resta de las ventas netas.
+                # El saldo contable ya lleva el signo: la rectificativa resta.
                 sign = -1.0 if mv.move_type == 'out_refund' else 1.0
                 movimientos.append({
-                    'importe':     l.price_subtotal * sign,
+                    'importe':     -l.balance,
                     'qty':         l.quantity * sign,
-                    'fecha':       mv.invoice_date,
+                    'fecha':       l.date,
                     'product':     l.product_id,
                     'partner':     mv.partner_id.commercial_partner_id,
                     'salesperson': mv.invoice_user_id,
@@ -185,7 +204,32 @@ class LiraSalesAnalysis(models.TransientModel):
                     'salesperson': o.user_id,
                     'doc_id':      o.id,
                 })
+        return movimientos
 
+    def _clave_grupo(self, rec, m):
+        """(clave, etiqueta) del grupo al que va un movimiento según la
+        dimensión elegida, o None si no se puede clasificar."""
+        ag = rec.agrupar_por
+        if ag == 'product':
+            if not m['product']:
+                # Líneas de texto libre: son ventas igual y no se pueden tirar
+                return 0, 'Sin producto (líneas de texto libre)'
+            return m['product'].id, (m['product'].display_name or '—')
+        if ag == 'customer':
+            return m['partner'].id, (m['partner'].name or '—')
+        if ag == 'category':
+            cat = m['product'].categ_id if m['product'] else False
+            return (cat.id if cat else 0), (cat.name if cat else 'Sin categoría')
+        if ag == 'month':
+            if not m['fecha']:
+                return None
+            return m['fecha'].strftime('%Y-%m'), m['fecha'].strftime('%b %Y')
+        if ag == 'salesperson':
+            sp = m['salesperson']
+            return (sp.id if sp else 0), (sp.name if sp else 'Sin asignar')
+        return None
+
+    def _agrupar(self, rec, movimientos):
         groups = defaultdict(lambda: {
             'label': '', 'importe': 0.0, 'qty': 0.0, 'docs': set(), 'fechas': [],
         })
@@ -194,25 +238,10 @@ class LiraSalesAnalysis(models.TransientModel):
         cli_groups = defaultdict(float)
 
         for m in movimientos:
-            ag = rec.agrupar_por
-            if ag == 'product':
-                if not m['product']:
-                    continue
-                key, label = m['product'].id, (m['product'].display_name or '—')
-            elif ag == 'customer':
-                key, label = m['partner'].id, (m['partner'].name or '—')
-            elif ag == 'category':
-                cat = m['product'].categ_id if m['product'] else False
-                key, label = (cat.id if cat else 0), (cat.name if cat else 'Sin categoría')
-            elif ag == 'month':
-                if not m['fecha']:
-                    continue
-                key, label = m['fecha'].strftime('%Y-%m'), m['fecha'].strftime('%b %Y')
-            elif ag == 'salesperson':
-                sp = m['salesperson']
-                key, label = (sp.id if sp else 0), (sp.name if sp else 'Sin asignar')
-            else:
+            kl = rec._clave_grupo(rec, m)
+            if not kl:
                 continue
+            key, label = kl
 
             g = groups[key]
             g['label']    = label
@@ -228,7 +257,7 @@ class LiraSalesAnalysis(models.TransientModel):
             if m['product']:
                 productos.add(m['product'].id)
 
-        return groups, len(clientes), len(productos), cli_groups
+        return groups, clientes, productos, cli_groups
 
     def _compute_and_store(self):
         """Calcula los datos y los guarda en lira.sales.line del usuario actual."""
@@ -236,7 +265,9 @@ class LiraSalesAnalysis(models.TransientModel):
             df = rec.date_from or date.today().replace(month=1, day=1)
             dt = rec.date_to   or date.today()
 
-            groups, num_clientes, num_productos, cli_groups = rec._collect(rec)
+            movimientos = rec._movimientos(rec)
+            groups, clientes, productos, cli_groups = rec._agrupar(rec, movimientos)
+            num_clientes, num_productos = len(clientes), len(productos)
             total_v = sum(g['importe'] for g in groups.values())
 
             result = []
@@ -291,6 +322,42 @@ class LiraSalesAnalysis(models.TransientModel):
             }
             for i, r in enumerate(result, 1):
                 SalesLine.create({**r, 'rank': i, **kpi_vals})
+
+            rec._guardar_semanas(rec, movimientos, result)
+
+    def _guardar_semanas(self, rec, movimientos, result=None):
+        """La gráfica del ranking: el total de cada semana (lo facturado o lo
+        pedido, según la fuente), sin desglose por producto o cliente."""
+        semanas = defaultdict(lambda: {'importe': 0.0, 'qty': 0.0, 'docs': set()})
+        for m in movimientos:
+            if not m['fecha']:
+                continue
+            lunes = m['fecha'] - timedelta(days=m['fecha'].weekday())
+            sem = semanas[lunes]
+            sem['importe'] += m['importe']
+            sem['qty'] += m['qty']
+            sem['docs'].add(m['doc_id'])
+        Semana = self.env['lira.ventas.semana']
+        Semana.search([('user_id', '=', self.env.user.id)]).unlink()
+        vals = []
+        for lunes, sem in sorted(semanas.items()):
+            iso = lunes.isocalendar()
+            vals.append({
+                'user_id': self.env.user.id, 'semana': lunes, 'num_semana': iso[1],
+                'anio': iso[0], 'importe': round(sem['importe'], 2),
+                'qty': round(sem['qty'], 2), 'num_docs': len(sem['docs']),
+                'fuente': rec.fuente, 'agrupar_por': rec.agrupar_por,
+                'date_from': rec.date_from, 'date_to': rec.date_to,
+            })
+        if vals:
+            Semana.create(vals)
+        return len(vals)
+
+    def action_ver_grafica(self):
+        """Calcula el ranking (y sus semanas) y abre directamente la gráfica."""
+        self.ensure_one()
+        self._compute_and_store()
+        return self.env['lira.ventas.semana']._accion(self.fuente, self.agrupar_por)
 
     @api.onchange('date_from', 'date_to', 'agrupar_por', 'fuente')
     def _onchange_compute(self):

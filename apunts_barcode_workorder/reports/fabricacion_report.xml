@@ -4,6 +4,21 @@
         <xpath expr="//tr[@t-foreach='o.workorder_ids']" position="attributes">
             <attribute name="style">height: 100px; vertical-align: middle;</attribute>
         </xpath>
+
+        <!-- Producto y Cantidad a producir iban pegados en la misma fila: un
+             nombre largo («RIEL 1 METRO ALUMINIO») partía en «RIEL 1» y se leía
+             junto al «455» de al lado como 1455. Ahora el producto tiene más
+             sitio y aire a la derecha, y la cantidad va separada por una línea,
+             en grande y en negrita. -->
+        <xpath expr="//div[hasclass('row') and hasclass('mt32') and hasclass('mb32')]/div[1]" position="attributes">
+            <attribute name="class">col-5 pe-5</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('row') and hasclass('mt32') and hasclass('mb32')]//span[@t-field='o.product_qty']/.." position="attributes">
+            <attribute name="class">col-3 ps-4 border-start</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('row') and hasclass('mt32') and hasclass('mb32')]//span[@t-field='o.product_qty']" position="attributes">
+            <attribute name="style">font-size:1.5em;font-weight:700;</attribute>
+        </xpath>
             
   
     </template>

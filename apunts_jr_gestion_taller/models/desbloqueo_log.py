@@ -33,6 +33,14 @@ class ApuntsTallerDesbloqueo(models.Model):
         readonly=True,
         ondelete="cascade",
     )
+    company_id = fields.Many2one(
+        "res.company",
+        string="Compañía",
+        related="employee_id.company_id",
+        store=True,
+        index=True,
+        readonly=True,
+    )
     tipo_bloqueo = fields.Selection(
         selection=[
             ("jornada", "Jornada insuficiente"),

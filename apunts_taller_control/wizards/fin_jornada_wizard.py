@@ -64,6 +64,36 @@ class ApuntsFinJornadaWizard(models.TransientModel):
             presencia += (fields.Datetime.now() - abierta.check_in).total_seconds() / 3600.0
         return presencia
 
+    def _asistencia_colgada(self, emp):
+        """Entrada sin cerrar de un día ANTERIOR, si la hay.
+
+        Mientras el operario arrastra una entrada sin salida de otro día, el
+        sistema le da por dentro y no le abre la presencia de hoy: ficha en sus
+        OFs con normalidad pero su presencia del día sale a cero. Se detecta
+        para poder avisarle en vez de enseñarle un 0h 00m sin explicación."""
+        hoy = fields.Date.context_today(self)
+        ini, _fin = emp._apunts_rango_utc(hoy)
+        return self.env["hr.attendance"].search([
+            ("employee_id", "=", emp.id),
+            ("check_out", "=", False),
+            ("check_in", "<", ini),
+        ], order="check_in asc", limit=1)
+
+    def _aviso_asistencia_colgada_html(self, emp):
+        att = self._asistencia_colgada(emp)
+        if not att:
+            return ""
+        tz = pytz.timezone(emp._get_tz() or "Europe/Madrid")
+        cuando = pytz.utc.localize(att.check_in).astimezone(tz).strftime("%d/%m a las %H:%M")
+        return (
+            "<div style='background:#fde68a;border-left:4px solid #b45309;"
+            "padding:8px;margin:6px 0;border-radius:4px;'>"
+            "<strong>⚠️ Tienes una entrada sin cerrar del %s.</strong><br/>"
+            "Por eso tu presencia de hoy sale a 0. Tus fichajes en las órdenes "
+            "están bien guardados. Avisa a oficina para que cierre esa entrada."
+            "</div>" % cuando
+        )
+
     def _tramos_presencia_html(self, emp):
         """Línea con la hora de ENTRADA y SALIDA de hoy (asistencias reales),
         en hora local del operario. Si sigue fichado, la salida sale 'abierto'.
@@ -159,6 +189,7 @@ class ApuntsFinJornadaWizard(models.TransientModel):
                 f"<p><strong>{emp.name}</strong> — "
                 f"{len(registros)} fichajes en OF hoy · "
                 f"{total_txt}</p>"
+                f"{self._aviso_asistencia_colgada_html(emp)}"
                 f"{tramos_html}"
                 "<p class='text-muted small mb-1'>Detalle de fichajes en OF "
                 "(pueden solaparse entre sí; su suma <u>no</u> es la presencia):</p>"

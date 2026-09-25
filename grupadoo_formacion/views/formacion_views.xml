@@ -64,6 +64,9 @@
                     <field name="estado" widget="statusbar" options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="Archivada — oculta al cliente"
+                            bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
                     <div class="alert alert-warning mb-3" role="alert" invisible="estado != 'validado'">
                         Esta guía está <b>validada</b>: si cambias su contenido volverá a borrador
                         (el acta se conserva) y, con "Solo guías validadas" activo, el cliente
@@ -188,6 +191,8 @@
                 <filter name="borradores" string="Borradores" domain="[('estado', '=', 'borrador')]"/>
                 <filter name="en_validacion" string="En validación" domain="[('estado', '=', 'en_validacion')]"/>
                 <filter name="validadas" string="Validadas" domain="[('estado', '=', 'validado')]"/>
+                <separator/>
+                <filter name="archivadas" string="Archivadas (ocultas)" domain="[('active', '=', False)]"/>
                 <filter name="a_medida" string="Dependen de desarrollo a medida" domain="[('es_custom', '=', True)]"/>
                 <group>
                     <filter name="por_area" string="Área" context="{'group_by': 'area_id'}"/>

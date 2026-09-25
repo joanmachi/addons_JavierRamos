@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="cron_lira_asignar_cliente" model="ir.cron">
+    <field name="name">Stock por cliente: asignar cliente a las referencias nuevas</field>
+    <field name="model_id" ref="product.model_product_template"/>
+    <field name="state">code</field>
+    <field name="code">model._cron_lira_asignar_cliente()</field>
+    <field name="interval_number">1</field>
+    <field name="interval_type">days</field>
+    <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 04:30:00')"/>
+    <field name="active" eval="True"/>
+  </record>
+</odoo>

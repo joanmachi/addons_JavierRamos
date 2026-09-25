@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- Semanas en horizontal, euros en vertical: el total facturado o pedido cada semana. -->
+  <record id="view_lira_ventas_semana_graph" model="ir.ui.view">
+    <field name="name">lira.ventas.semana.graph</field>
+    <field name="model">lira.ventas.semana</field>
+    <field name="arch" type="xml">
+      <graph string="Ventas por semana" type="bar" stacked="0" disable_linking="1">
+        <field name="semana" interval="week"/>
+        <field name="importe" type="measure"/>
+      </graph>
+    </field>
+  </record>
+
+  <record id="view_lira_ventas_semana_pivot" model="ir.ui.view">
+    <field name="name">lira.ventas.semana.pivot</field>
+    <field name="model">lira.ventas.semana</field>
+    <field name="arch" type="xml">
+      <pivot string="Ventas por semana" sample="1">
+        <field name="semana" interval="week" type="row"/>
+        <field name="importe" type="measure"/>
+        <field name="num_docs" type="measure"/>
+      </pivot>
+    </field>
+  </record>
+
+  <record id="view_lira_ventas_semana_list" model="ir.ui.view">
+    <field name="name">lira.ventas.semana.list</field>
+    <field name="model">lira.ventas.semana</field>
+    <field name="arch" type="xml">
+      <list string="Ventas por semana" create="0" delete="0" edit="0">
+        <field name="anio" string="Año"/>
+        <field name="num_semana" string="Sem"/>
+        <field name="semana" string="Lunes"/>
+        <field name="importe" string="Importe (€ s/IVA)" sum="Total"/>
+        <field name="qty" string="Unidades" sum="Total"/>
+        <field name="num_docs" string="Documentos" sum="Total"/>
+        <field name="user_id" column_invisible="1"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_ventas_semana_search" model="ir.ui.view">
+    <field name="name">lira.ventas.semana.search</field>
+    <field name="model">lira.ventas.semana</field>
+    <field name="arch" type="xml">
+      <search string="Ventas por semana">
+        <filter name="ult12" string="Últimas 12 semanas"
+                domain="[('semana', '&gt;=', (context_today() - relativedelta(weeks=12)).strftime('%Y-%m-%d'))]"/>
+        <group expand="0" string="Agrupar por">
+          <filter name="g_semana" string="Semana" context="{'group_by': 'semana:week'}"/>
+          <filter name="g_mes" string="Mes" context="{'group_by': 'semana:month'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+</odoo>

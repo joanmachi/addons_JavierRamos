@@ -91,7 +91,7 @@ class LiraInventoryValuationFv(models.TransientModel):
             ('account_id', '!=', False),
         ])
         # Códigos variables desde la configuración (UI con fallback)
-        vars_set = set(self.env['lira.variable.account'].get_variable_codes())
+        vars_set = set([c for c, b in self.env['lira.cuenta.bloque'].mapa().items() if b == 'variables_directos'] or self.env['lira.variable.account'].get_variable_codes())
         tot_var = 0.0
         tot_fij = 0.0
         for ln in aml_lines:

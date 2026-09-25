@@ -25,9 +25,9 @@
                         <h1 invisible="modo != 'en_curso'">Resumen Carga Centros de Trabajo</h1>
                         <h1 invisible="modo != 'historico'">Histórico Carga Centros</h1>
                         <p class="text-muted" invisible="modo != 'en_curso'">
-                            Foto actual de la carga de cada centro de trabajo:
-                            qué hay pendiente, qué se ha fichado los últimos 7 días
-                            y el acumulado histórico total.
+                            Foto actual de la carga de cada centro de trabajo: qué hay
+                            pendiente y qué órdenes están abiertas. Lo ya cerrado se
+                            consulta en la vista Histórico.
                         </p>
                         <p class="text-muted" invisible="modo != 'historico'">
                             Horas fichadas en los centros dentro del periodo elegido
@@ -40,6 +40,16 @@
                                 string="Ver lista de centros"
                                 class="btn btn-lg btn-primary"
                                 invisible="modo != 'en_curso'"/>
+                        <button name="action_open_carga_por_centro" type="object"
+                                string="Carga por centro (gráfica)"
+                                class="btn btn-lg btn-warning"
+                                invisible="modo != 'en_curso'"/>
+                        <button name="action_open_rendimiento_operario" type="object"
+                                string="Rendimiento por operario"
+                                class="btn btn-lg btn-success"/>
+                        <button name="action_open_rendimiento_centro" type="object"
+                                string="Rendimiento por centro"
+                                class="btn btn-lg btn-info"/>
                         <button name="action_open_historico_centros" type="object"
                                 string="HISTÓRICO — desglose por centro"
                                 class="btn btn-lg btn-info"
@@ -216,100 +226,63 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (7 días)</div>
-                                    <div class="display-6 fw-bold text-success">
-                                        <field name="total_horas_reales_semana" nolabel="1" readonly="1" widget="float_time"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Suma de minutos fichados por operarios en TODOS
-                                        los centros durante los últimos 7 días.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (15 días)</div>
-                                    <div class="display-6 fw-bold text-success">
-                                        <field name="total_horas_reales_15d" nolabel="1" readonly="1" widget="float_time"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Suma de minutos fichados por operarios en TODOS
-                                        los centros durante los últimos 15 días.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días reales (15 días)</div>
-                                    <div class="display-6 fw-bold text-success">
-                                        <field name="total_dias_reales_15d" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Días laborales (8 h/día) equivalentes a las horas
-                                        fichadas en todos los centros en los últimos 15 días.
+                    </div>
+
+                    <!-- ÓRDENES DE TRABAJO: abiertas y en espera (en curso) · cerradas (histórico) -->
+                    <div>
+                        <h2 class="mt-4 mb-2">Órdenes de trabajo</h2>
+                        <p class="text-muted small mb-3" invisible="modo != 'en_curso'">
+                            Abiertas = en curso (ready / pending / progress), con la carga que les queda.
+                            En espera (waiting) hoy NO cuentan como abiertas. Las cerradas están en la vista Histórico.
+                        </p>
+                        <p class="text-muted small mb-3" invisible="modo != 'historico'">
+                            Órdenes de trabajo terminadas por completo dentro del periodo elegido (por fecha de cierre).
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-md-4 col-sm-12" invisible="modo != 'en_curso'">
+                                <div class="card shadow-sm h-100 border-warning">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-uppercase fw-semibold small text-muted mb-1">Abiertas (en curso)</div>
+                                        <div class="display-5 fw-bold text-warning">
+                                            <field name="ot_abiertas_n" nolabel="1" readonly="1"/>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            Les quedan <field name="ot_abiertas_horas" nolabel="1" readonly="1" widget="float_time"/> de trabajo.
+                                        </div>
+                                        <button name="action_open_ot_abiertas" type="object"
+                                                string="Ver órdenes abiertas"
+                                                class="btn btn-sm btn-outline-warning mt-2"/>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas reales (30 días)</div>
-                                    <div class="display-6 fw-bold text-success">
-                                        <field name="total_horas_reales_30d" nolabel="1" readonly="1" widget="float_time"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Suma de minutos fichados por operarios en TODOS
-                                        los centros durante los últimos 30 días.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días reales (30 días)</div>
-                                    <div class="display-6 fw-bold text-success">
-                                        <field name="total_dias_reales_30d" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Días laborales (8 h/día) equivalentes a las horas
-                                        fichadas en todos los centros en los últimos 30 días.
+                            <div class="col-md-4 col-sm-12" invisible="modo != 'historico'">
+                                <div class="card shadow-sm h-100 border-success">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-uppercase fw-semibold small text-muted mb-1">Cerradas en el periodo</div>
+                                        <div class="display-5 fw-bold text-success">
+                                            <field name="hist_ot_cerradas_n" nolabel="1" readonly="1"/>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            Previsto <field name="hist_horas_teoricas_ot" nolabel="1" readonly="1" widget="float_time"/> ·
+                                            real <field name="hist_horas_reales_ot" nolabel="1" readonly="1" widget="float_time"/>.
+                                        </div>
+                                        <button name="action_open_ot_cerradas" type="object"
+                                                string="Ver órdenes cerradas"
+                                                class="btn btn-sm btn-outline-success mt-2"/>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas fichadas (histórico total)</div>
-                                    <div class="display-6 fw-bold text-secondary">
-                                        <field name="total_horas_reales_total" nolabel="1" readonly="1" widget="float_time"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Total acumulado de horas fichadas en todos los centros
-                                        desde el inicio, sin filtro de fechas.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body text-center py-3">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Días fichados (histórico total)</div>
-                                    <div class="display-6 fw-bold text-secondary">
-                                        <field name="total_dias_reales_total" nolabel="1" readonly="1" widget="float" digits="[16,1]"/>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        Días laborales (8 h/día) equivalentes al total
-                                        histórico de horas fichadas en todos los centros.
+                            <div class="col-md-4 col-sm-12" invisible="modo != 'en_curso'">
+                                <div class="card shadow-sm h-100 border-secondary">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-uppercase fw-semibold small text-muted mb-1">En espera (waiting)</div>
+                                        <div class="display-5 fw-bold text-secondary">
+                                            <field name="ot_espera_n" nolabel="1" readonly="1"/>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            Previsto <field name="ot_espera_horas" nolabel="1" readonly="1" widget="float_time"/> ·
+                                            hoy NO cuentan como abiertas ni en horas pendientes.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -330,7 +303,7 @@
             <pivot string="Histórico por centro" sample="1">
                 <field name="workcenter_id" type="row"/>
                 <field name="date_end" interval="month" type="col"/>
-                <field name="duration" type="measure" string="Minutos fichados"/>
+                <field name="apunts_horas" type="measure" string="Horas fichadas"/>
             </pivot>
         </field>
     </record>
@@ -342,7 +315,7 @@
             <graph string="Histórico por centro" type="bar" sample="1">
                 <field name="date_end" interval="month"/>
                 <field name="workcenter_id"/>
-                <field name="duration" type="measure" string="Minutos fichados"/>
+                <field name="apunts_horas" type="measure" string="Horas fichadas"/>
             </graph>
         </field>
     </record>
@@ -353,8 +326,8 @@
         <field name="arch" type="xml">
             <pivot string="Teórico vs real por centro" sample="1">
                 <field name="workcenter_id" type="row"/>
-                <field name="duration_expected" type="measure" string="Minutos teóricos"/>
-                <field name="duration" type="measure" string="Minutos reales"/>
+                <field name="apunts_horas_previstas" type="measure" string="Horas previstas"/>
+                <field name="apunts_horas_reales" type="measure" string="Horas reales"/>
             </pivot>
         </field>
     </record>
@@ -368,7 +341,7 @@
                 <field name="workcenter_id"/>
                 <field name="employee_id" optional="show"/>
                 <field name="workorder_id" optional="show"/>
-                <field name="duration" sum="Total" string="Minutos" digits="[16,1]"/>
+                <field name="apunts_horas" sum="Total" string="Horas" digits="[16,1]"/>
             </list>
         </field>
     </record>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Casilla para dejar fuera del rendimiento por operario a las fichas que
+         no son un operario real (la propia empresa, centros genéricos como
+         "Planta" o "Gestión", usuarios de prueba). Sin ella, esas fichas
+         distorsionan el ranking. -->
+    <record id="apunts_hr_employee_form_rendimiento" model="ir.ui.view">
+        <field name="name">hr.employee.form.apunts.rendimiento</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Rendimiento de taller (Apunts)" name="apunts_rendimiento">
+                    <field name="apunts_excluir_rendimiento"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -292,7 +292,15 @@
                         <!-- Fila 1: círculo nº + nombre + duración + badge -->
                         <div class="apunts-wo-row1">
                             <span class="apunts-wo-num"><t t-esc="orden_index + 1"/></span>
-                            <strong class="apunts-wo-name"><t t-esc="orden.name"/></strong>
+                            <!-- Mantener pulsado medio segundo: se despliega el nombre entero de la fase -->
+                            <strong class="apunts-wo-name"
+                                    t-att-class="{'apunts-wo-name-full': env.model.woNameExpanded === orden.id}"
+                                    t-att-title="orden.name"
+                                    t-on-pointerdown="(ev) => this.woNamePress(ev, orden)"
+                                    t-on-pointerup="() => this.woNameRelease()"
+                                    t-on-pointercancel="() => this.woNameRelease()"
+                                    t-on-pointerleave="() => this.woNameRelease()"
+                                    t-on-contextmenu.prevent=""><t t-esc="orden.name"/></strong>
                             <span t-if="orden.duration_str" class="apunts-wo-duration" title="Tiempo previsto de la fase (estimación), no lo trabajado">
                                 <i class="fa fa-clock-o me-1"/>Previsto <t t-esc="orden.duration_str"/>
                             </span>

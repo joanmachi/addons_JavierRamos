@@ -13,12 +13,14 @@
                 <tr t-foreach="o.workorder_ids" t-as="line2">
                     <td><span t-field="line2.name">Assembling</span></td>
                     <td><span t-field="line2.workcenter_id.name">Center A</span></td>
+                    <!-- Sin operación de escandallo (OT creadas a mano) vale el tiempo previsto de la propia OT -->
                     <td>
-                        <span t-if="line2.operation_id"  t-esc="o.product_qty * line2.operation_id.time_cycle">58</span>
+                        <span t-if="line2.operation_id" t-esc="'%.0f' % (o.product_qty * line2.operation_id.time_cycle)">58</span>
+                        <span t-elif="line2.duration_expected" t-esc="'%.0f' % line2.duration_expected">58</span>
                     </td>
-                 
-                    <td >
+                    <td>
                         <span t-if="line2.operation_id" t-field="line2.operation_id.time_cycle">58</span>
+                        <span t-elif="line2.duration_expected and o.product_qty" t-esc="'%.1f' % (line2.duration_expected / o.product_qty)">58</span>
                     </td>
                     <td  t-if="False">
                         <span t-field="line2.barcode" t-options="{'widget': 'barcode', 'width': 600, 'height': 100, 'img_style': 'width:100%;height:35px'}">987654321098</span>

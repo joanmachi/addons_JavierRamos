@@ -6,6 +6,7 @@ from . import lira_product_costing
 from . import lira_customer_margin
 from . import lira_salary_forecast
 from . import lira_stock_valuation
+from . import lira_stock_cliente
 from . import lira_van_tir
 from . import lira_aging
 from . import lira_purchase_analysis
@@ -21,3 +22,7 @@ from . import lira_modelo_347
 from . import lira_modelo_111_115
 from . import lira_mercaderia
 from . import lira_variable_account
+from . import lira_ratio_criterio
+from . import lira_cuenta_bloque
+from . import lira_evolucion_coste
+from . import lira_ventas_semana

@@ -13,6 +13,20 @@
         </field>
     </record>
 
+    <!-- Vista de tabla al estilo del cuadro de mando de siempre: un indicador
+         por fila y una columna por semana, como en la hoja de cálculo. -->
+    <record id="apunts_direccion_snapshot_pivot" model="ir.ui.view">
+        <field name="name">apunts.direccion.snapshot.pivot</field>
+        <field name="model">apunts.direccion.snapshot</field>
+        <field name="arch" type="xml">
+            <pivot string="Registro semanal" sample="1">
+                <field name="kpi" type="row"/>
+                <field name="fecha" interval="week" type="col"/>
+                <field name="valor" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
     <record id="apunts_direccion_snapshot_list" model="ir.ui.view">
         <field name="name">apunts.direccion.snapshot.list</field>
         <field name="model">apunts.direccion.snapshot</field>
@@ -37,7 +51,7 @@
                 <filter name="f_cobertura" string="Cobertura" domain="[('kpi', '=', 'cobertura_meses')]"/>
                 <filter name="f_tesoreria" string="Tesorería" domain="[('kpi', '=', 'tesoreria')]"/>
                 <filter name="f_cobros" string="Cobros pendientes" domain="[('kpi', '=', 'cobros_pendientes')]"/>
-                <filter name="f_margen" string="Margen bruto" domain="[('kpi', '=', 'margen_bruto')]"/>
+                <filter name="f_ebitda" string="EBITDA" domain="[('kpi', '=', 'ebitda_anual')]"/>
                 <filter name="f_entregas" string="Entregas en fecha" domain="[('kpi', '=', 'entregas_mes_pct')]"/>
                 <filter name="f_horas" string="Horas productivas" domain="[('kpi', '=', 'horas_prod_pct')]"/>
                 <filter name="f_wip" string="WIP" domain="[('kpi', '=', 'wip_valor')]"/>
@@ -52,7 +66,7 @@
     <record id="apunts_action_direccion_snapshot" model="ir.actions.act_window">
         <field name="name">Evolución semanal KPIs</field>
         <field name="res_model">apunts.direccion.snapshot</field>
-        <field name="view_mode">graph,list</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="search_view_id" ref="apunts_direccion_snapshot_search"/>
         <field name="context">{'search_default_group_kpi': 1}</field>
         <field name="help" type="html">

@@ -13,6 +13,17 @@
         </field>
     </record>
 
+    <record id="apunts_carga_snapshot_graph_barras" model="ir.ui.view">
+        <field name="name">apunts.carga.snapshot.graph.barras</field>
+        <field name="model">apunts.carga.snapshot</field>
+        <field name="arch" type="xml">
+            <graph string="Carga por centro (horas pendientes)" type="bar" sample="1">
+                <field name="workcenter_id"/>
+                <field name="horas_pendientes" type="measure" string="Horas pendientes"/>
+            </graph>
+        </field>
+    </record>
+
     <record id="apunts_carga_snapshot_pivot" model="ir.ui.view">
         <field name="name">apunts.carga.snapshot.pivot</field>
         <field name="model">apunts.carga.snapshot</field>

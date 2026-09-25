@@ -40,7 +40,11 @@ class LiraPendingDeliveryLine(models.Model):
     qty_entregada    = fields.Float(string='Uds. entregadas', digits=(16, 2))
     qty_pendiente    = fields.Float(string='Uds. pendientes', digits=(16, 2))
     pct_entregado    = fields.Float(string='% entregado', digits=(16, 1))
-    stock_disponible = fields.Float(string='Stock disp.', digits=(16, 2))
+    stock_disponible = fields.Float(string='Stock previsto', digits=(16, 2),
+        help='Previsto de la ficha del producto: a mano + entradas − salidas pendientes.')
+    stock_a_mano     = fields.Float(string='Stock disponible', digits=(16, 2),
+        help='Disponible (a mano) de la ficha del producto. Se muestra una vez por referencia.')
+    valor_stock      = fields.Float(string='Valor stock (€)', digits=(16, 2))
     precio_unit      = fields.Float(string='Precio unit. (€)', digits=(16, 2))
     valor_pendiente  = fields.Float(string='Valor pendiente (€)', digits=(16, 2))
     dias_espera      = fields.Integer(string='Días en espera')
@@ -75,6 +79,9 @@ class LiraPendingDelivery(models.TransientModel):
             fecha_entrega = l.order_id.commitment_date.date() if l.order_id.commitment_date else False
             dias = (hoy - fecha).days
             pct = round(l.qty_delivered / l.product_uom_qty * 100, 1) if l.product_uom_qty else 0.0
+            # Los dos stocks de la ficha del producto: a mano (disponible) y previsto
+            stock = l.product_id.virtual_available
+            a_mano = l.product_id.qty_available
             vals.append({
                 'pedido':           l.order_id.name,
                 'fecha_pedido':     fecha,
@@ -86,11 +93,33 @@ class LiraPendingDelivery(models.TransientModel):
                 'qty_entregada':    round(l.qty_delivered, 2),
                 'qty_pendiente':    round(pendiente, 2),
                 'pct_entregado':    pct,
-                'stock_disponible': round(l.product_id.virtual_available, 2),
+                'stock_disponible': round(stock, 2),
+                'stock_a_mano':     0.0,   # se pone más abajo, una vez por referencia
+                'valor_stock':      0.0,
+                '_producto':        l.product_id.id,
+                '_orden':           (fecha, l.order_id.id, l.id),
+                '_precio':          l.price_unit,
+                '_a_mano':          a_mano,
                 'precio_unit':      round(l.price_unit, 2),
                 'valor_pendiente':  round(pendiente * l.price_unit, 2),
                 'dias_espera':      dias,
             })
+        # El stock de una referencia es uno solo aunque esté en varios pedidos:
+        # el disponible (a mano) y su valor se ponen en la primera línea de la
+        # referencia (el pedido más antiguo) y a cero en las demás, así al
+        # agrupar por cliente no se cuentan dos veces. El previsto sí se repite
+        # en cada línea porque es informativo y no se suma.
+        vistos = set()
+        for v in sorted(vals, key=lambda v: v['_orden']):
+            pid = v['_producto']
+            if pid not in vistos:
+                vistos.add(pid)
+                a_mano = max(v['_a_mano'], 0.0)
+                v['stock_a_mano'] = round(a_mano, 2)
+                v['valor_stock'] = round(a_mano * v['_precio'], 2)
+        for v in vals:
+            for k in ('_producto', '_orden', '_precio', '_a_mano'):
+                v.pop(k, None)
         by_cliente  = defaultdict(float)
         by_producto = defaultdict(float)
         for v in vals:
@@ -126,14 +155,19 @@ class LiraPendingDelivery(models.TransientModel):
         self.ensure_one()
         self._compute_and_store()
         lv = self.env.ref('lira_dashboard_contabilidad.view_lira_pending_delivery_line_list', raise_if_not_found=False)
+        gv = self.env.ref('lira_dashboard_contabilidad.view_lira_pending_delivery_line_graph', raise_if_not_found=False)
+        pv = self.env.ref('lira_dashboard_contabilidad.view_lira_pending_delivery_line_pivot', raise_if_not_found=False)
         sv = self.env.ref('lira_dashboard_contabilidad.view_lira_pending_delivery_line_search', raise_if_not_found=False)
         action = {
             'type': 'ir.actions.act_window', 'name': 'Pedidos pendientes de entrega — detalle',
-            'res_model': 'lira.pending.delivery.line', 'view_mode': 'list',
+            'res_model': 'lira.pending.delivery.line', 'view_mode': 'list,graph,pivot',
             'domain': [('user_id', '=', self.env.user.id)],
-            'context': {'create': False, 'delete': False},
+            'context': {'create': False, 'delete': False, 'fill_temporal': True},
         }
-        if lv: action['views'] = [(lv.id, 'list')]
+        if lv and gv and pv:
+            action['views'] = [(lv.id, 'list'), (gv.id, 'graph'), (pv.id, 'pivot')]
+        elif lv:
+            action['views'] = [(lv.id, 'list')]
         if sv: action['search_view_id'] = [sv.id, 'search']
         return action
 

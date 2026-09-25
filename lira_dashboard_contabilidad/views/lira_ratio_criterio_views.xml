@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_ratio_criterio_list" model="ir.ui.view">
+    <field name="name">lira.ratio.criterio.list</field>
+    <field name="model">lira.ratio.criterio</field>
+    <field name="arch" type="xml">
+      <list string="Criterios de aceptación de los ratios" editable="bottom">
+        <field name="secuencia" widget="handle"/>
+        <field name="name" string="Ratio"/>
+        <field name="verde" string="Verde desde"/>
+        <field name="amarillo" string="Amarillo desde"/>
+        <field name="sentido"/>
+        <field name="relativo_a" string="Relativo a" optional="hide"/>
+        <field name="notas" string="Origen / notas"/>
+        <field name="clave" column_invisible="1"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="action_lira_ratio_criterio" model="ir.actions.server">
+    <field name="name">⚙ Criterios de ratios</field>
+    <field name="model_id" ref="model_lira_ratio_criterio"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+  <menuitem id="menu_lira_ratio_criterio" name="⚙ Criterios de ratios"
+            parent="menu_lira_general" sequence="98"
+            action="action_lira_ratio_criterio"/>
+
+</odoo>

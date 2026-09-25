@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_apunts_carga_resumen_user,apunts.carga.centros.resumen.user,model_apunts_carga_centros_resumen,base.group_user,1,1,1,1
 access_apunts_carga_snapshot_user,apunts.carga.snapshot.user,model_apunts_carga_snapshot,base.group_user,1,0,0,0
+access_apunts_rendimiento_operario,apunts.rendimiento.operario,model_apunts_rendimiento_operario,base.group_user,1,1,1,1
+access_apunts_rendimiento_operario_line,apunts.rendimiento.operario.line,model_apunts_rendimiento_operario_line,base.group_user,1,1,1,1
+access_apunts_rendimiento_centro,apunts.rendimiento.centro,model_apunts_rendimiento_centro,base.group_user,1,1,1,1
+access_apunts_rendimiento_centro_line,apunts.rendimiento.centro.line,model_apunts_rendimiento_centro_line,base.group_user,1,1,1,1

@@ -14,6 +14,11 @@ class ApuntsHistoricoPresencia(models.Model):
     _order = 'fecha desc, employee_id'
 
     employee_id  = fields.Many2one('hr.employee', string='Empleado', readonly=True)
+    # La compañía sale del empleado: sin ella esta lista (vista SQL, sin regla
+    # multiempresa) enseñaba a los empleados de TODAS las compañías, y al pulsar
+    # «Abrir» en uno de otra compañía saltaba el error de acceso de la regla de
+    # hr.leave / hr.attendance (incidencia del 23/09/2026: empleado AUSINA).
+    company_id   = fields.Many2one('res.company', string='Compañía', readonly=True)
     department_id = fields.Many2one('hr.department', string='Departamento', readonly=True)
     fecha        = fields.Date(string='Fecha', readonly=True)
     tipo         = fields.Selection([
@@ -51,6 +56,7 @@ class ApuntsHistoricoPresencia(models.Model):
                 SELECT
                     a.id * 10                AS id,
                     a.employee_id            AS employee_id,
+                    e.company_id             AS company_id,
                     e.department_id          AS department_id,
                     (a.check_in)::date       AS fecha,
                     'presencia'              AS tipo,
@@ -66,6 +72,7 @@ class ApuntsHistoricoPresencia(models.Model):
                 SELECT
                     l.id * 10 + 1            AS id,
                     l.employee_id            AS employee_id,
+                    e.company_id             AS company_id,
                     e.department_id          AS department_id,
                     (l.date_from)::date      AS fecha,
                     'ausencia'               AS tipo,

@@ -10,6 +10,7 @@
                   decoration-warning="cumple_ahora">
                 <field name="fecha_desbloqueo"/>
                 <field name="employee_id"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
                 <field name="tipo_bloqueo"/>
                 <field name="dia_incidencia" optional="show"/>
                 <field name="horas_esperadas" optional="show" string="Esperadas"/>

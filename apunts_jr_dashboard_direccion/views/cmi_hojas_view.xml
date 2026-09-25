@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Una pantalla por cada hoja del cuadro de mando en Excel.
+         Son el MISMO registro semanal visto de distintas maneras, igual que en
+         el libro: "registro semanal" (los datos), "operaciones" (lo calculado)
+         y las cinco gráficas.
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── HOJA "registro semanal": los datos tal cual se apuntaban ────────── -->
+    <record id="apunts_cmi_hoja_registro_list" model="ir.ui.view">
+        <field name="name">apunts.cmi.hoja.registro.list</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <list string="Registro semanal" create="0" delete="0" edit="0"
+                  decoration-muted="reconstruido">
+                <field name="semana" string="Sem"/>
+                <field name="fecha_ini" string="Lunes"/>
+                <field name="saldo_bancos" string="Saldo bancos" sum="Media"
+                       decoration-danger="not ok_saldo"/>
+                <field name="cobros_mas_cartera" string="Cobros pend + cartera" optional="show"/>
+                <field name="cobros_pendientes" string="Cobros pend." sum="Total"/>
+                <field name="facturacion" string="Facturación" sum="Total"
+                       decoration-danger="not ok_facturacion"/>
+                <field name="albaranes_cliente" string="Albaranes clientes" sum="Total"/>
+                <field name="stock_ventas" string="Stock ventas"/>
+                <field name="encurso" string="Encurso"/>
+                <field name="stock_sin_pedido" string="Stock sin pedido"/>
+                <field name="pedidos_3m" string="Pedidos pdtes 3"/>
+                <field name="pedidos_6m" string="Pedidos pdtes 6"/>
+                <field name="pedidos_totales" string="Pedidos totales"
+                       decoration-danger="not ok_cartera"/>
+                <field name="facturas_proveedor" string="Proveedores" optional="show"/>
+                <field name="pedidos_proveedor" string="Pedidos a proveedor" optional="show"/>
+                <field name="albaranes_proveedor" string="Albaranes de proveedor" optional="show"/>
+                <field name="iva" string="IVA" optional="show"/>
+                <field name="irpf" string="IRPF" optional="show"/>
+                <field name="ok_saldo" column_invisible="1"/>
+                <field name="ok_cartera" column_invisible="1"/>
+                <field name="ok_facturacion" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmi_hoja_registro" model="ir.actions.act_window">
+        <field name="name">Registro semanal</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="view_id" ref="apunts_cmi_hoja_registro_list"/>
+        <field name="search_view_id" ref="apunts_cmi_semana_search"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">La hoja de datos de siempre</p>
+            <p>Una fila por semana con lo que se apuntaba a mano en el Excel: saldo de bancos,
+            cobros, facturación, albaranes, stocks, cartera de pedidos y proveedores.</p>
+        </field>
+    </record>
+
+    <!-- ── HOJA "operaciones": lo que se calculaba a partir de los datos ───── -->
+    <record id="apunts_cmi_hoja_operaciones_list" model="ir.ui.view">
+        <field name="name">apunts.cmi.hoja.operaciones.list</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <list string="Operaciones" create="0" delete="0" edit="0"
+                  decoration-muted="reconstruido">
+                <field name="semana" string="Sem"/>
+                <field name="fecha_ini" string="Lunes"/>
+                <field name="liquidez_bancos" string="Liquidez sin financiación"/>
+                <field name="liquidez_cartera" string="+ cobros en cartera"/>
+                <field name="liquidez_actividad" string="Liquidez incl. actividad"/>
+                <field name="liquidez_pedidos" string="+ pedidos en marcha"/>
+                <field name="cobros_menos_pagos" string="Cobros − pagos"/>
+                <field name="cartera_menos_pagos" string="Cartera − pagos" optional="show"/>
+                <field name="produccion_economica" string="Producción económica" sum="Total"/>
+                <field name="ventas_semanal" string="Ventas semanal" sum="Total"/>
+                <field name="produccion_material" string="Producción material" sum="Total"
+                       decoration-danger="not ok_produccion"/>
+                <field name="compras_semanal" string="Compras semanal" sum="Total"/>
+                <field name="prevision_pagos" string="Previsión de pagos"/>
+                <field name="sumatorio_pagos" string="Sumatorio de pagos" optional="show"/>
+                <field name="encurso_mas_stock" string="Encurso + stock" optional="show"/>
+                <field name="pedidos_3m" string="Pedidos pdtes 3 meses" optional="show"/>
+                <field name="resto_pedidos" string="Resto pedidos pdtes" optional="show"/>
+                <field name="pedidos_totales" string="Pedidos pendientes" optional="show"/>
+                <field name="encurso" string="Encurso" optional="show"/>
+                <field name="stock_ventas" string="Stock vendido" optional="show"/>
+                <field name="albaranes_sin_facturar" string="Albaranes" optional="show"/>
+                <field name="cantidad_ejecutada" string="Cantidad ejecutada" optional="show"/>
+                <field name="pct_ejecutado_total" string="% ejecutado total" optional="show"/>
+                <field name="pct_ejecutado_3m" string="% ejecutado 3 meses" optional="show"/>
+                <field name="ok_produccion" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmi_hoja_operaciones" model="ir.actions.act_window">
+        <field name="name">Operaciones</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="view_id" ref="apunts_cmi_hoja_operaciones_list"/>
+        <field name="search_view_id" ref="apunts_cmi_semana_search"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">La hoja de cálculos</p>
+            <p>Los indicadores que salían de los datos: liquidez en sus cuatro niveles,
+            producción económica, ventas de la semana, producción material, compras y
+            previsión de pagos.</p>
+        </field>
+    </record>
+
+    <!-- ── Las cinco gráficas del cuadro, cada una en su pantalla ─────────── -->
+    <record id="apunts_cmi_graph_cml" model="ir.ui.view">
+        <field name="name">apunts.cmi.graph.cml</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <graph string="CML · Liquidez" type="line" sample="1">
+                <field name="fecha_ini" interval="week"/>
+                <field name="liquidez_bancos" type="measure"/>
+                <field name="liquidez_actividad" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_cmi_graph_cmp" model="ir.ui.view">
+        <field name="name">apunts.cmi.graph.cmp</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <graph string="CMP · Producción material" type="line" sample="1">
+                <field name="fecha_ini" interval="week"/>
+                <field name="stock_ventas" type="measure"/>
+                <field name="encurso" type="measure"/>
+                <field name="stock_sin_pedido" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_cmi_graph_cmv" model="ir.ui.view">
+        <field name="name">apunts.cmi.graph.cmv</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <graph string="CMC/CMV · Compras y ventas" type="bar" sample="1">
+                <field name="fecha_ini" interval="week"/>
+                <field name="pedidos_proveedor" type="measure"/>
+                <field name="albaranes_proveedor" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_cmi_graph_potencial" model="ir.ui.view">
+        <field name="name">apunts.cmi.graph.potencial</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <graph string="Potencial de liquidez" type="line" sample="1">
+                <field name="fecha_ini" interval="week"/>
+                <field name="pedidos_3m" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmi_graf_cme" model="ir.actions.act_window">
+        <field name="name">CME · Económico</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="apunts_cmi_semana_graph_cme"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+    <record id="apunts_action_cmi_graf_cml" model="ir.actions.act_window">
+        <field name="name">CML · Liquidez</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="apunts_cmi_graph_cml"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+    <record id="apunts_action_cmi_graf_cmp" model="ir.actions.act_window">
+        <field name="name">CMP · Producción material</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="apunts_cmi_graph_cmp"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+    <record id="apunts_action_cmi_graf_cmv" model="ir.actions.act_window">
+        <field name="name">CMC/CMV · Compras y ventas</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="apunts_cmi_graph_cmv"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+    <record id="apunts_action_cmi_graf_potencial" model="ir.actions.act_window">
+        <field name="name">Potencial de liquidez</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="apunts_cmi_graph_potencial"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+</odoo>

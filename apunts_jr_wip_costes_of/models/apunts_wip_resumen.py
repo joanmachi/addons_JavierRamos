@@ -161,8 +161,8 @@ class ApuntsWipResumen(models.TransientModel):
     def action_forzar_recompute(self):
         Mo = self.env["mrp.production"]
         mos = Mo.search([("state", "in", ("confirmed", "progress", "to_close"))])
-        field = Mo._fields["apunts_is_wip"]
-        self.env.add_to_compute(field, mos)
+        self.env.add_to_compute(Mo._fields["apunts_wip_propio"], mos)
+        self.env.add_to_compute(Mo._fields["apunts_is_wip"], mos)
         self.env.flush_all()
         return self.action_open_resumen()
 

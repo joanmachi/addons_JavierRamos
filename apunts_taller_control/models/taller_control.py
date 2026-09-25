@@ -1,6 +1,11 @@
+import logging
 from datetime import timedelta
 
+import pytz
+
 from odoo import _, api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class TallerControl(models.Model):
@@ -119,6 +124,62 @@ class TallerControl(models.Model):
                     "apunts_taller_fecha_bloqueo": fields.Datetime.now(),
                 }
             )
+
+    @api.model
+    def _apunts_cerrar_asistencia_colgada(self, att):
+        """Cierra una entrada que se quedó sin salida de un día anterior.
+
+        La hora de salida es el momento en que el operario se desfichó del todo
+        ese día: el último fichaje de OF que cerró. Si aquel día no llegó a
+        fichar en ninguna orden, se usa la hora de salida de su calendario.
+        Devuelve la hora aplicada, o False si no se pudo cerrar."""
+        emp = att.employee_id
+        if not emp or not att.check_in or att.check_out:
+            return False
+        # Día natural del operario (su hora local), no el día UTC
+        dia = fields.Date.to_date(
+            self._apunts_dt_local(att.check_in, emp).date()
+        )
+        ini, fin = emp._apunts_rango_utc(dia)
+        # El último desfichaje de OF de ese día POSTERIOR a la entrada: es el
+        # momento en que el operario se desfichó del todo.
+        ultimo = self.env["mrp.workcenter.productivity"].sudo().search(
+            [
+                ("employee_id", "=", emp.id),
+                ("date_end", "!=", False),
+                ("date_end", ">", att.check_in),
+                ("date_end", "<=", fin),
+            ],
+            order="date_end DESC",
+            limit=1,
+        )
+        if ultimo:
+            salida = ultimo.date_end
+            nota = _(
+                "Entrada del %(entrada)s cerrada automáticamente a las %(salida)s: "
+                "el operario no fichó la salida, así que se ha usado el momento en "
+                "que se desfichó de la última orden."
+            ) % {"entrada": att.check_in, "salida": ultimo.date_end}
+        else:
+            # No hay ningún rastro de trabajo después de la entrada: no se
+            # inventan horas de presencia. Se cierra en seco y se avisa para
+            # que oficina ponga la hora buena a mano.
+            salida = att.check_in + timedelta(minutes=1)
+            nota = _(
+                "Entrada del %(entrada)s cerrada automáticamente: el operario no "
+                "fichó la salida y ese día no hay ningún fichaje de orden posterior, "
+                "así que NO se puede saber a qué hora salió. Se ha cerrado sin horas: "
+                "REVISAR y corregir la salida a mano si trabajó."
+            ) % {"entrada": att.check_in}
+        att.sudo().write({"check_out": salida})
+        emp.sudo().message_post(body=nota)
+        return salida
+
+    @api.model
+    def _apunts_dt_local(self, dt, emp):
+        """Convierte un datetime UTC a la hora local del empleado."""
+        tz = pytz.timezone(emp._get_tz() or "Europe/Madrid")
+        return pytz.utc.localize(dt).astimezone(tz)
 
     @api.model
     def cron_bloquear_jornada_insuficiente(self):

@@ -1,6 +1,6 @@
 {
     'name':    'Apunts Tablero Contabilidad',
-    'version': '18.0.3.2.0',
+    'version': '18.0.4.16.0',
     'summary': 'Tablero financiero Apunts: KPIs, ratios, ventas, escandallo, márgenes por cliente, previsión de liquidez y salarios, existencias, VAN/TIR, gráficas. Sin fabricación (en módulo aparte).',
     'author':  'Apunts Informàtica',
     'website': 'http://www.grupapunts.es',
@@ -14,10 +14,12 @@
         'views/lira_forecast_views.xml',
         'views/lira_graficas_views.xml',
         'views/lira_sales_analysis_views.xml',
+        'views/lira_ventas_semana_views.xml',
         'views/lira_product_costing_views.xml',
         'views/lira_customer_margin_views.xml',
         'views/lira_salary_forecast_views.xml',
         'views/lira_stock_valuation_views.xml',
+        'views/lira_stock_cliente_views.xml',
         'views/lira_van_tir_views.xml',
         'views/lira_aging_views.xml',
         'views/lira_purchase_analysis_views.xml',
@@ -26,6 +28,7 @@
         'views/lira_hacienda_views.xml',
         'views/lira_purchase_pending_views.xml',
         'views/lira_sales_monthly_views.xml',
+        'views/lira_cuenta_bloque_views.xml',
         'views/lira_pnl_period_views.xml',
         'views/lira_inventory_valuation_fv_views.xml',
         'views/lira_aging_suppliers_views.xml',
@@ -33,6 +36,9 @@
         'views/lira_modelo_111_115_views.xml',
         'views/lira_mercaderia_views.xml',
         'views/lira_menu.xml',
+        'views/lira_ratio_criterio_views.xml',
+        'views/lira_evolucion_coste_views.xml',
+        'data/lira_stock_cliente_cron.xml',
     ],
     'assets': {
         'web.assets_backend': [

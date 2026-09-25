@@ -64,11 +64,78 @@ class ApuntsCargaResumen(models.TransientModel):
         string="Órdenes de trabajo abiertas (total)",
         compute="_compute_resumen",
     )
+    # Nº de operarios DISTINTOS que han fichado en cada ventana (a nivel global:
+    # no es la suma de los operarios por centro, porque un operario puede fichar
+    # en varios centros). Responde a "entre cuántos operarios se reparten las horas".
+    total_operarios_semana = fields.Integer(
+        string="Operarios (7 días)", compute="_compute_resumen",
+        help="Operarios distintos que han fichado en cualquier centro en los últimos 7 días.",
+    )
+    total_operarios_15d = fields.Integer(
+        string="Operarios (15 días)", compute="_compute_resumen",
+    )
+    total_operarios_30d = fields.Integer(
+        string="Operarios (30 días)", compute="_compute_resumen",
+    )
+    # Órdenes de trabajo: ABIERTAS (con la carga que les queda) vs CERRADAS.
+    ot_abiertas_n = fields.Integer(
+        string="OT abiertas (nº)", compute="_compute_resumen",
+        help="Órdenes de trabajo en curso (ready/pending/progress).",
+    )
+    ot_abiertas_horas = fields.Float(
+        string="OT abiertas — horas que quedan", compute="_compute_resumen",
+        help="Horas previstas pendientes de las OT abiertas (= horas pendientes total).",
+    )
+    ot_cerradas_n = fields.Integer(
+        string="OT cerradas (nº)", compute="_compute_resumen",
+        help="Órdenes de trabajo terminadas (state='done').",
+    )
+    ot_cerradas_horas_teoricas = fields.Float(
+        string="OT cerradas — horas previstas", compute="_compute_resumen",
+    )
+    ot_cerradas_horas_reales = fields.Float(
+        string="OT cerradas — horas reales", compute="_compute_resumen",
+    )
+    ot_espera_n = fields.Integer(
+        string="OT en espera (nº)", compute="_compute_resumen",
+        help="Órdenes de trabajo en estado 'waiting' (materiales/pasos previos). "
+             "Hoy NO cuentan como abiertas ni en las horas pendientes.",
+    )
+    ot_espera_horas = fields.Float(
+        string="OT en espera — horas previstas", compute="_compute_resumen",
+    )
 
     @api.depends_context("uid")
     def _compute_resumen(self):
         WC = self.env["mrp.workcenter"]
         centros = WC.search([("active", "=", True)])
+        cr = self.env.cr
+        # Operarios distintos por ventana (global). NOW() = referencia del servidor.
+        cr.execute("""
+            SELECT
+              COUNT(DISTINCT p.employee_id) FILTER (WHERE p.date_end >= NOW() - INTERVAL '7 days'),
+              COUNT(DISTINCT p.employee_id) FILTER (WHERE p.date_end >= NOW() - INTERVAL '15 days'),
+              COUNT(DISTINCT p.employee_id) FILTER (WHERE p.date_end >= NOW() - INTERVAL '30 days')
+            FROM mrp_workcenter_productivity p
+            WHERE p.date_end IS NOT NULL AND p.employee_id IS NOT NULL
+        """)
+        op7, op15, op30 = cr.fetchone() or (0, 0, 0)
+        # OT por estado (nº, horas previstas, horas reales)
+        cr.execute("""
+            SELECT wo.state, COUNT(*),
+                   COALESCE(SUM(wo.duration_expected), 0) / 60.0,
+                   COALESCE(SUM(wo.duration), 0) / 60.0
+            FROM mrp_workorder wo
+            WHERE wo.workcenter_id IS NOT NULL
+            GROUP BY wo.state
+        """)
+        by_state = {row[0]: (int(row[1] or 0), float(row[2] or 0.0), float(row[3] or 0.0))
+                    for row in cr.fetchall()}
+        abiertas = ('ready', 'pending', 'progress')
+        ab_n = sum(by_state.get(s, (0, 0.0, 0.0))[0] for s in abiertas)
+        ab_h = sum(by_state.get(s, (0, 0.0, 0.0))[1] for s in abiertas)
+        done_n, done_teo, done_real = by_state.get('done', (0, 0.0, 0.0))
+        esp_n, esp_teo, _esp_real = by_state.get('waiting', (0, 0.0, 0.0))
         for rec in self:
             rec.n_centros = len(centros)
             rec.n_centros_activos = sum(
@@ -101,6 +168,16 @@ class ApuntsCargaResumen(models.TransientModel):
             rec.total_workorders_pendientes = sum(
                 centros.mapped("apunts_n_workorders_pendientes")
             )
+            rec.total_operarios_semana = int(op7 or 0)
+            rec.total_operarios_15d = int(op15 or 0)
+            rec.total_operarios_30d = int(op30 or 0)
+            rec.ot_abiertas_n = ab_n
+            rec.ot_abiertas_horas = ab_h
+            rec.ot_cerradas_n = done_n
+            rec.ot_cerradas_horas_teoricas = done_teo
+            rec.ot_cerradas_horas_reales = done_real
+            rec.ot_espera_n = esp_n
+            rec.ot_espera_horas = esp_teo
 
     # ── Histórico: horas fichadas en un rango de fechas ──────────────────────
 
@@ -135,6 +212,11 @@ class ApuntsCargaResumen(models.TransientModel):
             "Horas fichadas del periodo divididas entre los días naturales "
             "del rango. Solo se calcula si has puesto Desde y Hasta."
         ),
+    )
+    hist_ot_cerradas_n = fields.Integer(
+        string="OT cerradas (periodo)",
+        compute="_compute_historico",
+        help="Órdenes de trabajo terminadas dentro del periodo (por fecha de cierre).",
     )
     hist_horas_teoricas_ot = fields.Float(
         string="Horas teóricas (OTs cerradas)",
@@ -227,14 +309,16 @@ class ApuntsCargaResumen(models.TransientModel):
             cr.execute(
                 """
                 SELECT COALESCE(SUM(wo.duration_expected), 0) / 60.0,
-                       COALESCE(SUM(wo.duration), 0) / 60.0
+                       COALESCE(SUM(wo.duration), 0) / 60.0,
+                       COUNT(*)
                 FROM mrp_workorder wo
                 WHERE %s
                 """
                 % " AND ".join(where_wo),
                 params_wo,
             )
-            teoricas, reales_ot = cr.fetchone() or (0.0, 0.0)
+            teoricas, reales_ot, n_ot = cr.fetchone() or (0.0, 0.0, 0)
+            rec.hist_ot_cerradas_n = int(n_ot or 0)
             rec.hist_horas_teoricas_ot = float(teoricas or 0.0)
             rec.hist_horas_reales_ot = float(reales_ot or 0.0)
             rec.hist_eficiencia_pct = (
@@ -292,6 +376,88 @@ class ApuntsCargaResumen(models.TransientModel):
         return self.env.ref(
             "apunts_jr_carga_centros.apunts_action_carga_centros_list"
         ).read()[0]
+
+    def action_open_carga_por_centro(self):
+        """Gráfica de barras: horas pendientes por centro (última foto real)."""
+        self.ensure_one()
+        self.env.cr.execute(
+            "SELECT MAX(fecha) FROM apunts_carga_snapshot WHERE estimado = False"
+        )
+        row = self.env.cr.fetchone()
+        fecha = row[0] if row else None
+        domain = [("estimado", "=", False)]
+        titulo = "Carga por centro"
+        if fecha:
+            domain.append(("fecha", "=", fields.Date.to_string(fecha)))
+            titulo = "Carga por centro (%s)" % fields.Date.to_string(fecha)
+        return {
+            "type": "ir.actions.act_window",
+            "name": titulo,
+            "res_model": "apunts.carga.snapshot",
+            "view_mode": "graph,list",
+            "views": [
+                (self.env.ref("apunts_jr_carga_centros.apunts_carga_snapshot_graph_barras").id, "graph"),
+                (self.env.ref("apunts_jr_carga_centros.apunts_carga_snapshot_list").id, "list"),
+            ],
+            "domain": domain,
+            "context": {"group_by": ["workcenter_id"]},
+        }
+
+    def action_open_rendimiento_centro(self):
+        """Rendimiento por centro del periodo elegido (o últimos 90 días)."""
+        self.ensure_one()
+        Rend = self.env["apunts.rendimiento.centro"]
+        if self.modo == "historico" and (self.fecha_desde or self.fecha_hasta):
+            rec = Rend.create({"fecha_desde": self.fecha_desde,
+                               "fecha_hasta": self.fecha_hasta})
+            return rec.action_ver()
+        return Rend.action_open()
+
+    def action_open_rendimiento_operario(self):
+        """Rendimiento por operario del periodo elegido (o últimos 90 días)."""
+        self.ensure_one()
+        Rend = self.env["apunts.rendimiento.operario"]
+        if self.modo == "historico" and (self.fecha_desde or self.fecha_hasta):
+            rec = Rend.create({
+                "fecha_desde": self.fecha_desde,
+                "fecha_hasta": self.fecha_hasta,
+            })
+            return rec.action_ver()
+        return Rend.action_open()
+
+    def action_open_ot_abiertas(self):
+        """Órdenes de trabajo ABIERTAS (en curso), agrupadas por centro."""
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Órdenes de trabajo abiertas",
+            "res_model": "mrp.workorder",
+            "view_mode": "list,form",
+            "domain": [
+                ("state", "in", ("ready", "pending", "progress")),
+                ("workcenter_id", "!=", False),
+            ],
+            "context": {"group_by": ["workcenter_id"]},
+        }
+
+    def action_open_ot_cerradas(self):
+        """Órdenes de trabajo CERRADAS (terminadas) agrupadas por centro; en la
+        vista Histórico, solo las cerradas dentro del periodo elegido."""
+        self.ensure_one()
+        domain = [("state", "=", "done"), ("workcenter_id", "!=", False)]
+        if self.modo == "historico":
+            desde, hasta = self._hist_rango_utc(self)
+            if desde:
+                domain.append(("date_finished", ">=", fields.Datetime.to_string(desde)))
+            if hasta:
+                domain.append(("date_finished", "<", fields.Datetime.to_string(hasta)))
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Órdenes de trabajo cerradas",
+            "res_model": "mrp.workorder",
+            "view_mode": "list,form",
+            "domain": domain,
+            "context": {"group_by": ["workcenter_id"]},
+        }
 
     @api.model
     def action_open_resumen(self):

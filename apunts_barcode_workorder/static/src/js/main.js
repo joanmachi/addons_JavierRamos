@@ -33,6 +33,22 @@ patch(MainComponent.prototype, {
 
     },
 
+    // ── Nombre de fase: mantener pulsado para verlo entero (Xavi, 21/09/2026) ──
+    woNamePress(ev, orden) {
+        this.woNameRelease();
+        this._woNameTimer = setTimeout(() => {
+            this.env.model.woNameExpanded = orden.id;
+            this.env.model.trigger('update');
+        }, 500);
+    },
+    woNameRelease() {
+        if (this._woNameTimer) { clearTimeout(this._woNameTimer); this._woNameTimer = null; }
+        if (this.env.model.woNameExpanded) {
+            this.env.model.woNameExpanded = null;
+            this.env.model.trigger('update');
+        }
+    },
+
     isEnableWorkorder(wo) {
         console.log('-------- isEnableWorkorder');
         console.log(wo.employee_ids);

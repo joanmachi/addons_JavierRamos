@@ -14,7 +14,7 @@
             <div class="ld_header_left">
               <div class="ld_main_title ld_title_row">Análisis de Ventas y Facturación <widget name="lira_print_button" title="Análisis de Ventas" line_model="lira.sales.line"/></div>
               <div class="ld_main_subtitle" invisible="fuente != 'pedidos'">Ranking por volumen sobre <strong>pedidos de venta confirmados</strong> (lo comprometido comercialmente, esté o no facturado). Fecha = fecha del pedido.</div>
-              <div class="ld_main_subtitle" invisible="fuente != 'facturas'">Ranking por volumen sobre <strong>facturas de cliente contabilizadas</strong> (ingreso reconocido; las rectificativas restan). Fecha = fecha de factura.</div>
+              <div class="ld_main_subtitle" invisible="fuente != 'facturas'">Ranking por volumen sobre <strong>facturas de cliente contabilizadas</strong> (ingresos por ventas, cuentas 70x: la misma cifra que el P&amp;G y el Tablero; las rectificativas restan). Fecha = fecha contable.</div>
               <div class="ld_period_bar">
                 <span class="fa fa-calendar-o ld_icon_muted"/>
                 <field name="date_from" class="ld_date_input" nolabel="1"/>
@@ -74,6 +74,16 @@
                     class="ld_btn_primary" icon="fa-search"/>
           </div>
 
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-bar-chart"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver la gráfica por semanas</strong>
+              <span>Semanas en horizontal, euros en vertical: cuánto se facturó (o cuánto se pidió, según la fuente) cada semana del periodo. Con tabla dinámica y lista.</span>
+            </div>
+            <button name="action_ver_grafica" string="Ver gráfica" type="object"
+                    class="ld_btn_primary" icon="fa-bar-chart"/>
+          </div>
+
         </sheet>
       </form>
     </field>
@@ -88,6 +98,10 @@
             decoration-success="abc == 'A'"
             decoration-warning="abc == 'B'"
             decoration-muted="abc == 'C'">
+        <header>
+          <button name="action_grafica_semanal" type="object" string="Gráfica por semanas"
+                  display="always" class="btn-secondary" icon="fa-bar-chart"/>
+        </header>
         <field name="rank" string="#" width="44" readonly="1"
                help="Posición en el ranking de mayor a menor importe de ventas."/>
         <field name="label" string="Nombre" readonly="1"

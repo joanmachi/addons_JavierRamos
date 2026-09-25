@@ -5,6 +5,18 @@ from odoo import _, api, fields, models
 _logger = logging.getLogger(__name__)
 
 
+def _con_venta_studio(base, extra_studio):
+    """Dependencias de un cálculo + las del campo de venta de Studio de JR
+    (`x_studio_venta`, OF enlazada a mano a un pedido) solo si existe en esta
+    base de datos: es un campo de Studio y no está en todas."""
+    def _deps(model):
+        deps = list(base)
+        if "x_studio_venta" in model._fields:
+            deps += extra_studio
+        return deps
+    return _deps
+
+
 class MrpProduction(models.Model):
     _inherit = "mrp.production"
 
@@ -30,9 +42,21 @@ class MrpProduction(models.Model):
 
     apunts_is_wip = fields.Boolean(
         string="En curso (WIP)",
-        compute="_compute_apunts_wip_costs",
+        compute="_compute_apunts_is_wip",
         store=True,
         index=True,
+        recursive=True,
+        help="La OF está en curso si tiene dinero metido (material consumido o "
+             "compra recibida) o si alguna de sus OF hijas lo está. Así la OF "
+             "madre de un proyecto aparece en curso mientras se fabrican sus "
+             "componentes, y es ella la que aporta la venta.",
+    )
+    apunts_wip_propio = fields.Boolean(
+        string="En curso por sí misma",
+        compute="_compute_apunts_wip_propio",
+        store=True,
+        help="Criterio propio de la OF, sin mirar a sus hijas: material "
+             "consumido o compra vinculada ya recibida.",
     )
     apunts_qty_pending = fields.Float(
         string="Pendiente",
@@ -231,6 +255,34 @@ class MrpProduction(models.Model):
              "creó sola (p.ej. la OF se lanzó a mano).",
     )
 
+    apunts_of_madre_id = fields.Many2one(
+        "mrp.production",
+        string="OF madre",
+        compute="_compute_apunts_of_madre_id",
+        store=True,
+        index=True,
+        help="OF de la que esta es hija: la del enlace manual o, si no hay, la "
+             "OF cuyo número figura en el Origen.",
+    )
+    apunts_hija_ids = fields.One2many(
+        "mrp.production", "apunts_of_madre_id", string="OF hijas",
+    )
+
+    @api.depends("origin", "apunts_of_madre_manual_id")
+    def _compute_apunts_of_madre_id(self):
+        # Una sola búsqueda para todo el lote: OF cuyo nombre es el Origen.
+        origenes = {p.origin for p in self if p.origin and not p.apunts_of_madre_manual_id}
+        por_nombre = {}
+        if origenes:
+            for madre in self.sudo().search([("name", "in", list(origenes))]):
+                por_nombre[madre.name] = madre.id
+        for prod in self:
+            madre_id = prod.apunts_of_madre_manual_id.id or por_nombre.get(prod.origin)
+            # Nunca ella misma (un Origen que repite su propio nombre).
+            if madre_id and isinstance(prod.id, int) and madre_id == prod.id:
+                madre_id = False
+            prod.apunts_of_madre_id = madre_id or False
+
     def _apunts_hijas_domain(self):
         """OF relacionadas como hijas de ésta por Origen o por enlace manual."""
         self.ensure_one()
@@ -315,7 +367,21 @@ class MrpProduction(models.Model):
         string="Cliente",
         compute="_compute_apunts_partner_id",
         store=True,
-        help="Cliente del pedido de venta vinculado a la OF (vía sale_line/sale_id/procurement_group/x_studio_venta).",
+        recursive=True,
+        help="Cliente del pedido de venta vinculado a la OF (vía sale_line/sale_id/"
+             "procurement_group/x_studio_venta). Si la OF es hija y no encuentra "
+             "pedido propio, el cliente de su OF madre.",
+    )
+    apunts_fecha_entrega = fields.Datetime(
+        string="Fecha de entrega",
+        compute="_compute_apunts_fecha_entrega",
+        store=True,
+        recursive=True,
+        help="Fecha en la que hay que entregar al cliente:\n"
+             "  • OF ligada a un pedido de venta: la fecha de entrega del pedido.\n"
+             "  • OF hija: la fecha de entrega de su OF madre.\n"
+             "  • Si no hay ninguna de las dos: la fecha límite de la propia OF.\n"
+             "La fecha programada no cambia: es la de planificación del taller.",
     )
     apunts_margen_of = fields.Monetary(
         string="Margen OF (€)",
@@ -368,10 +434,10 @@ class MrpProduction(models.Model):
              "de la OF ya se ha incurrido (avance económico, no de piezas).",
     )
 
-    @api.depends(
-        "sale_line_id",
-        "procurement_group_id.sale_id",
-    )
+    @api.depends(_con_venta_studio(
+        ["sale_line_id", "procurement_group_id.sale_id", "apunts_of_madre_id.apunts_partner_id"],
+        ["x_studio_venta"],
+    ))
     def _compute_apunts_partner_id(self):
         for prod in self:
             # sudo: este campo (almacenado) se recalcula al escribir en la OF,
@@ -388,7 +454,35 @@ class MrpProduction(models.Model):
                 partner = ps.x_studio_venta.partner_id
             elif ps.procurement_group_id and ps.procurement_group_id.sale_id:
                 partner = ps.procurement_group_id.sale_id.partner_id
+            if not partner and prod.apunts_of_madre_id:
+                partner = prod.apunts_of_madre_id.apunts_partner_id
             prod.apunts_partner_id = partner or False
+
+    @api.depends(_con_venta_studio(
+        ["sale_line_id.order_id.commitment_date", "procurement_group_id.sale_id.commitment_date",
+         "date_deadline", "apunts_of_madre_id.apunts_fecha_entrega"],
+        ["x_studio_venta.commitment_date"],
+    ))
+    def _compute_apunts_fecha_entrega(self):
+        for prod in self:
+            ps = prod.sudo()
+            # 1) Pedido propio de la OF (línea, pedido o campo de venta de JR).
+            so = False
+            if "sale_line_id" in prod._fields and ps.sale_line_id:
+                so = ps.sale_line_id.order_id
+            elif "sale_id" in prod._fields and ps.sale_id:
+                so = ps.sale_id
+            elif "x_studio_venta" in prod._fields and ps.x_studio_venta:
+                so = ps.x_studio_venta
+            fecha = so.commitment_date if so else False
+            # 2) Hija: la entrega de su madre.
+            if not fecha and prod.apunts_of_madre_id:
+                fecha = prod.apunts_of_madre_id.apunts_fecha_entrega
+            # 3) Pedido que llega por el grupo de aprovisionamiento.
+            if not fecha and ps.procurement_group_id.sale_id:
+                fecha = ps.procurement_group_id.sale_id.commitment_date
+            # 4) Nada de lo anterior: la fecha límite de la OF.
+            prod.apunts_fecha_entrega = fecha or prod.date_deadline or False
 
     @api.depends("apunts_sale_amount", "apunts_cost_total_planned", "apunts_cost_total_real")
     def _compute_apunts_margen(self):
@@ -481,11 +575,11 @@ class MrpProduction(models.Model):
         ),
     )
 
-    @api.depends(
-        "sale_line_id", "product_qty", "product_id",
-        "procurement_group_id.sale_id",
-        "apunts_sale_line_ids", "apunts_sale_line_ids.price_subtotal",
-    )
+    @api.depends(_con_venta_studio(
+        ["sale_line_id", "product_qty", "product_id", "procurement_group_id.sale_id",
+         "apunts_sale_line_ids", "apunts_sale_line_ids.price_subtotal", "apunts_of_madre_id"],
+        ["x_studio_venta"],
+    ))
     def _compute_apunts_sale_amount(self):
         # Solo cuenta SOs confirmados (estado 'sale' o 'done') Y con entrega no completada.
         # Si delivery_status == 'full' la venta YA NO es WIP (todo entregado al cliente),
@@ -532,7 +626,17 @@ class MrpProduction(models.Model):
                 so = ps.procurement_group_id.sale_id
             if so and so.state in VALID_STATES and so.delivery_status != "full":
                 sols = so.order_line.filtered(lambda l: l.product_id == prod.product_id)
-                prod.apunts_sale_amount = sum(sols.mapped("price_subtotal")) if sols else (so.amount_untaxed or 0.0)
+                if sols:
+                    prod.apunts_sale_amount = sum(sols.mapped("price_subtotal"))
+                elif prod.apunts_of_madre_id:
+                    # OF hija cuyo producto no está vendido como línea: la venta
+                    # es de la madre. Antes se quedaba con el pedido ENTERO y
+                    # cada hija repetía el importe (proyecto IAR: 8 × 9.000 €).
+                    prod.apunts_sale_amount = 0.0
+                else:
+                    # OF principal de un pedido vendido por partes (sin línea
+                    # de su producto): sigue valorando el pedido entero.
+                    prod.apunts_sale_amount = so.amount_untaxed or 0.0
             else:
                 prod.apunts_sale_amount = 0.0
 
@@ -573,7 +677,6 @@ class MrpProduction(models.Model):
                 prod.apunts_mo_planned_total = 0.0
                 prod.apunts_machine_planned_total = 0.0
                 prod.apunts_bom_incompleta = False
-                prod.apunts_is_wip = False
                 continue
 
             qty_total = prod.product_qty or 0.0
@@ -619,7 +722,42 @@ class MrpProduction(models.Model):
                 mp_total_real > 50.0
                 and mp_total_real > mp_total_plan * 1.5
             )
-            prod.apunts_is_wip = self._apunts_compute_is_wip(prod)
+
+    @api.depends(
+        "state",
+        "product_qty",
+        "qty_produced",
+        "qty_producing",
+        "move_raw_ids.state",
+        "move_raw_ids.quantity",
+        "apunts_productivity_trigger",
+    )
+    def _compute_apunts_wip_propio(self):
+        for prod in self:
+            prod.apunts_wip_propio = self._apunts_compute_is_wip(prod)
+
+    @api.depends(
+        "apunts_wip_propio",
+        "state",
+        "product_qty",
+        "qty_produced",
+        "qty_producing",
+        "apunts_hija_ids.apunts_is_wip",
+    )
+    def _compute_apunts_is_wip(self):
+        for prod in self:
+            if prod.apunts_wip_propio:
+                prod.apunts_is_wip = True
+                continue
+            # Madre sin dinero metido todavía (sus componentes son OF hijas):
+            # está en curso mientras quede algo por fabricar y alguna hija lo esté.
+            qty_done = max(prod.qty_produced or 0.0, prod.qty_producing or 0.0)
+            prod.apunts_is_wip = bool(
+                isinstance(prod.id, int)
+                and prod.state in ("confirmed", "progress", "to_close")
+                and qty_done < (prod.product_qty or 0.0)
+                and any(h.apunts_is_wip for h in prod.apunts_hija_ids)
+            )
 
     @staticmethod
     def _apunts_compute_is_wip(prod):

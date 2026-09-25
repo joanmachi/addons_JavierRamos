@@ -10,6 +10,7 @@
             <xpath expr="//field[@name='date_done']" position="after">
                 <field name="apunts_fecha_limite" optional="hide"/>
                 <field name="apunts_en_fecha" optional="hide"/>
+                <field name="apunts_dias_desvio" optional="hide"/>
             </xpath>
         </field>
     </record>
@@ -25,8 +26,162 @@
                         domain="[('apunts_en_fecha', '=', False), ('apunts_fecha_limite', '!=', False), ('state', '=', 'done')]"/>
                 <filter name="apunts_group_en_fecha" string="En fecha / tarde"
                         context="{'group_by': 'apunts_en_fecha'}"/>
+                <filter name="apunts_group_semana" string="Semana de entrega"
+                        context="{'group_by': 'date_done:week'}"/>
+                <filter name="apunts_group_mes" string="Mes de entrega"
+                        context="{'group_by': 'date_done:month'}"/>
             </xpath>
         </field>
     </record>
 
+
+    <!-- Entregas del año: lista pensada para leer el desvío de cada albarán -->
+    <record id="apunts_view_picking_entregas_list" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.entregas.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Entregas" create="0" delete="0" edit="0"
+                  decoration-success="apunts_en_fecha" decoration-danger="apunts_dias_desvio &gt; 7"
+                  decoration-warning="not apunts_en_fecha and apunts_dias_desvio &lt;= 7">
+                <field name="name" string="Albarán"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="origin" string="Pedido" optional="show"/>
+                <field name="apunts_fecha_limite" string="Comprometida"/>
+                <field name="date_done" string="Entregado"/>
+                <field name="apunts_dias_desvio" string="Desvío (días)" sum="Media"/>
+                <field name="apunts_dias_retraso" string="Retraso (días)" optional="hide"/>
+                <field name="apunts_en_fecha" string="En fecha" widget="boolean_toggle" readonly="1"/>
+                <field name="state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Semanas en horizontal, días de desvío (media) en vertical -->
+    <record id="apunts_view_picking_entregas_graph" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.entregas.graph</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <graph string="Desvío medio de las entregas por semana" type="bar" stacked="0" disable_linking="1">
+                <field name="date_done" interval="week"/>
+                <field name="apunts_dias_desvio" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_view_picking_entregas_pivot" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.entregas.pivot</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <pivot string="Desvío de entregas por cliente y semana" sample="1">
+                <field name="partner_id" type="row"/>
+                <field name="date_done" interval="week" type="col"/>
+                <field name="apunts_dias_desvio" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+
+    <!-- ══ Cumplimiento de proveedores: programada vs efectiva en las recepciones ══ -->
+    <record id="apunts_view_picking_proveedores_list" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.proveedores.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Cumplimiento de proveedores" create="0" delete="0" edit="0"
+                  decoration-success="apunts_prov_en_fecha" decoration-danger="apunts_prov_retraso &gt; 7"
+                  decoration-warning="not apunts_prov_en_fecha and apunts_prov_retraso &lt;= 7">
+                <field name="partner_id" string="Proveedor"/>
+                <field name="name" string="Recepción"/>
+                <field name="origin" string="Pedido de compra" optional="show"/>
+                <field name="apunts_prov_programada" string="Programada"/>
+                <field name="apunts_prov_efectiva" string="Efectiva"/>
+                <field name="apunts_prov_retraso" string="Retraso (días)" sum="Media"/>
+                <field name="apunts_prov_en_fecha_pct" string="% en fecha" sum="Media"/>
+                <field name="apunts_prov_en_fecha" string="En fecha" widget="boolean_toggle" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_view_picking_proveedores_pivot" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.proveedores.pivot</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <pivot string="Cumplimiento de proveedores" sample="1">
+                <field name="partner_id" type="row"/>
+                <field name="apunts_prov_retraso" type="measure"/>
+                <field name="apunts_prov_en_fecha_pct" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_view_picking_proveedores_graph" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.proveedores.graph</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <graph string="Retraso medio por proveedor" type="bar" stacked="0" disable_linking="1">
+                <field name="partner_id"/>
+                <field name="apunts_prov_retraso" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_view_picking_proveedores_search" model="ir.ui.view">
+        <field name="name">stock.picking.apunts.proveedores.search</field>
+        <field name="model">stock.picking</field>
+        <!-- Prioridad alta: Odoo elige como buscador por defecto de un modelo la vista primaria de menor
+             prioridad y, a igualdad, la de nombre alfabéticamente menor («apunts» < «internal»). Sin esto,
+             esta vista sustituía al buscador estándar de albaranes y las acciones del Resumen de inventario
+             (gráfica hoy/mañana/retrasado, «A recibir»…) perdían sus filtros (incidencia de Xavi, 23/09/2026).
+             Solo la usa la acción de Cumplimiento de proveedores, que la referencia explícitamente. -->
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <search string="Cumplimiento de proveedores">
+                <field name="partner_id" string="Proveedor"/>
+                <field name="name" string="Recepción"/>
+                <field name="origin" string="Pedido de compra"/>
+                <filter name="f_tarde" string="Llegaron tarde" domain="[('apunts_prov_en_fecha', '=', False)]"/>
+                <filter name="f_en_fecha" string="En fecha" domain="[('apunts_prov_en_fecha', '=', True)]"/>
+                <separator/>
+                <filter name="f_ano" string="Este año"
+                        domain="[('apunts_prov_efectiva', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <filter name="f_90" string="Últimos 90 días"
+                        domain="[('apunts_prov_efectiva', '&gt;=', (context_today() - relativedelta(days=90)).strftime('%Y-%m-%d'))]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="g_proveedor" string="Proveedor" context="{'group_by': 'partner_id'}"/>
+                    <filter name="g_mes" string="Mes de recepción" context="{'group_by': 'apunts_prov_efectiva:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_cumplimiento_proveedores" model="ir.actions.act_window">
+        <field name="name">Cumplimiento de proveedores</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="domain">[('apunts_prov_programada', '!=', False)]</field>
+        <field name="context">{'search_default_g_proveedor': 1, 'search_default_f_ano': 1, 'create': False, 'edit': False, 'delete': False}</field>
+        <field name="search_view_id" ref="apunts_view_picking_proveedores_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aquí se ve qué proveedores cumplen las fechas</p>
+            <p>Cada recepción validada, con la fecha programada del pedido de compra, la fecha
+               efectiva de entrada y los días de retraso. Agrupado por proveedor: retraso medio
+               y porcentaje de recepciones en fecha.</p>
+        </field>
+    </record>
+    <record id="apunts_action_cumplimiento_proveedores_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/><field name="view_mode">list</field>
+        <field name="view_id" ref="apunts_view_picking_proveedores_list"/><field name="act_window_id" ref="apunts_action_cumplimiento_proveedores"/>
+    </record>
+    <record id="apunts_action_cumplimiento_proveedores_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/><field name="view_mode">pivot</field>
+        <field name="view_id" ref="apunts_view_picking_proveedores_pivot"/><field name="act_window_id" ref="apunts_action_cumplimiento_proveedores"/>
+    </record>
+    <record id="apunts_action_cumplimiento_proveedores_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/><field name="view_mode">graph</field>
+        <field name="view_id" ref="apunts_view_picking_proveedores_graph"/><field name="act_window_id" ref="apunts_action_cumplimiento_proveedores"/>
+    </record>
+
+    <menuitem id="apunts_menu_cumplimiento_proveedores_compra" name="Cumplimiento de proveedores"
+              parent="purchase.purchase_report" sequence="30" action="apunts_action_cumplimiento_proveedores"/>
+    <menuitem id="apunts_menu_cumplimiento_proveedores_inv" name="Cumplimiento de proveedores"
+              parent="stock.menu_warehouse_report" sequence="27" action="apunts_action_cumplimiento_proveedores"/>
 </odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+  <!-- Objetivos de partida: los del cuadro de mando anterior (CMI/CMP 2024).
+       Son EDITABLES: Dirección → Objetivos del cuadro de mando. Se cargan solo
+       al instalar (noupdate="1"), así que los cambios del cliente no se pisan. -->
+
+  <record id="obj_fact_anual" model="apunts.direccion.objetivo">
+    <field name="kpi">fact_anual</field>
+    <field name="bloque">cme</field>
+    <field name="valor">2000000.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="prorratear" eval="True"/>
+    <field name="notas">CME del cuadro anterior: 40.000 €/semana ≈ 2.000.000 €/año.</field>
+  </record>
+
+  <record id="obj_fact_semana" model="apunts.direccion.objetivo">
+    <field name="kpi">fact_semana</field>
+    <field name="bloque">cme</field>
+    <field name="valor">40000.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="notas">CME del cuadro anterior: objetivo semanal de facturación.</field>
+  </record>
+
+  <record id="obj_cartera" model="apunts.direccion.objetivo">
+    <field name="kpi">cartera_pendiente</field>
+    <field name="bloque">cmv</field>
+    <field name="valor">300000.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="notas">CMV del cuadro anterior: 300.000 € de cartera a 3 meses.</field>
+  </record>
+
+  <record id="obj_jornada" model="apunts.direccion.objetivo">
+    <field name="kpi">horas_prod_pct</field>
+    <field name="bloque">cmp</field>
+    <field name="valor">100.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="notas">CMP del cuadro anterior: productividad objetivo = 1 (100 %).</field>
+  </record>
+
+  <record id="obj_entregas" model="apunts.direccion.objetivo">
+    <field name="kpi">entregas_anual_pct</field>
+    <field name="bloque">cmp</field>
+    <field name="valor">95.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="notas">Servicio al cliente: entregas dentro de la fecha comprometida.</field>
+  </record>
+
+  <record id="obj_cobertura" model="apunts.direccion.objetivo">
+    <field name="kpi">cobertura_meses</field>
+    <field name="bloque">cmp</field>
+    <field name="valor">3.00</field>
+    <field name="mejor_es_mayor" eval="True"/>
+    <field name="notas">Carga de trabajo asegurada por delante (meses).</field>
+  </record>
+
+</odoo>

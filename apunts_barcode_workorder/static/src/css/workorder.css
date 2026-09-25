@@ -439,6 +439,12 @@
     font-size: .9rem; font-weight: 700; color: var(--ap-text);
     flex: 1; min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    -webkit-user-select: none; user-select: none; touch-action: manipulation;
+}
+/* Mantener pulsado el nombre: se muestra completo, en varias líneas */
+.apunts-wo-name.apunts-wo-name-full {
+    white-space: normal; overflow: visible; text-overflow: clip;
+    background: #fff8e1; border-radius: 6px; padding: 2px 4px;
 }
 .apunts-wo-duration {
     font-size: .68rem; font-weight: 600; color: var(--ap-muted);

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apunts_kpi_consulta_form" model="ir.ui.view">
+        <field name="name">apunts.kpi.consulta.form</field>
+        <field name="model">apunts.kpi.consulta</field>
+        <field name="arch" type="xml">
+            <form string="Consultar otra semana">
+                <p class="text-muted">
+                    Elige las fechas. Con una sola semana se abre el panel de la reunión
+                    tal y como quedó guardado esa semana (cobertura de cartera, EDV,
+                    eficiencia…). Con varias, la tabla de KPIs por semanas para compararlas.
+                </p>
+                <group>
+                    <field name="fecha_desde"/>
+                    <field name="fecha_hasta"/>
+                </group>
+                <div class="alert alert-info py-2 mb-0" role="status">
+                    <field name="semanas_txt" nolabel="1"/>
+                </div>
+                <footer>
+                    <button name="action_consultar" type="object" string="Ver esa semana"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_kpi_consulta" model="ir.actions.act_window">
+        <field name="name">Consultar otra semana</field>
+        <field name="res_model">apunts.kpi.consulta</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Botones de la cabecera de la Reunión semanal -->
+    <record id="apunts_srv_kpi_semana_anterior" model="ir.actions.server">
+        <field name="name">Semana anterior</field>
+        <field name="model_id" ref="model_apunts_kpi_bloque"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_semana_anterior()</field>
+    </record>
+    <record id="apunts_srv_kpi_semana_siguiente" model="ir.actions.server">
+        <field name="name">Semana siguiente</field>
+        <field name="model_id" ref="model_apunts_kpi_bloque"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_semana_siguiente()</field>
+    </record>
+
+    <record id="apunts_srv_kpi_ver_por_semanas" model="ir.actions.server">
+        <field name="name">Ver por semanas</field>
+        <field name="model_id" ref="model_apunts_kpi_bloque"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_ver_por_semanas()</field>
+    </record>
+
+    <record id="apunts_kpi_bloque_kanban_navegacion" model="ir.ui.view">
+        <field name="name">apunts.kpi.bloque.kanban.navegacion</field>
+        <field name="model">apunts.kpi.bloque</field>
+        <field name="inherit_id" ref="apunts_kpi_bloque_kanban"/>
+        <field name="arch" type="xml">
+            <templates position="before">
+                <header>
+                    <button name="%(apunts_srv_kpi_semana_anterior)d" type="action" display="always"
+                            string="◀ Semana anterior" class="btn-secondary"
+                            title="Ver el panel tal y como quedó la semana anterior"/>
+                    <button name="%(apunts_action_kpi_consulta)d" type="action" display="always"
+                            string="Elegir fechas…" class="btn-secondary"
+                            title="Consultar la reunión de otra semana o comparar varias"/>
+                    <button name="%(apunts_srv_kpi_semana_siguiente)d" type="action" display="always"
+                            string="Semana siguiente ▶" class="btn-secondary"/>
+                    <button name="%(apunts_srv_kpi_ver_por_semanas)d" type="action" display="always"
+                            string="Ver por semanas" class="btn-light"
+                            title="El periodo que estás viendo, en una columna por semana"/>
+                </header>
+            </templates>
+        </field>
+    </record>
+
+    <!-- Se mantiene también como menú, para llegar directo -->
+    <menuitem id="menu_apunts_kpi_consulta" name="Consultar otra semana"
+              parent="menu_apunts_direccion_root" action="apunts_action_kpi_consulta" sequence="2"/>
+</odoo>

@@ -14,10 +14,15 @@ class LiraVariableAccount(models.Model):
         help='Motivo por el que esta cuenta se considera un coste variable. Útil para justificarlo ante el contable o auditor.')
     active          = fields.Boolean('Activa', default=True,
         help='Solo las cuentas activas se incluyen como variables en el P&G y en la Valoración de Inventario.')
-    account_id      = fields.Many2one('account.account', compute='_compute_account_id', store=False,
+    account_id      = fields.Many2one('account.account', string='Cuenta del plan contable',
+        compute='_compute_account_id', store=False,
         help='Enlace al registro real de la cuenta contable. Vacío si el código no existe en el plan contable de la empresa.')
     account_type    = fields.Selection(related='account_id.account_type', string='Tipo', store=False)
     company_id      = fields.Many2one('res.company', default=lambda s: s.env.company)
+    codigo_existe   = fields.Boolean('Código encontrado', compute='_compute_account_id', store=False,
+        help='Falso si el código escrito NO corresponde a ninguna cuenta del plan contable: '
+             'esa fila NO cuenta como coste variable en ningún informe. Suele pasar por '
+             'escribir el código abreviado (601007) en vez del real (601000007).')
 
     _sql_constraints = [
         ('code_company_uniq', 'UNIQUE(code, company_id)',
@@ -40,6 +45,7 @@ class LiraVariableAccount(models.Model):
                 ('code', '=', rec.code),
                 ('company_ids', 'in', rec.company_id.id),
             ], limit=1) if rec.code else False
+            rec.codigo_existe = bool(rec.account_id)
 
     def action_open_account(self):
         """Abre la ficha de la cuenta contable si existe."""
@@ -60,9 +66,12 @@ class LiraVariableAccount(models.Model):
         """Devuelve los códigos activos. Si no hay registros, usa fallback."""
         codes = self.search([('active', '=', True)]).mapped('code')
         if not codes:
-            # Fallback: las 7 cuentas originales marcadas por el contable
+            # Fallback: las 7 cuentas originales marcadas por el contable, con el
+            # código REAL del plan contable (9 dígitos). Antes estaban abreviados
+            # (601007, 6070002...) y no casaban con ninguna cuenta: los costes
+            # variables salían 0 y el margen bruto, 100 %.
             return [
-                '60010005', '601007', '6070002', '6070003',
-                '600017', '6000018', '62800001',
+                '601000005', '601000007', '607000002', '607000003',
+                '600000017', '600000018', '628000001',
             ]
         return codes

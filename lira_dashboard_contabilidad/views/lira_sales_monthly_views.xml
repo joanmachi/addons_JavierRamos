@@ -27,7 +27,7 @@
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Total importe neto <i class="fa fa-info-circle text-muted ms-1" title="Suma de la base imponible (sin IVA) de todos los pedidos confirmados del periodo. Fuente: campo amount_untaxed de cada pedido de venta."/></div>
+                <div class="ld_hkpi_label">Total importe de pedidos <i class="fa fa-info-circle text-muted ms-1" title="Suma de la base imponible (sin IVA) de todos los pedidos confirmados del periodo. Fuente: campo amount_untaxed de cada pedido de venta."/></div>
                 <div class="ld_hkpi_value"><field name="total_importe" readonly="1"/></div>
               </div>
               <div class="ld_hkpi_sep"/>
@@ -79,8 +79,8 @@
                help="Mes natural al que corresponde la fila."/>
         <field name="num_pedidos" string="Pedidos" sum="Total pedidos"
                help="Número de pedidos de venta confirmados del mes."/>
-        <field name="total_neto" string="Importe neto (€)" sum="Total neto"
-               help="Base imponible total del mes (sin IVA)."/>
+        <field name="total_neto" string="Importe de pedidos (€)" sum="Total pedidos (€)"
+               help="Base imponible total de los pedidos del mes (sin IVA)."/>
         <field name="ticket_medio" string="Ticket medio (€)" avg="Ticket medio"
                help="Importe medio por pedido = Importe neto / Nº pedidos."/>
         <field name="variacion_pct" string="Var. % vs ant." avg="Variación media"
@@ -120,7 +120,7 @@
           <filter name="group_mes"     string="Mes"               context="{'group_by': 'mes'}"/>
           <filter name="group_mejor"   string="Mejor mes"         context="{'group_by': 'es_mejor_mes'}"/>
           <filter name="group_num_ped" string="Nº pedidos"        context="{'group_by': 'num_pedidos'}"/>
-          <filter name="group_neto"    string="Importe neto"      context="{'group_by': 'total_neto'}"/>
+          <filter name="group_neto"    string="Importe de pedidos" context="{'group_by': 'total_neto'}"/>
           <filter name="group_ticket"  string="Ticket medio"      context="{'group_by': 'ticket_medio'}"/>
           <filter name="group_varpct"  string="Variación %"       context="{'group_by': 'variacion_pct'}"/>
         </group>

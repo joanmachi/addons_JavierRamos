@@ -46,18 +46,26 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
 
     # ── OFs disponibles (filtradas por employee o todas) ──────────────────────
 
-    mostrar_todas_ofs = fields.Boolean(string='Buscar en TODAS las OFs', default=False)
+    # El desplegable de OF buscaba SOLO en las OFs donde ese operario ya había
+    # fichado. Justo el caso en que se usa esto —"operario sin fichaje activo"—
+    # es aquel en el que esa lista está vacía, así que la OF no aparecía nunca
+    # y Odoo tampoco ofrecía el "Buscar más..." (no había resultados que ampliar).
+    # Ahora se busca en todas las OFs y este campo solo sirve de atajo opcional.
+    solo_ofs_del_operario = fields.Boolean(
+        string='Solo las OFs de este operario', default=False,
+        help='Desmarcado (por defecto) puedes buscar cualquier OF por su número. '
+             'Márcalo si prefieres ver únicamente las OFs en las que este operario '
+             'ya ha fichado alguna vez.',
+    )
     ofs_filtradas_ids = fields.Many2many(
         'mrp.production', compute='_compute_ofs_filtradas_ids',
     )
 
-    @api.depends('employee_id', 'mostrar_todas_ofs')
+    @api.depends('employee_id', 'solo_ofs_del_operario')
     def _compute_ofs_filtradas_ids(self):
         for w in self:
-            if w.mostrar_todas_ofs or not w.employee_id:
-                w.ofs_filtradas_ids = self.env['mrp.production'].search([
-                    ('state', 'in', ('confirmed', 'progress', 'to_close', 'done')),
-                ])
+            if not w.solo_ofs_del_operario or not w.employee_id:
+                w.ofs_filtradas_ids = False
             else:
                 prods = self.env['mrp.workcenter.productivity'].search([
                     ('employee_id', '=', w.employee_id.id),
@@ -69,8 +77,22 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
 
     production_id = fields.Many2one(
         'mrp.production', string='Orden de Fabricación',
-        domain="[('id', 'in', ofs_filtradas_ids)]",
+        # Se busca en todas las OFs vivas (escribiendo el número sale al momento,
+        # y aparece el "Buscar más..." con el buscador completo). El atajo de
+        # "solo las de este operario" se aplica marcando la casilla.
+        domain="[('id', 'in', ofs_filtradas_ids)] if solo_ofs_del_operario"
+               " else [('state', 'not in', ('cancel', 'draft'))]",
     )
+
+    @api.onchange('production_id')
+    def _onchange_production_id_limpiar_fase(self):
+        """Si cambia la OF, la fase elegida antes ya no vale: se limpia para no
+        registrar el fichaje en la fase de otra orden."""
+        for w in self:
+            if w.workorder_id_nuevo and w.workorder_id_nuevo.production_id != w.production_id:
+                w.workorder_id_nuevo = False
+            if w.workorder_id_abierto and w.workorder_id_abierto.production_id != w.production_id:
+                w.workorder_id_abierto = False
     workorder_id_abierto = fields.Many2one(
         'mrp.workorder', string='Fase (OT)',
         domain="[('production_id', '=', production_id), ('state', 'not in', ('cancel',))]",
@@ -167,6 +189,21 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
         if not leave_type:
             return None
 
+        # Si ese día el operario YA tiene una ausencia (fue al médico, por
+        # ejemplo), no se crea otra: Odoo no admite dos ausencias solapadas y
+        # el desbloqueo entero fallaba con "Un empleado ya ha reservado una
+        # ausencia que coincide con este periodo". Tener una ausencia no puede
+        # impedir que se le desbloquee ni que fiche.
+        ini_dia, fin_dia = emp._apunts_rango_utc(dia)
+        ya_tiene = self.env['hr.leave'].sudo().search([
+            ('employee_id', '=', emp.id),
+            ('state', '!=', 'refuse'),
+            ('date_from', '<=', fields.Datetime.to_string(fin_dia)),
+            ('date_to', '>=', fields.Datetime.to_string(ini_dia)),
+        ], limit=1)
+        if ya_tiene:
+            return None
+
         # Limitar a 23:59 para no superar el día
         hora_fin = min(round(8.0 + horas_faltantes, 2), 23.99)
 
@@ -183,8 +220,14 @@ class ApuntsCorregirFichajeWizard(models.TransientModel):
             ) % (fields.Date.to_string(dia), sufijo),
         }
 
+        # savepoint + flush: los avisos de Odoo sobre ausencias saltan al
+        # guardar en base, no al crear el registro, así que sin esto la
+        # excepción se escapaba de aquí y tumbaba todo el desbloqueo.
         try:
-            return self.env['hr.leave'].sudo().create(vals)
+            with self.env.cr.savepoint():
+                leave = self.env['hr.leave'].sudo().create(vals)
+                leave.flush_recordset()
+                return leave
         except Exception:
             return None
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_direccion_objetivo_list" model="ir.ui.view">
+        <field name="name">apunts.direccion.objetivo.list</field>
+        <field name="model">apunts.direccion.objetivo</field>
+        <field name="arch" type="xml">
+            <list string="Objetivos del cuadro de mando" editable="bottom">
+                <field name="bloque"/>
+                <field name="kpi" string="Indicador"/>
+                <field name="valor" string="Objetivo"/>
+                <field name="mejor_es_mayor" string="Cuanto más, mejor" widget="boolean_toggle"/>
+                <field name="prorratear" string="Prorratear el año" widget="boolean_toggle"/>
+                <field name="notas" string="Origen / notas"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_direccion_objetivo_form" model="ir.ui.view">
+        <field name="name">apunts.direccion.objetivo.form</field>
+        <field name="model">apunts.direccion.objetivo</field>
+        <field name="arch" type="xml">
+            <form string="Objetivo">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="kpi"/>
+                            <field name="bloque"/>
+                            <field name="valor"/>
+                        </group>
+                        <group>
+                            <field name="mejor_es_mayor"/>
+                            <field name="prorratear"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Origen / notas">
+                        <field name="notas" nolabel="1"
+                               placeholder="De dónde sale este objetivo (p. ej. cuadro de mando anterior, acuerdo de dirección...)"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_direccion_objetivo" model="ir.actions.act_window">
+        <field name="name">Objetivos del cuadro de mando</field>
+        <field name="res_model">apunts.direccion.objetivo</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Define los objetivos de cada indicador</p>
+            <p>El Panel Dirección compara el dato real con estos objetivos y muestra
+            el % de cumplimiento. Son los del cuadro de mando de siempre y se pueden
+            cambiar cuando dirección lo decida.</p>
+        </field>
+    </record>
+
+</odoo>

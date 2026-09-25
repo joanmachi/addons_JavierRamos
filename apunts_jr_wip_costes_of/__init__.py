@@ -27,6 +27,9 @@ def _post_init_recompute_wip(env):
     ])
     if productions:
         productions._compute_apunts_wip_costs()
+        productions._compute_apunts_wip_propio()
+        productions._compute_apunts_is_wip()
+        productions._compute_apunts_fecha_entrega()
         productions._compute_apunts_minutos()
         productions._compute_apunts_partner_id()
         productions._compute_apunts_margen()

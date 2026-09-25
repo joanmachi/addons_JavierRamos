@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_facturacion_mensual_graph" model="ir.ui.view">
+        <field name="name">apunts.facturacion.mensual.graph</field>
+        <field name="model">apunts.facturacion.mensual.line</field>
+        <field name="arch" type="xml">
+            <graph string="Facturación por mes" type="bar" sample="1">
+                <field name="mes_fecha" interval="month"/>
+                <field name="total_neto" type="measure" string="Facturación (€)"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_facturacion_mensual_list" model="ir.ui.view">
+        <field name="name">apunts.facturacion.mensual.list</field>
+        <field name="model">apunts.facturacion.mensual.line</field>
+        <field name="arch" type="xml">
+            <list string="Facturación por mes" create="0" delete="0" edit="0"
+                  decoration-success="es_mejor_mes == True"
+                  decoration-muted="num_facturas == 0">
+                <field name="mes" string="Mes"/>
+                <field name="num_facturas" string="Facturas" sum="Total facturas"/>
+                <field name="total_neto" string="Facturación (€)" sum="Total facturación"/>
+                <field name="variacion_pct" string="Var. % vs ant."
+                       decoration-danger="variacion_pct &lt; 0"
+                       decoration-success="variacion_pct &gt; 0"/>
+                <field name="es_mejor_mes" string="Mejor" optional="hide"/>
+                <field name="mes_fecha" column_invisible="1"/>
+                <field name="user_id" column_invisible="1"/>
+                <button name="action_open_source" type="object" icon="fa-external-link"
+                        string="Ver facturas" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_facturacion_mensual_srv" model="ir.actions.server">
+        <field name="name">Facturación por mes</field>
+        <field name="model_id" ref="model_apunts_facturacion_mensual"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+</odoo>

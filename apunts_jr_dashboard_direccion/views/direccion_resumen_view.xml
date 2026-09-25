@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Panel Dirección, organizado como el cuadro de mando de siempre:
+         CME (económico) · CMV (ventas y cartera) · CML (liquidez) · CMP (producción).
+         Mismas 10 tarjetas de antes, agrupadas por bloque y con un color por bloque. -->
     <record id="apunts_direccion_resumen_form" model="ir.ui.view">
         <field name="name">apunts.direccion.resumen.form</field>
         <field name="model">apunts.direccion.resumen</field>
@@ -11,9 +14,11 @@
                     <div class="oe_title mb-2">
                         <h1>Panel Dirección</h1>
                         <p class="text-muted">
-                            El estado de la empresa en una pantalla. Cada tarjeta lleva
-                            su botón para ver el detalle completo. Los valores son en
-                            tiempo real; la evolución semanal se guarda sola cada lunes.
+                            El estado de la empresa en una pantalla, con los mismos bloques
+                            del cuadro de mando de siempre: económico, ventas, liquidez y
+                            producción. Cada tarjeta lleva su botón para ver el detalle.
+                            Los valores son en tiempo real; la evolución semanal se guarda
+                            sola cada lunes.
                         </p>
                     </div>
                     <div class="d-flex justify-content-center gap-2 mb-4">
@@ -22,7 +27,233 @@
                                 class="btn btn-lg btn-dark"/>
                     </div>
 
+                    <notebook>
+                    <page string="Cuadro de mando" name="cuadro">
+
                     <div class="row g-3">
+
+                        <!-- ══ CME · ECONÓMICO ══ -->
+                        <div class="col-12 mt-0">
+                            <div class="d-flex align-items-baseline border-bottom border-2 border-success pb-1">
+                                <h4 class="mb-0 fw-bold text-success">CME · ECONÓMICO</h4>
+                                <span class="ms-2 small text-muted">Lo que se factura y lo que queda de margen</span>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Facturación del año</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="fact_anual" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Facturado (sin IVA) desde el 1 de enero.
+                                        Esta semana: <field name="fact_semana" readonly="1" widget="monetary" class="fw-semibold"/>
+                                    </div>
+                                    <button name="action_ver_facturacion" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">EBITDA del año</div>
+                                    <div class="display-6 fw-bold text-success">
+                                        <field name="ebitda_anual" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Lo que deja la actividad antes de amortizaciones y financieros: facturación + otros ingresos + variación de existencias − los cuatro bloques de coste.
+                                        Sobre facturación: <field name="ebitda_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
+                                    </div>
+                                    <button name="action_ver_ebitda" type="object"
+                                            string="Ver P&amp;G" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ CMV · VENTAS Y CARTERA ══ -->
+                        <div class="col-12 mt-3">
+                            <div class="d-flex align-items-baseline border-bottom border-2 border-info pb-1">
+                                <h4 class="mb-0 fw-bold text-info">CMV · VENTAS Y CARTERA</h4>
+                                <span class="ms-2 small text-muted">Pedidos que entran y trabajo contratado por servir</span>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Pedidos del mes</div>
+                                    <div class="display-6 fw-bold text-info">
+                                        <field name="pedidos_mes" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Pedidos de venta confirmados este mes (sin IVA).
+                                        En el año: <field name="pedidos_anual" readonly="1" widget="monetary" class="fw-semibold"/>
+                                    </div>
+                                    <button name="action_ver_pedidos" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Cartera pendiente</div>
+                                    <div class="display-6 fw-bold text-info">
+                                        <field name="cartera_pendiente" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Vendido y todavía no entregado: trabajo contratado
+                                        pendiente de servir (sin IVA).
+                                    </div>
+                                    <button name="action_ver_cartera" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ CML · LIQUIDEZ ══ -->
+                        <div class="col-12 mt-3">
+                            <div class="d-flex align-items-baseline border-bottom border-2 border-danger pb-1">
+                                <h4 class="mb-0 fw-bold text-danger">CML · LIQUIDEZ</h4>
+                                <span class="ms-2 small text-muted">Dinero disponible y dinero por cobrar</span>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Tesorería disponible</div>
+                                    <div class="display-6 fw-bold text-danger">
+                                        <field name="tesoreria" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Saldo actual de bancos y caja (asientos publicados).
+                                    </div>
+                                    <button name="action_ver_tesoreria" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Cobros pendientes</div>
+                                    <div class="display-6 fw-bold text-danger">
+                                        <field name="cobros_pendientes" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Facturas de cliente emitidas y aún no cobradas.
+                                    </div>
+                                    <button name="action_ver_cobros" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ CMP · PRODUCCIÓN ══ -->
+                        <div class="col-12 mt-3">
+                            <div class="d-flex align-items-baseline border-bottom border-2 border-warning pb-1">
+                                <h4 class="mb-0 fw-bold text-warning">CMP · PRODUCCIÓN</h4>
+                                <span class="ms-2 small text-muted">El taller: dinero en curso, carga, horas y entregas</span>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Fabricación en curso (WIP)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="wip_valor" nolabel="1" readonly="1" widget="monetary"/>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Coste real acumulado en las órdenes de fabricación en
+                                        curso. <span class="fst-italic">No incluye la mano de
+                                        obra (no se imputa en las OF).</span>
+                                    </div>
+                                    <button name="action_ver_wip" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Cobertura de trabajo</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="cobertura_meses" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> meses</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Meses de carga asegurada en los centros, al ritmo
+                                        real de trabajo de los últimos 30 días.
+                                    </div>
+                                    <button name="action_ver_cobertura" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Horas productivas (mes)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="horas_prod_pct" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> %</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Jornada cumplida por los operarios (presencia +
+                                        ausencias sobre lo esperado), como en KPIs de fichaje.
+                                    </div>
+                                    <button name="action_ver_horas" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body text-center py-3 d-flex flex-column">
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">Entregas en fecha (mes)</div>
+                                    <div class="display-6 fw-bold text-warning">
+                                        <field name="entregas_mes_pct" nolabel="1" readonly="1" widget="float" digits="[16,1]"/><span class="fs-5"> %</span>
+                                    </div>
+                                    <div class="small text-muted mt-1 mb-2">
+                                        Albaranes de salida validados dentro de la fecha
+                                        comprometida. En el año:
+                                        <field name="entregas_anual_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
+                                    </div>
+                                    <button name="action_ver_entregas" type="object"
+                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ══ OBJETIVOS vs REAL ══ -->
+                    <div class="mt-4">
+                        <div class="d-flex align-items-baseline border-bottom border-2 border-dark pb-1 mb-2">
+                            <h4 class="mb-0 fw-bold">OBJETIVOS</h4>
+                            <span class="ms-2 small text-muted">Cómo vamos frente a las metas del cuadro de mando</span>
+                            <button name="action_ver_objetivos" type="object"
+                                    string="Editar objetivos"
+                                    class="btn btn-sm btn-outline-dark ms-auto"/>
+                        </div>
+                        <field name="objetivos_html" nolabel="1" readonly="1"/>
+                    </div>
+
+                    </page>
+                    <page string="Vista de siempre" name="clasico">
+                        <p class="text-muted mt-2 mb-3">
+                            Los mismos indicadores, en la lista numerada de toda la vida.
+                        </p>
+<div class="row g-3">
 
                         <div class="col-xl-3 col-md-4 col-sm-6">
                             <div class="card shadow-sm h-100">
@@ -127,16 +358,16 @@
                         <div class="col-xl-3 col-md-4 col-sm-6">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body text-center py-3 d-flex flex-column">
-                                    <div class="text-uppercase fw-semibold small text-muted mb-1">7 · Margen bruto del año</div>
+                                    <div class="text-uppercase fw-semibold small text-muted mb-1">7 · EBITDA del año</div>
                                     <div class="display-6 fw-bold text-dark">
-                                        <field name="margen_bruto" nolabel="1" readonly="1" widget="monetary"/>
+                                        <field name="ebitda_anual" nolabel="1" readonly="1" widget="monetary"/>
                                     </div>
                                     <div class="small text-muted mt-1 mb-2">
-                                        Ingresos menos coste directo/aprovisionamientos (60x).
-                                        Sobre ventas: <field name="margen_bruto_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
+                                        Lo que deja la actividad antes de amortizaciones y financieros: facturación + otros ingresos + variación de existencias − los cuatro bloques de coste.
+                                        Sobre facturación: <field name="ebitda_pct" readonly="1" widget="float" digits="[16,1]" class="fw-semibold"/>%
                                     </div>
-                                    <button name="action_ver_margen" type="object"
-                                            string="Ver detalle" class="btn btn-primary btn-sm mt-auto"/>
+                                    <button name="action_ver_ebitda" type="object"
+                                            string="Ver P&amp;G" class="btn btn-primary btn-sm mt-auto"/>
                                 </div>
                             </div>
                         </div>
@@ -194,6 +425,375 @@
                         </div>
 
                     </div>
+                    </page>
+                    <page string="Otros paneles" name="otros">
+                        <p class="text-muted mt-2 mb-3">
+                            Todo lo que tiene la empresa, a un clic y ordenado como la reunión semanal:
+                            los seis indicadores de Dirección, los cuadros de siempre, el taller y la configuración.
+                        </p>
+<div class="row g-3">
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-dark">
+                                    <span class="fw-bold ">REUNIÓN SEMANAL</span>
+                                    <div class="small text-muted">Por aquí se empieza cada lunes</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_kpi_bloques'}"
+                                            string="Reunión semanal"/>
+                                    <span class="small text-muted mb-1">Los 6 indicadores de Dirección: cómo estamos, si mejoramos y qué KPI explica la desviación.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_kpi_historico'}"
+                                            string="Histórico de KPIs"/>
+                                    <span class="small text-muted mb-1">La tabla: cada KPI semana a semana, con su objetivo y su color.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_facturacion_mensual_srv'}"
+                                            string="Facturación por mes"/>
+                                    <span class="small text-muted">Gráfica de lo facturado mes a mes.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-info">
+                                    <span class="fw-bold text-info">1 · ACTIVIDAD COMERCIAL</span>
+                                    <div class="small text-muted">¿Tenemos suficiente trabajo y ritmo comercial?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'sale.action_orders'}"
+                                            string="Pedidos de venta"/>
+                                    <span class="small text-muted mb-1">Los pedidos confirmados de cliente.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_pending_delivery'}"
+                                            string="Pedidos pendientes de entrega"/>
+                                    <span class="small text-muted mb-1">Lo vendido que aún no ha salido, con su fecha.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_sales_monthly'}"
+                                            string="Evolución mensual de ventas"/>
+                                    <span class="small text-muted mb-1">Pedidos y facturación mes a mes.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_sales_analysis'}"
+                                            string="Análisis de ventas"/>
+                                    <span class="small text-muted mb-1">Por cliente, producto y periodo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'javier_ramos_pedidos.action_jr_sale_line_desglose'}"
+                                            string="Desglose de líneas de venta"/>
+                                    <span class="small text-muted">Todo lo vendido, línea a línea.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-success">
+                                    <span class="fw-bold text-success">2 · RENTABILIDAD</span>
+                                    <div class="small text-muted">¿La actividad genera resultado?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_pnl_period'}"
+                                            string="P&amp;G por periodos (por bloques)"/>
+                                    <span class="small text-muted mb-1">La cascada: facturación, variables, semivariables, fijos, estructura, EBITDA y resultado.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_customer_margin'}"
+                                            string="Margen por cliente"/>
+                                    <span class="small text-muted mb-1">Con qué clientes se gana dinero y con cuáles no.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_dashboard'}"
+                                            string="Dashboard KPIs de contabilidad"/>
+                                    <span class="small text-muted mb-1">Balance, resultados y ratios con semáforo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_graficas'}"
+                                            string="Gráficas financieras"/>
+                                    <span class="small text-muted">La evolución del negocio en gráficas.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-warning">
+                                    <span class="fw-bold text-warning">3 · COSTES</span>
+                                    <div class="small text-muted">¿Dónde se consumen los 100 € vendidos?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_evolucion_coste'}"
+                                            string="Evolución de costes"/>
+                                    <span class="small text-muted mb-1">Cada bloque de coste mes a mes y su % sobre facturación.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_cuenta_bloque'}"
+                                            string="Clasificación de costes"/>
+                                    <span class="small text-muted mb-1">A qué bloque pertenece cada cuenta de gasto (la clasificación del asesor).</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_coste'}"
+                                            string="Precio por hora del taller"/>
+                                    <span class="small text-muted mb-1">El gasto repartido entre las horas: el punto muerto.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_product_costing'}"
+                                            string="Escandallo de costes"/>
+                                    <span class="small text-muted mb-1">Qué cuesta fabricar cada producto.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_wip_costes_of.apunts_action_buscar_coste_of'}"
+                                            string="Buscar el coste de una OF"/>
+                                    <span class="small text-muted mb-1">Escribes el número de OF y te abre su coste y margen.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_costes_of.action_apunts_master_data_hub'}"
+                                            string="Datos que forman el coste"/>
+                                    <span class="small text-muted mb-1">Precio/hora de operarios y coste de los centros.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_purchase_analysis'}"
+                                            string="Análisis de compras"/>
+                                    <span class="small text-muted mb-1">Qué se compra, a quién y cuánto.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'javier_ramos_pedidos.action_jr_purchase_line_desglose'}"
+                                            string="Desglose de líneas de compra"/>
+                                    <span class="small text-muted">Todo lo comprado, línea a línea.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-danger">
+                                    <span class="fw-bold text-danger">4 · TESORERÍA Y CIRCULANTE</span>
+                                    <div class="small text-muted">¿Tenemos liquidez y autonomía suficiente?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_dat_proyeccion'}"
+                                            string="DAT · Curva de tesorería"/>
+                                    <span class="small text-muted mb-1">Cuántos días aguanta la caja: tesorería real y proyección.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_collections'}"
+                                            string="Cobros y pagos pendientes"/>
+                                    <span class="small text-muted mb-1">Qué hay por cobrar y por pagar, y cuándo vence.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_aging'}"
+                                            string="Antigüedad de saldos de clientes"/>
+                                    <span class="small text-muted mb-1">Quién debe dinero y desde cuándo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_aging_supplier'}"
+                                            string="Antigüedad de saldos de proveedores"/>
+                                    <span class="small text-muted mb-1">A quién se debe y desde cuándo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_forecast_open'}"
+                                            string="Previsión de liquidez"/>
+                                    <span class="small text-muted mb-1">Ingresos y gastos previstos por meses.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_salary_forecast'}"
+                                            string="Previsión de salarios"/>
+                                    <span class="small text-muted mb-1">Lo que costará la plantilla en los próximos meses.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_stock_valuation'}"
+                                            string="Existencias y aprovisionamientos"/>
+                                    <span class="small text-muted mb-1">Cuánto dinero hay parado en el almacén.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_wip_costes_of.action_product_stock_valorado'}"
+                                            string="Stock valorado"/>
+                                    <span class="small text-muted">Coste real de cada artículo y valor del almacén.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-primary">
+                                    <span class="fw-bold text-primary">5 · PRODUCCIÓN</span>
+                                    <div class="small text-muted">¿Convertimos presencia en horas facturables y cumplimos lo previsto?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_carga_centros.apunts_action_carga_resumen_srv'}"
+                                            string="Carga de los centros"/>
+                                    <span class="small text-muted mb-1">Horas pendientes, órdenes abiertas y cerradas.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_carga_centros.apunts_action_rendimiento_centro_srv'}"
+                                            string="Rendimiento por centro"/>
+                                    <span class="small text-muted mb-1">Tiempo previsto frente a real, máquina a máquina.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_carga_centros.apunts_action_rendimiento_operario_srv'}"
+                                            string="Rendimiento por operario"/>
+                                    <span class="small text-muted mb-1">Quién cumple el tiempo previsto y quién no.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_carga_centros.apunts_action_carga_snapshot'}"
+                                            string="Evolución de la carga"/>
+                                    <span class="small text-muted mb-1">Si se acumula retraso o se va recuperando.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_indicadores'}"
+                                            string="KPIs de producción (MACOP, MACPRE)"/>
+                                    <span class="small text-muted mb-1">Máquinas por operario, aprovechamiento de la presencia y previsión de horas.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_wip_costes_of.apunts_action_mrp_production_wip'}"
+                                            string="Órdenes en curso"/>
+                                    <span class="small text-muted mb-1">Lista de OFs abiertas con coste, margen y avance.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_wip_costes_of.apunts_action_wip_resumen_srv'}"
+                                            string="Resumen de fabricación en curso"/>
+                                    <span class="small text-muted">El dinero metido en el taller ahora mismo.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-secondary">
+                                    <span class="fw-bold text-secondary">6 · SERVICIO Y CALIDAD</span>
+                                    <div class="small text-muted">¿Cumplimos al cliente sin retrabajo?</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'stock.method_action_picking_tree_outgoing'}"
+                                            string="Entregas"/>
+                                    <span class="small text-muted mb-1">Albaranes de salida y su fecha comprometida.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_mfg_supervisor.action_lira_refabricacion'}"
+                                            string="Rectificaciones y retrabajos"/>
+                                    <span class="small text-muted mb-1">Piezas rechazadas: retrabajo o reposición, con su motivo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_mfg_supervisor.action_lira_supervisor_panel'}"
+                                            string="Panel del supervisor"/>
+                                    <span class="small text-muted mb-1">Validar piezas y decidir qué se rectifica.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'stock.method_action_picking_tree_incoming'}"
+                                            string="Recepciones"/>
+                                    <span class="small text-muted">Material que llega de proveedor.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-dark">
+                                    <span class="fw-bold ">CUADROS DE SIEMPRE (CMI · CMP)</span>
+                                    <div class="small text-muted">Las hojas del cuadro de mando de antes, con datos de Odoo</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmi_hoja_registro'}"
+                                            string="CMI · Registro semanal"/>
+                                    <span class="small text-muted mb-1">Una fila por semana: saldo, cobros, facturación, albaranes, stocks, cartera y proveedores.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmi_hoja_operaciones'}"
+                                            string="CMI · Operaciones"/>
+                                    <span class="small text-muted mb-1">Liquidez en sus niveles, producción económica y material, compras y previsión de pagos.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmi_graf_cme'}"
+                                            string="CMI · Gráficas (CME, CML, CMP, CMC/CMV, potencial)"/>
+                                    <span class="small text-muted mb-1">Las cinco gráficas del cuadro, desde la primera.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_centros'}"
+                                            string="CMP · Registro por centros"/>
+                                    <span class="small text-muted mb-1">Meses en columnas, horas máquina y operario por centro.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_operarios'}"
+                                            string="CMP · Registro por operarios"/>
+                                    <span class="small text-muted mb-1">Lo mismo por persona.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_seguimiento'}"
+                                            string="CMP · Seguimiento horario"/>
+                                    <span class="small text-muted">Previsión de horas del año, semana a semana.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-warning">
+                                    <span class="fw-bold text-warning">TALLER Y FICHAJES</span>
+                                    <div class="small text-muted">Quién trabaja, en qué y cuánta carga hay</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_gestion_taller.apunts_action_fichados_ahora'}"
+                                            string="Operarios fichados ahora"/>
+                                    <span class="small text-muted mb-1">Quién está trabajando en este momento y en qué OF.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_gestion_taller.apunts_action_empleados_resumen'}"
+                                            string="Estado de los operarios"/>
+                                    <span class="small text-muted mb-1">Horas de hoy y de la semana de cada uno.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_gestion_taller.action_apunts_taller_kpi'}"
+                                            string="KPIs de fichaje"/>
+                                    <span class="small text-muted mb-1">Jornada cumplida, presencia y ausencias, y correcciones.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_gestion_taller.action_apunts_historico_presencia'}"
+                                            string="Histórico de presencia"/>
+                                    <span class="small text-muted mb-1">Entradas y salidas por día y empleado.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_gestion_taller.apunts_corregir_fichaje_action'}"
+                                            string="Corregir fichaje / desbloquear"/>
+                                    <span class="small text-muted">Arreglar un fichaje mal hecho o desbloquear a un operario.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-primary">
+                                    <span class="fw-bold text-primary">MANUALES</span>
+                                    <div class="small text-muted">Cómo se hace cada cosa, paso a paso</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'grupadoo_formacion.action_formacion_visor'}"
+                                            string="Formaciones"/>
+                                    <span class="small text-muted mb-1">Las guías con capturas, para planta y para oficina.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'grupadoo_formacion.action_formacion_desarrollos'}"
+                                            string="Desarrollos"/>
+                                    <span class="small text-muted">Lo que se ha ido desarrollando para la empresa.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom border-2 border-secondary">
+                                    <span class="fw-bold text-secondary">CONFIGURACIÓN</span>
+                                    <div class="small text-muted">Objetivos, criterios y ajustes (solo dirección)</div>
+                                </div>
+                                <div class="card-body py-2 d-flex flex-column align-items-start gap-1">
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'lira_dashboard_contabilidad.action_lira_ratio_criterio'}"
+                                            string="Objetivos y criterios de los KPIs"/>
+                                    <span class="small text-muted mb-1">Desde qué valor cada KPI está en verde, amarillo o rojo.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_kpi_catalogo'}"
+                                            string="Catálogo de KPIs"/>
+                                    <span class="small text-muted mb-1">Los 34 KPIs: fórmula, bloque y a dónde lleva su detalle.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_dat_pago'}"
+                                            string="DAT · Pagos recurrentes"/>
+                                    <span class="small text-muted mb-1">Nóminas, impuestos y otros pagos que no están como vencimientos.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_cmp_coste_categoria'}"
+                                            string="Categorías de coste (precio por hora)"/>
+                                    <span class="small text-muted mb-1">Qué cuentas y centros forman cada categoría.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_direccion_objetivo'}"
+                                            string="Objetivos del cuadro de mando (panel antiguo)"/>
+                                    <span class="small text-muted mb-1">Las metas del bloque de objetivos de este panel.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_direccion_snapshot'}"
+                                            string="Fotos diarias de los KPIs"/>
+                                    <span class="small text-muted mb-1">El motor de las fotos (cartera, WIP...) que alimenta el histórico.</span>
+                                    <button name="action_abrir" type="object" class="btn btn-link p-0 text-start"
+                                            context="{'apunts_xmlid': 'apunts_jr_dashboard_direccion.apunts_action_kpi_actualizar'}"
+                                            string="Actualizar semana en curso"/>
+                                    <span class="small text-muted">Recalcula ahora mismo los KPIs de esta semana.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

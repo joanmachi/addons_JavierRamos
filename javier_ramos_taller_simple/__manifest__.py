@@ -10,6 +10,7 @@
 
     'author': "Apunts Informatica",
     'website': "http://www.grupapunts.es",
+    'version': '18.0.1.3.0',
 
     'depends': ['mrp_workorder', 'stock', 'purchase_stock', 'product','maintenance', 'mrp_maintenance', 'mrp','quality_mrp_workorder','hr_attendance', 'sale','sale_stock', 'product_secondary_unit','multi_step_wizard','purchase_order_secondary_unit', 'mrp_sale_info'],
 

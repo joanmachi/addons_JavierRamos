@@ -99,7 +99,8 @@
         <field name="name">apunts.productivity.list.historico</field>
         <field name="model">mrp.workcenter.productivity</field>
         <field name="arch" type="xml">
-            <list string="Histórico de fichajes" create="0" delete="0" edit="1"
+            <!-- delete="1": Xavi necesita borrar fichajes de prueba (ALEXAPUNTS) de OTs ya cerradas; desde la OT hecha Odoo no deja (CAMBIOS [059]) -->
+            <list string="Histórico de fichajes" create="0" delete="1" edit="1"
                   decoration-warning="apunts_modificado_manual">
                 <field name="apunts_production_id" column_invisible="1"/>
                 <field name="employee_id" string="Operario" readonly="1"/>

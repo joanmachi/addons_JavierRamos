@@ -530,7 +530,7 @@ class MrpProduction(models.Model):
         # Hito 11: revenue ya respeta tanto sale_id estandar como campo Studio.
         revenue = self._apunts_revenue_total()
         # Coste real para el MARGEN: el MISMO número que la tarjeta
-        # "EN CURSO (REAL)" del WIP (si está instalado). Antes usaba el
+        # "COSTE REAL" del WIP (si está instalado). Antes usaba el
         # total_real propio de este módulo, que valora MO/máquina con otra
         # cascada → la tarjeta MARGEN contradecía a la de al lado.
         total_real_margen = total_real

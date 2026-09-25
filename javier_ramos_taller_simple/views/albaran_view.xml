@@ -10,7 +10,41 @@
             <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_uom']" position="before">
                 <field name="fabricacion"  />
             </xpath>
-         
+            <!-- Devoluciones a proveedor: por qué se devuelve (obligatorio al validar) -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="apunts_es_devolucion_proveedor" invisible="1"/>
+                <field name="apunts_origen_devolucion"
+                       invisible="not apunts_es_devolucion_proveedor"
+                       required="apunts_es_devolucion_proveedor"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="apunts_picking_list_origen_devolucion" model="ir.ui.view">
+        <field name="name">stock.picking.list.origen.devolucion</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="apunts_origen_devolucion" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="apunts_picking_search_origen_devolucion" model="ir.ui.view">
+        <field name="name">stock.picking.search.origen.devolucion</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='draft']" position="before">
+                <filter name="apunts_devoluciones_proveedor" string="Devoluciones a proveedor"
+                        domain="[('apunts_es_devolucion_proveedor', '=', True)]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter name="apunts_group_origen_devolucion" string="Origen de la devolución"
+                        context="{'group_by': 'apunts_origen_devolucion'}"/>
+            </xpath>
         </field>
     </record>
 </odoo>

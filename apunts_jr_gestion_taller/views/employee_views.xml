@@ -21,6 +21,7 @@
                 <field name="apunts_horas_hoy" string="Horas HOY" widget="float_time" readonly="1"/>
                 <field name="apunts_horas_semana" string="Horas semana" widget="float_time" readonly="1" optional="show"/>
                 <field name="apunts_fichaje_activo_count" string="N° fichajes abiertos" readonly="1" optional="hide"/>
+                <field name="apunts_planta" string="Planta" widget="boolean_toggle" optional="show"/>
                 <field name="apunts_taller_bloqueado" string="Bloqueado" widget="boolean_toggle"/>
                 <field name="apunts_taller_motivo_bloqueo" string="Motivo bloqueo" optional="show"/>
                 <field name="apunts_taller_fecha_bloqueo" string="Bloqueado el" optional="hide" readonly="1"/>
@@ -36,6 +37,27 @@
         </field>
     </record>
 
+    <record id="apunts_employee_form_planta" model="ir.ui.view">
+        <field name="name">hr.employee.form.apunts.planta</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Taller (Apunts)" name="apunts_taller">
+                    <group>
+                        <field name="apunts_planta"/>
+                    </group>
+                    <p class="text-muted">
+                        Marca aquí a quien trabaja en órdenes del taller: solo ellos cuentan en el MACOP
+                        (horas máquina sobre horas de operario en OF). El MACPRE y la jornada cumplida los
+                        mide toda la plantilla, oficina incluida, cada uno según su calendario laboral
+                        (pestaña «Información de trabajo»), descontando festivos.
+                    </p>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
     <record id="apunts_employee_search" model="ir.ui.view">
         <field name="name">apunts.employee.search</field>
         <field name="model">hr.employee</field>
@@ -48,6 +70,9 @@
                         domain="[('apunts_taller_bloqueado','=',True)]"/>
                 <filter name="filter_no_bloqueados" string="No bloqueados"
                         domain="[('apunts_taller_bloqueado','=',False)]"/>
+                <separator/>
+                <filter name="filter_planta" string="Operarios de planta"
+                        domain="[('apunts_planta','=',True)]"/>
                 <group string="Agrupar por">
                     <filter name="group_bloqueado" string="Bloqueado/No bloqueado"
                             context="{'group_by':'apunts_taller_bloqueado'}"/>

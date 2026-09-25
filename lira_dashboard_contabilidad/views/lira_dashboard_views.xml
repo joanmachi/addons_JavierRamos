@@ -24,7 +24,7 @@
             </div>
             <div class="ld_header_kpis">
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Ventas del periodo <i class="fa fa-info-circle text-muted ms-1" title="'Ventas del periodo': Suma de ingresos por ventas del período: facturas de cliente emitidas y validadas, sin IVA. Fuente: cuentas del grupo 7 (ingresos de explotación)."/></div>
+                <div class="ld_hkpi_label">Ventas del periodo <i class="fa fa-info-circle text-muted ms-1" title="'Ventas del periodo': ingresos por ventas contabilizados en las cuentas 70x, sin IVA. La misma cifra que el P&amp;G, el Panel de Dirección y el Análisis de ventas."/></div>
                 <div class="ld_hkpi_value">
                   <field name="ventas_periodo" readonly="1"/>
                 </div>
@@ -47,17 +47,6 @@
                 <div class="ld_hkpi_label">Beneficio neto <i class="fa fa-info-circle text-muted ms-1" title="'Beneficio neto': Resultado final del período: ingresos menos TODOS los gastos (operativos, financieros y amortizaciones). Es lo que realmente gana la empresa. Fuente: cuentas 6xx y 7xx."/></div>
                 <div class="ld_hkpi_value">
                   <field name="beneficio_neto" readonly="1"/>
-                </div>
-              </div>
-              <div class="ld_hkpi_sep"/>
-              <div class="ld_hkpi">
-                <div class="ld_hkpi_label">Margen bruto <i class="fa fa-info-circle text-muted ms-1" title="'Margen bruto': (Ventas − Coste de ventas) / Ventas × 100. Mide qué porcentaje de cada euro vendido queda después de pagar el coste directo del producto o servicio. Cuanto mayor, mejor."/></div>
-                <div class="ld_hkpi_value">
-                  <field name="ratio_margen_bruto" readonly="1"/>
-                  <span class="ld_hkpi_unit">%</span>
-                </div>
-                <div class="ld_hkpi_trend">
-                  <field name="trend_margen" readonly="1"/>
                 </div>
               </div>
             </div>
@@ -153,20 +142,32 @@
           <div class="ld_ratio_row">
 
             <div class="ld_ratio_card">
-              <div class="ld_strip ld_strip_green"  invisible="sem_margen_bruto != 'green'"/>
-              <div class="ld_strip ld_strip_yellow" invisible="sem_margen_bruto != 'yellow'"/>
-              <div class="ld_strip ld_strip_red"    invisible="sem_margen_bruto != 'red'"/>
+              <div class="ld_strip ld_strip_green"  invisible="sem_edv != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_edv != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_edv != 'red'"/>
               <div class="ld_card_body">
-                <div class="ld_card_label">Margen bruto <i class="fa fa-info-circle text-muted ms-1" title="'Margen bruto': (Ventas − Coste de ventas) / Ventas × 100. De cada 100€ vendidos, cuántos quedan después de pagar solo el coste directo del producto o servicio. Cuanto mayor, más rentable el negocio."/></div>
+                <div class="ld_card_label">EDV — Estructura s/ ventas <i class="fa fa-info-circle text-muted ms-1" title="(Estructura y Dirección) / Facturación × 100. Cuánto pesa la estructura sobre lo vendido. Objetivo ≤ 8%; entre 8% y 12,5% aceptable pero a mejorar; por encima, excesivo."/></div>
                 <div class="ld_card_value">
-                  <field name="ratio_margen_bruto" readonly="1"/>
+                  <field name="ratio_edv" readonly="1"/>
                   <span class="ld_unit">%</span>
                 </div>
-                <div class="ld_card_ref">Óptimo › 40%</div>
-                <div class="ld_card_trend">
-                  <field name="trend_margen" readonly="1"/>
+                <div class="ld_card_ref">Objetivo ‹ 8%</div>
+                <div class="ld_card_formula">Estructura-Dirección / Ventas</div>
+              </div>
+            </div>
+
+            <div class="ld_ratio_card">
+              <div class="ld_strip ld_strip_green"  invisible="sem_cov != 'green'"/>
+              <div class="ld_strip ld_strip_yellow" invisible="sem_cov != 'yellow'"/>
+              <div class="ld_strip ld_strip_red"    invisible="sem_cov != 'red'"/>
+              <div class="ld_card_body">
+                <div class="ld_card_label">COV — Coste operativo s/ ventas <i class="fa fa-info-circle text-muted ms-1" title="(Variables directos + Semivariables + Fijos operativos) / Facturación × 100. Cuánto de cada euro vendido se va en operar. Bueno ≤ 80%; entre 80% y 90% vigilancia; por encima, malo."/></div>
+                <div class="ld_card_value">
+                  <field name="ratio_cov" readonly="1"/>
+                  <span class="ld_unit">%</span>
                 </div>
-                <div class="ld_card_formula">(Ventas – Coste ventas) / Ventas</div>
+                <div class="ld_card_ref">Bueno ‹ 80%</div>
+                <div class="ld_card_formula">(Var. directos + Semivar. + Fijos op.) / Ventas</div>
               </div>
             </div>
 
@@ -193,7 +194,7 @@
               <div class="ld_strip ld_strip_yellow" invisible="sem_margen_neto != 'yellow'"/>
               <div class="ld_strip ld_strip_red"    invisible="sem_margen_neto != 'red'"/>
               <div class="ld_card_body">
-                <div class="ld_card_label">Margen neto <i class="fa fa-info-circle text-muted ms-1" title="'Margen neto': Beneficio neto / Ventas × 100. De cada 100€ vendidos, cuántos quedan como beneficio real después de pagar absolutamente todos los gastos (operativos, financieros e impuestos)."/></div>
+                <div class="ld_card_label">Margen neto <i class="fa fa-info-circle text-muted ms-1" title="'Margen neto': Beneficio neto / Facturación × 100. De cada 100€ facturados, cuántos quedan como beneficio real después de pagar absolutamente todos los gastos (operativos, financieros e impuestos)."/></div>
                 <div class="ld_card_value">
                   <field name="ratio_margen_neto" readonly="1"/>
                   <span class="ld_unit">%</span>
@@ -235,10 +236,12 @@
 
           </div>
 
-          <!-- ══ CUENTA DE RESULTADOS + BALANCE ════════════════════════════ -->
-          <div class="ld_two_col">
+          <!-- ══ CUENTA DE RESULTADOS · DISTRIBUCIÓN DE COSTES · BALANCE ════
+               Todo en una sola columna, en este orden, para que el balance quede
+               entre la distribución de costes y el ciclo de maduración. -->
+          <div class="ld_one_col">
 
-            <!-- Columna izquierda: Cuenta de resultados -->
+            <!-- Cuenta de resultados + distribución de costes -->
             <div class="ld_col">
               <div class="ld_section_header">
                 <span class="ld_section_line"/>
@@ -248,9 +251,9 @@
                 <div class="ld_trow ld_trow_income ld_drillable">
                   <span class="ld_tlabel">
                     Ingresos de explotación
-                    <i class="fa fa-info-circle text-muted ms-1" title="'Ingresos de explotación': Cuentas grupo 7: ingresos por ventas de productos y servicios, sin IVA."/>
+                    <i class="fa fa-info-circle text-muted ms-1" title="'Ingresos de explotación': ventas (70x) más otros ingresos de explotación (subvenciones, variación de existencias...), sin IVA. Es la misma base que el P&amp;G por periodos."/>
                   </span>
-                  <field name="ventas_periodo" readonly="1"/>
+                  <field name="ingresos_explotacion" readonly="1"/>
                   <button name="action_drill_ventas" type="object" class="ld_drill_btn" title="Ver apuntes de ingresos"><i class="fa fa-search-plus"/></button>
                 </div>
                 <div class="ld_trow ld_drillable">
@@ -294,7 +297,7 @@
                   <button name="action_drill_amortizaciones" type="object" class="ld_drill_btn" title="Ver apuntes de amortizaciones"><i class="fa fa-search-plus"/></button>
                 </div>
                 <div class="ld_trow ld_trow_sub ld_no_drill">
-                  <span class="ld_tlabel">= EBIT (Res. explotación) <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
+                  <span class="ld_tlabel">= Resultado de explotación <span class="ld_nodrill_badge" title="Valor calculado: no tiene apuntes directos">calculado</span></span>
                   <field name="ebit" readonly="1"/>
                 </div>
                 <div class="ld_trow ld_drillable">
@@ -359,7 +362,7 @@
               </div>
             </div>
 
-            <!-- Columna derecha: Balance -->
+            <!-- Balance de situación (a todo el ancho, debajo de la distribución de costes) -->
             <div class="ld_col">
               <div class="ld_section_header">
                 <span class="ld_section_line"/>
@@ -400,6 +403,61 @@
                     <field name="total_pasivo_pn" readonly="1"/>
                   </div>
                 </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══ FINANCIACIÓN, ACTIVOS Y EXISTENCIAS (petición de Vicky) ══ -->
+          <div class="ld_section_header">
+            <span class="ld_section_line"/>
+            <span class="ld_section_title">Préstamos, amortizaciones y existencias</span>
+          </div>
+          <div class="ld_fin_row">
+
+            <div class="ld_fin_card">
+              <div class="ld_cycle_icon fa fa-university"/>
+              <div class="ld_cycle_label">Préstamos en curso <i class="fa fa-info-circle text-muted ms-1" title="Los préstamos dados de alta en Contabilidad → Préstamos. Deuda viva = lo que queda por devolver. Nivel de endeudamiento bancario = deuda viva ÷ patrimonio neto."/></div>
+              <div class="ld_cycle_value"><field name="prest_pendiente" readonly="1" widget="monetary"/></div>
+              <div class="ld_cycle_formula">deuda viva de <field name="prest_n" readonly="1"/> préstamo(s)</div>
+              <div class="ld_fin_rows">
+                <div><span>Nivel de endeudamiento bancario</span><b><field name="prest_pct_patrimonio" readonly="1"/> % del patrimonio</b></div>
+                <div><span>Cuota del próximo mes</span><b><field name="prest_cuota_mes" readonly="1" widget="monetary"/></b></div>
+                <div><span>Cuotas que quedan</span><b><field name="prest_meses_restantes" readonly="1"/> meses</b></div>
+                <div><span>Último vencimiento</span><b><field name="prest_fin" readonly="1"/></b></div>
+              </div>
+              <div class="ld_fin_detail"><field name="prest_detalle" readonly="1" nolabel="1"/></div>
+              <button name="action_open_prestamos" type="object" class="btn btn-sm btn-outline-secondary mt-2">Ver préstamos</button>
+            </div>
+
+            <div class="ld_fin_card">
+              <div class="ld_cycle_icon fa fa-cogs"/>
+              <div class="ld_cycle_label">Activos y amortizaciones <i class="fa fa-info-circle text-muted ms-1" title="Los activos en curso de Contabilidad → Activos. Valor neto = lo que aún no se ha amortizado. Las cuotas salen de los asientos de amortización previstos."/></div>
+              <div class="ld_cycle_value"><field name="act_neto" readonly="1" widget="monetary"/></div>
+              <div class="ld_cycle_formula">valor neto de <field name="act_n" readonly="1"/> activo(s) en curso</div>
+              <div class="ld_fin_rows">
+                <div><span>Valor de adquisición</span><b><field name="act_original" readonly="1" widget="monetary"/></b></div>
+                <div><span>Ya amortizado</span><b><field name="act_amortizado" readonly="1" widget="monetary"/> (<field name="act_pct_amortizado" readonly="1"/> %)</b></div>
+                <div><span>Amortización del próximo mes</span><b><field name="act_cuota_mes" readonly="1" widget="monetary"/></b></div>
+                <div><span>Amortización próximos 12 meses</span><b><field name="act_anual" readonly="1" widget="monetary"/></b></div>
+                <div><span>Última amortización prevista</span><b><field name="act_fin" readonly="1"/></b></div>
+              </div>
+              <button name="action_open_activos" type="object" class="btn btn-sm btn-outline-secondary mt-2">Ver activos</button>
+            </div>
+
+            <div class="ld_fin_card">
+              <div class="ld_cycle_icon fa fa-cubes"/>
+              <div class="ld_cycle_label">Existencias <i class="fa fa-info-circle text-muted ms-1" title="Arriba, lo que dice la contabilidad (grupo 3 a la fecha) y cuándo se actualizó por última vez. Debajo, lo que hay en la nave según el stock de Odoo: materia prima a coste y piezas de cliente a precio de venta."/></div>
+              <div class="ld_cycle_value"><field name="exist_contable" readonly="1" widget="monetary"/></div>
+              <div class="ld_cycle_formula">saldo contable del grupo 3 a la fecha</div>
+              <div class="ld_fin_rows">
+                <div><span>Último ajuste contable de existencias</span><b><field name="exist_fecha" readonly="1"/></b></div>
+                <div><span>Materia prima en la nave (a coste)</span><b><field name="exist_materia_coste" readonly="1" widget="monetary"/></b></div>
+                <div><span>Piezas de cliente en la nave (a venta)</span><b><field name="exist_piezas_venta" readonly="1" widget="monetary"/></b></div>
+              </div>
+              <div class="mt-2">
+                <button name="action_open_existencias_stock" type="object" class="btn btn-sm btn-outline-secondary">Ver stock materia prima</button>
+                <button name="action_open_existencias_asientos" type="object" class="btn btn-sm btn-outline-secondary ms-1">Ver asientos</button>
               </div>
             </div>
 

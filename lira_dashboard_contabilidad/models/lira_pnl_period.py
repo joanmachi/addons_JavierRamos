@@ -24,9 +24,17 @@ class LiraPnlLine(models.Model):
 
     user_id           = fields.Many2one('res.users', ondelete='cascade', index=True)
     bloque            = fields.Selection([
-        ('ingresos',  'Ingresos'),
-        ('variables', 'Costes variables'),
-        ('fijos',     'Costes fijos'),
+        ('facturacion', 'Facturación'),
+        ('otros_ingresos', 'Otros ingresos'),
+        ('variacion', 'Variación de existencias'),
+        ('variables_directos', 'Variables directos'),
+        ('semivariables', 'Semivariables'),
+        ('fijos_operativos', 'Fijos operativos'),
+        ('estructura', 'Estructura / Dirección'),
+        ('amortizaciones', 'Amortizaciones'),
+        ('financieros', 'Gastos financieros'),
+        ('ingresos_financieros', 'Ingresos financieros'),
+        ('sin_clasificar', 'Sin clasificar'),
     ], string='Bloque', index=True)
     account_id        = fields.Many2one('account.account', string='Cuenta', index=True)
     codigo_cuenta     = fields.Char('Código cuenta', index=True)
@@ -70,22 +78,30 @@ class LiraPnlPeriod(models.TransientModel):
     date_from = fields.Date('Desde', default=lambda s: date.today().replace(month=1, day=1))
     date_to   = fields.Date('Hasta', default=fields.Date.today)
 
-    # KPIs
-    total_ingresos  = fields.Float('Total ingresos (€)',  readonly=True)
-    total_variables = fields.Float('Costes variables (€)', readonly=True)
-    total_fijos     = fields.Float('Costes fijos (€)',     readonly=True)
-    margen_bruto    = fields.Float('Margen bruto (€)',     readonly=True,
-        help='Ingresos − Costes variables')
-    margen_bruto_pct = fields.Float('Margen bruto (%)',    readonly=True,
-        help='(Ingresos − Variables) / Ingresos × 100')
-    resultado        = fields.Float('Resultado (€)',       readonly=True,
-        help='Ingresos − Variables − Fijos')
-    resultado_pct    = fields.Float('Resultado (%)',       readonly=True,
-        help='Resultado / Ingresos × 100')
-
-    num_ctas_ingresos  = fields.Integer('Cuentas de ingresos',  readonly=True)
-    num_ctas_variables = fields.Integer('Cuentas variables',    readonly=True)
-    num_ctas_fijos     = fields.Integer('Cuentas fijas',        readonly=True)
+    # KPIs — la cascada por bloques de la clasificación del asesor
+    total_facturacion = fields.Float('Facturación (€)', readonly=True)
+    total_variables   = fields.Float('Variables directos (€)', readonly=True)
+    variables_pct     = fields.Float('Variables directos (% s/facturación)', readonly=True)
+    total_semivariables = fields.Float('Semivariables (€)', readonly=True)
+    semivariables_pct = fields.Float('Semivariables (% s/facturación)', readonly=True)
+    total_fijos_op    = fields.Float('Fijos operativos (€)', readonly=True)
+    fijos_op_pct      = fields.Float('Fijos operativos (% s/facturación)', readonly=True)
+    total_estructura  = fields.Float('Estructura / Dirección (€)', readonly=True)
+    estructura_pct    = fields.Float('Estructura (% s/facturación)', readonly=True)
+    total_otros_ing   = fields.Float('Otros ingresos (€)', readonly=True)
+    total_variacion   = fields.Float('Variación de existencias (€)', readonly=True)
+    ebitda            = fields.Float('EBITDA (€)', readonly=True,
+        help='Facturación + otros ingresos + variación de existencias − los cuatro bloques de coste')
+    ebitda_pct        = fields.Float('EBITDA (% s/facturación)', readonly=True)
+    total_amortizaciones = fields.Float('Amortizaciones (€)', readonly=True)
+    ebit              = fields.Float('EBIT (€)', readonly=True, help='EBITDA − amortizaciones')
+    total_financieros = fields.Float('Gastos financieros (€)', readonly=True)
+    total_ing_financieros = fields.Float('Ingresos financieros (€)', readonly=True)
+    resultado         = fields.Float('Resultado (€)', readonly=True)
+    resultado_pct     = fields.Float('Resultado (%)', readonly=True)
+    total_sin_clasificar = fields.Float('Sin clasificar (€)', readonly=True,
+        help='Gasto que no está en la clasificación del asesor ni es amortización o financiero. '
+             'Debería tender a cero: si crece, hay cuentas nuevas por clasificar.')
 
     # ────────────────────────────────────────────────────────────────────────
     def _build_data(self):
@@ -103,66 +119,103 @@ class LiraPnlPeriod(models.TransientModel):
             ('account_id', '!=', False),
         ])
 
-        # Agregar por cuenta: saldo según tipo
-        # Ingresos (7xx): credit - debit (positivo = ingreso)
-        # Gastos (6xx): debit - credit (positivo = gasto)
-        buckets = {}  # account_id -> {'acc': account, 'saldo': float, 'bloque': str}
-        # Leer códigos variables desde la configuración (UI) con fallback a la constante
-        vars_set = set(self.env['lira.variable.account'].get_variable_codes())
+        # Clasificación del asesor: {código de cuenta: bloque}
+        mapa = self.env['lira.cuenta.bloque'].mapa()
+
+        buckets = {}
         for ln in aml_lines:
             acc = ln.account_id
             code = acc.code or ''
-            # Clasificación
             if code.startswith('7'):
-                bloque = 'ingresos'
                 delta = (ln.credit or 0.0) - (ln.debit or 0.0)
+                if code.startswith('71'):
+                    bloque = 'variacion'
+                elif code.startswith('70'):
+                    bloque = 'facturacion'
+                elif code.startswith('76'):
+                    bloque = 'ingresos_financieros'
+                else:
+                    bloque = 'otros_ingresos'
             elif code.startswith('6'):
-                bloque = 'variables' if code in vars_set else 'fijos'
                 delta = (ln.debit or 0.0) - (ln.credit or 0.0)
+                if code in mapa:
+                    bloque = mapa[code]
+                elif code.startswith('68'):
+                    bloque = 'amortizaciones'
+                elif code.startswith('66'):
+                    bloque = 'financieros'
+                else:
+                    bloque = 'sin_clasificar'
             else:
-                continue  # ignoramos balance (1xx,2xx,3xx,4xx,5xx)
+                continue
             key = acc.id
             if key not in buckets:
                 buckets[key] = {'acc': acc, 'saldo': 0.0, 'bloque': bloque, 'code': code}
             buckets[key]['saldo'] += delta
 
-        # Totales por bloque
-        tot_ing = sum(b['saldo'] for b in buckets.values() if b['bloque'] == 'ingresos')
-        tot_var = sum(b['saldo'] for b in buckets.values() if b['bloque'] == 'variables')
-        tot_fij = sum(b['saldo'] for b in buckets.values() if b['bloque'] == 'fijos')
+        def tot(bloque):
+            return sum(b['saldo'] for b in buckets.values() if b['bloque'] == bloque)
+
+        t_fact = tot('facturacion')
+        t_otros = tot('otros_ingresos')
+        t_varex = tot('variacion')
+        t_var = tot('variables_directos')
+        t_semi = tot('semivariables')
+        t_fij = tot('fijos_operativos')
+        t_est = tot('estructura')
+        t_amort = tot('amortizaciones')
+        t_fin = tot('financieros')
+        t_ingfin = tot('ingresos_financieros')
+        t_sin = tot('sin_clasificar')
+
+        totales = {'facturacion': t_fact, 'otros_ingresos': t_otros, 'variacion': t_varex,
+                   'variables_directos': t_var, 'semivariables': t_semi,
+                   'fijos_operativos': t_fij, 'estructura': t_est,
+                   'amortizaciones': t_amort, 'financieros': t_fin,
+                   'ingresos_financieros': t_ingfin, 'sin_clasificar': t_sin}
 
         lines_data = []
         for key, b in buckets.items():
             if abs(b['saldo']) < 0.005:
                 continue
-            tot_bloque = {'ingresos': tot_ing, 'variables': tot_var, 'fijos': tot_fij}[b['bloque']]
-            pct_bloque = round(b['saldo'] / tot_bloque * 100, 2) if tot_bloque else 0.0
-            pct_ingresos = round(b['saldo'] / tot_ing * 100, 2) if tot_ing else 0.0
+            tot_bloque = totales.get(b['bloque'], 0.0)
             lines_data.append({
                 'bloque':            b['bloque'],
                 'account_id':        b['acc'].id,
                 'codigo_cuenta':     b['code'],
                 'nombre_cuenta':     b['acc'].name or '',
                 'saldo':             round(b['saldo'], 2),
-                'pct_sobre_bloque':  pct_bloque,
-                'pct_sobre_ingresos': pct_ingresos,
+                'pct_sobre_bloque':  round(b['saldo'] / tot_bloque * 100, 2) if tot_bloque else 0.0,
+                'pct_sobre_ingresos': round(b['saldo'] / t_fact * 100, 2) if t_fact else 0.0,
                 'date_from':         df,
                 'date_to':           dt,
             })
 
-        mb = tot_ing - tot_var
-        res = tot_ing - tot_var - tot_fij
+        pct = lambda x: round(x / t_fact * 100, 2) if t_fact else 0.0
+        ebitda = t_fact + t_otros + t_varex - t_var - t_semi - t_fij - t_est - t_sin
+        ebit = ebitda - t_amort
+        res = ebit - t_fin + t_ingfin
         kpis = {
-            'total_ingresos':    round(tot_ing, 2),
-            'total_variables':   round(tot_var, 2),
-            'total_fijos':       round(tot_fij, 2),
-            'margen_bruto':      round(mb, 2),
-            'margen_bruto_pct':  round(mb / tot_ing * 100, 2) if tot_ing else 0.0,
-            'resultado':         round(res, 2),
-            'resultado_pct':     round(res / tot_ing * 100, 2) if tot_ing else 0.0,
-            'num_ctas_ingresos':  sum(1 for d in lines_data if d['bloque'] == 'ingresos'),
-            'num_ctas_variables': sum(1 for d in lines_data if d['bloque'] == 'variables'),
-            'num_ctas_fijos':     sum(1 for d in lines_data if d['bloque'] == 'fijos'),
+            'total_facturacion':   round(t_fact, 2),
+            'total_variables':     round(t_var, 2),
+            'variables_pct':       pct(t_var),
+            'total_semivariables': round(t_semi, 2),
+            'semivariables_pct':   pct(t_semi),
+            'total_fijos_op':      round(t_fij, 2),
+            'fijos_op_pct':        pct(t_fij),
+            'total_estructura':    round(t_est, 2),
+            'estructura_pct':      pct(t_est),
+            'total_otros_ing':     round(t_otros, 2),
+            'total_variacion':     round(t_varex, 2),
+            'ebitda':              round(ebitda, 2),
+            'ebitda_pct':          pct(ebitda),
+            'total_amortizaciones': round(t_amort, 2),
+            'ebit':                round(ebit, 2),
+            'total_financieros':   round(t_fin, 2),
+            'total_ing_financieros': round(t_ingfin, 2),
+            'resultado':           round(res, 2),
+            'resultado_pct':       pct(res),
+            'total_sin_clasificar': round(t_sin, 2),
         }
         return lines_data, kpis
 
@@ -199,6 +252,11 @@ class LiraPnlPeriod(models.TransientModel):
         if lv: action['views'] = [(lv.id, 'list')]
         if sv: action['search_view_id'] = [sv.id, 'search']
         return action
+
+    def action_evolucion_mensual(self):
+        """La misma cascada, pero desglosada mes a mes en el rango elegido."""
+        self.ensure_one()
+        return self.env['lira.evolucion.coste'].action_open(self.date_from, self.date_to)
 
     def action_refresh(self):
         self._compute_kpis_only()

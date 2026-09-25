@@ -31,6 +31,7 @@ export class FormacionVisor extends Component {
         this.state = useState({
             fichas: [], areas: [], q: "", publico: "ambas", cargado: false,
             soporte: false, urlSoporte: "",
+            publicos: { dependiente: "🛒 Tienda", oficina: "🗂️ Oficina" },
             areaSel: null, ficha: null, paso: -1,  // -1 = portada de la ficha; 0..n-1 = pasos; n = final
             gapForm: false, gapTexto: "", gapPaso: 0, gapGracias: false, gapError: "", validaMsg: "",
             comForm: false, comTexto: "", comGracias: false, comError: "",
@@ -42,6 +43,7 @@ export class FormacionVisor extends Component {
             this.state.areas = datos.areas;
             this.state.soporte = datos.soporte || false;
             this.state.urlSoporte = datos.url_soporte || "";
+            if (datos.publicos) { this.state.publicos = datos.publicos; }
             this.state.cargado = true;
         });
         // atajos: Esc sale, ←/→ navegan pasos, Enter empieza (como el asistente web original)

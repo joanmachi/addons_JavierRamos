@@ -49,3 +49,10 @@ access_lira_modelo_111_line,lira.modelo.111.line,model_lira_modelo_111_line,base
 access_lira_mercaderia,lira.mercaderia,model_lira_mercaderia,base.group_user,1,1,1,1
 access_lira_mercaderia_line,lira.mercaderia.line,model_lira_mercaderia_line,base.group_user,1,1,1,1
 access_lira_variable_account,lira.variable.account,model_lira_variable_account,base.group_user,1,1,1,1
+access_lira_ratio_criterio_ro,lira.ratio.criterio.ro,model_lira_ratio_criterio,account.group_account_readonly,1,0,0,0
+access_lira_ratio_criterio,lira.ratio.criterio,model_lira_ratio_criterio,account.group_account_manager,1,1,1,1
+access_lira_cuenta_bloque_ro,lira.cuenta.bloque.ro,model_lira_cuenta_bloque,account.group_account_readonly,1,0,0,0
+access_lira_cuenta_bloque,lira.cuenta.bloque,model_lira_cuenta_bloque,account.group_account_manager,1,1,1,1
+access_lira_evolucion_coste,lira.evolucion.coste,model_lira_evolucion_coste,account.group_account_readonly,1,1,1,1
+access_lira_evolucion_coste_line,lira.evolucion.coste.line,model_lira_evolucion_coste_line,account.group_account_readonly,1,1,1,1
+access_lira_ventas_semana,lira.ventas.semana,model_lira_ventas_semana,base.group_user,1,1,1,1

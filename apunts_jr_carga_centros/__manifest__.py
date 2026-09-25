@@ -10,7 +10,7 @@ Vista resumida de la carga de trabajo de cada centro:
 Pensado para sustituir la vista nativa "Planificación por centros" que es
 poco legible. Estilo Resumen (tarjetas) + lista detallada por centro.
     """,
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.6.0",
     "category": "Manufacturing",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
@@ -20,6 +20,9 @@ poco legible. Estilo Resumen (tarjetas) + lista detallada por centro.
         "security/ir.model.access.csv",
         "data/cron_data.xml",
         "views/mrp_workcenter_carga_views.xml",
+        "views/hr_employee_views.xml",
+        "views/apunts_rendimiento_operario_view.xml",
+        "views/apunts_rendimiento_centro_view.xml",
         "views/apunts_carga_resumen_view.xml",
         "views/apunts_carga_snapshot_view.xml",
         "views/menu.xml",

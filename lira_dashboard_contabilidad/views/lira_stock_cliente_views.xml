@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- ══ Recalcular el cliente de las referencias ═════════════════════════ -->
+  <record id="action_lira_recalcular_clientes" model="ir.actions.server">
+    <field name="name">Recalcular clientes de las referencias</field>
+    <field name="model_id" ref="product.model_product_template"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_lira_recalcular_clientes()</field>
+  </record>
+
+  <!-- ══ STOCK POR CLIENTE ════════════════════════════════════════════════ -->
+  <record id="view_lira_stock_cliente_list" model="ir.ui.view">
+    <field name="name">stock.quant.lira.cliente.list</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <list string="Stock por cliente" create="0" delete="0" edit="0" sample="1">
+        <header>
+          <button name="%(action_lira_recalcular_clientes)d" type="action"
+                  string="Recalcular clientes" display="always" class="btn-secondary"
+                  title="Vuelve a leer el prefijo de las referencias y el histórico de ventas para poner cliente a las que no lo tienen"/>
+        </header>
+        <field name="lira_cliente_id" string="Cliente"/>
+        <field name="product_id" string="Producto"/>
+        <field name="lira_categ_id" string="Categoría" optional="show"/>
+        <field name="lira_tipo_stock" string="Tipo" optional="hide"/>
+        <field name="lira_vendido" string="Con venta" optional="hide"/>
+        <field name="location_id" string="Ubicación" optional="hide"/>
+        <field name="quantity" string="Cantidad" sum="Total unidades"/>
+        <field name="lira_pvp_unit" string="Precio venta unit. (€)" optional="show"/>
+        <field name="lira_valor_venta" string="Valor a venta (€)" sum="Total a venta"/>
+        <field name="lira_valor_coste" string="Valor a coste (€)" sum="Total a coste" optional="hide"/>
+        <field name="company_id" column_invisible="1"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_stock_cliente_pivot" model="ir.ui.view">
+    <field name="name">stock.quant.lira.cliente.pivot</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <pivot string="Stock por cliente" sample="1">
+        <field name="lira_cliente_id" type="row"/>
+        <field name="lira_valor_venta" type="measure"/>
+        <field name="quantity" type="measure"/>
+      </pivot>
+    </field>
+  </record>
+
+  <record id="view_lira_stock_cliente_graph" model="ir.ui.view">
+    <field name="name">stock.quant.lira.cliente.graph</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <graph string="Stock por cliente" type="bar" stacked="0" disable_linking="1" sample="1">
+        <field name="lira_cliente_id"/>
+        <field name="lira_valor_venta" type="measure"/>
+      </graph>
+    </field>
+  </record>
+
+  <record id="view_lira_stock_cliente_search" model="ir.ui.view">
+    <field name="name">stock.quant.lira.cliente.search</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <search string="Stock por cliente">
+        <field name="lira_cliente_id" string="Cliente"/>
+        <field name="product_id" string="Producto"/>
+        <field name="lira_categ_id" string="Categoría"/>
+        <filter name="f_sin_cliente" string="Sin cliente asignado"
+                domain="[('lira_cliente_id', '=', False)]"/>
+        <filter name="f_con_cliente" string="Con cliente"
+                domain="[('lira_cliente_id', '!=', False)]"/>
+        <separator/>
+        <filter name="f_sin_valor" string="Sin precio de venta (no valorable)"
+                domain="[('lira_pvp_unit', '=', 0)]"/>
+        <filter name="f_sin_venta" string="Sin venta confirmada (solo presupuesto o nada)"
+                domain="[('lira_vendido', '=', False)]"/>
+        <separator/>
+        <filter name="f_piezas" string="Piezas de cliente" domain="[('lira_tipo_stock', '=', 'pieza')]"/>
+        <filter name="f_materia" string="Materia prima y compras" domain="[('lira_tipo_stock', 'in', ('materia', 'materia_cliente'))]"/>
+        <filter name="f_materia_cliente" string="Solo material y servicios para piezas de cliente" domain="[('lira_tipo_stock', '=', 'materia_cliente')]"/>
+        <filter name="f_consumible" string="Consumibles y otros" domain="[('lira_tipo_stock', '=', 'consumible')]"/>
+        <group expand="1" string="Agrupar por">
+          <filter name="g_cliente" string="Cliente" context="{'group_by': 'lira_cliente_id'}"/>
+          <filter name="g_tipo" string="Tipo de stock" context="{'group_by': 'lira_tipo_stock'}"/>
+          <filter name="g_categ" string="Categoría" context="{'group_by': 'lira_categ_id'}"/>
+          <filter name="g_producto" string="Producto" context="{'group_by': 'product_id'}"/>
+          <filter name="g_ubicacion" string="Ubicación" context="{'group_by': 'location_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_stock_cliente" model="ir.actions.act_window">
+    <field name="name">Stock por cliente</field>
+    <field name="res_model">stock.quant</field>
+    <field name="view_mode">list,pivot,graph</field>
+    <field name="domain">[('location_id.usage', '=', 'internal'), ('quantity', '!=', 0)]</field>
+    <field name="context">{'search_default_g_cliente': 1, 'search_default_f_piezas': 1, 'create': False, 'edit': False, 'delete': False}</field>
+    <field name="search_view_id" ref="view_lira_stock_cliente_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Aquí verás las piezas de cliente que hay en la nave, repartidas por cliente</p>
+      <p>Son las referencias numéricas (4 dígitos del cliente + la pieza), valoradas a
+         precio de venta. El cliente se deduce del prefijo y del histórico de ventas;
+         las piezas sin cliente quedan en «Ninguno». La materia prima, valorada a coste,
+         está en «Stock materia prima».</p>
+    </field>
+  </record>
+
+  <record id="action_lira_stock_cliente_list" model="ir.actions.act_window.view">
+    <field name="sequence" eval="1"/>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_lira_stock_cliente_list"/>
+    <field name="act_window_id" ref="action_lira_stock_cliente"/>
+  </record>
+  <record id="action_lira_stock_cliente_pivot" model="ir.actions.act_window.view">
+    <field name="sequence" eval="2"/>
+    <field name="view_mode">pivot</field>
+    <field name="view_id" ref="view_lira_stock_cliente_pivot"/>
+    <field name="act_window_id" ref="action_lira_stock_cliente"/>
+  </record>
+  <record id="action_lira_stock_cliente_graph" model="ir.actions.act_window.view">
+    <field name="sequence" eval="3"/>
+    <field name="view_mode">graph</field>
+    <field name="view_id" ref="view_lira_stock_cliente_graph"/>
+    <field name="act_window_id" ref="action_lira_stock_cliente"/>
+  </record>
+
+  <!-- ══ STOCK MATERIA PRIMA ══════════════════════════════════════════════ -->
+  <record id="view_lira_stock_materia_list" model="ir.ui.view">
+    <field name="name">stock.quant.lira.materia.list</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <list string="Stock materia prima" create="0" delete="0" edit="0" sample="1">
+        <field name="lira_categ_id" string="Categoría"/>
+        <field name="product_id" string="Producto"/>
+        <field name="lira_tipo_stock" string="Tipo" optional="show"/>
+        <field name="location_id" string="Ubicación" optional="hide"/>
+        <field name="quantity" string="Cantidad" sum="Total unidades"/>
+        <field name="product_uom_id" string="UdM" optional="show"/>
+        <field name="lira_coste_unit" string="Coste unit. (€)" optional="show"/>
+        <field name="lira_valor_coste" string="Valor a coste (€)" sum="Total a coste"/>
+        <field name="company_id" column_invisible="1"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_stock_materia_pivot" model="ir.ui.view">
+    <field name="name">stock.quant.lira.materia.pivot</field>
+    <field name="model">stock.quant</field>
+    <field name="arch" type="xml">
+      <pivot string="Stock materia prima" sample="1">
+        <field name="lira_categ_id" type="row"/>
+        <field name="lira_valor_coste" type="measure"/>
+        <field name="quantity" type="measure"/>
+      </pivot>
+    </field>
+  </record>
+
+  <record id="action_lira_stock_materia" model="ir.actions.act_window">
+    <field name="name">Stock materia prima</field>
+    <field name="res_model">stock.quant</field>
+    <field name="view_mode">list,pivot,graph</field>
+    <field name="domain">[('location_id.usage', '=', 'internal'), ('quantity', '!=', 0)]</field>
+    <field name="context">{'search_default_g_categ': 1, 'search_default_f_materia': 1, 'create': False, 'edit': False, 'delete': False}</field>
+    <field name="search_view_id" ref="view_lira_stock_cliente_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Materia prima y compras que hay en la nave, valoradas a coste</p>
+      <p>La materia prima general y el material o los tratamientos comprados para
+         piezas de cliente (código de pieza + letra: L, X, A, PI, CI, AN, S, M…). Con el
+         filtro «Consumibles y otros» se añaden EPIs, ferretería, consumibles y portes.</p>
+    </field>
+  </record>
+  <record id="action_lira_stock_materia_list" model="ir.actions.act_window.view">
+    <field name="sequence" eval="1"/>
+    <field name="view_mode">list</field>
+    <field name="view_id" ref="view_lira_stock_materia_list"/>
+    <field name="act_window_id" ref="action_lira_stock_materia"/>
+  </record>
+  <record id="action_lira_stock_materia_pivot" model="ir.actions.act_window.view">
+    <field name="sequence" eval="2"/>
+    <field name="view_mode">pivot</field>
+    <field name="view_id" ref="view_lira_stock_materia_pivot"/>
+    <field name="act_window_id" ref="action_lira_stock_materia"/>
+  </record>
+  <record id="action_lira_stock_materia_graph" model="ir.actions.act_window.view">
+    <field name="sequence" eval="3"/>
+    <field name="view_mode">graph</field>
+    <field name="view_id" ref="view_lira_stock_cliente_graph"/>
+    <field name="act_window_id" ref="action_lira_stock_materia"/>
+  </record>
+
+  <!-- ══ El cliente, en la ficha y en la lista de productos ═══════════════ -->
+  <record id="view_lira_product_template_form_cliente" model="ir.ui.view">
+    <field name="name">product.template.form.lira.cliente</field>
+    <field name="model">product.template</field>
+    <field name="inherit_id" ref="product.product_template_form_view"/>
+    <field name="arch" type="xml">
+      <field name="categ_id" position="after">
+        <field name="lira_cliente_id"
+               options="{'no_create': True, 'no_open': True}"/>
+        <field name="lira_tipo_stock"/>
+        <field name="lira_cliente_auto" invisible="1"/>
+      </field>
+    </field>
+  </record>
+
+  <record id="view_lira_product_template_list_cliente" model="ir.ui.view">
+    <field name="name">product.template.list.lira.cliente</field>
+    <field name="model">product.template</field>
+    <field name="inherit_id" ref="product.product_template_tree_view"/>
+    <field name="arch" type="xml">
+      <field name="default_code" position="after">
+        <field name="lira_cliente_id" string="Cliente" optional="show"/>
+        <field name="lira_tipo_stock" string="Tipo de stock" optional="hide"/>
+      </field>
+    </field>
+  </record>
+
+  <record id="view_lira_product_template_search_cliente" model="ir.ui.view">
+    <field name="name">product.template.search.lira.cliente</field>
+    <field name="model">product.template</field>
+    <field name="inherit_id" ref="product.product_template_search_view"/>
+    <field name="arch" type="xml">
+      <field name="categ_id" position="after">
+        <field name="lira_cliente_id" string="Cliente"/>
+      </field>
+      <filter name="categ_id" position="after">
+        <filter name="g_lira_cliente" string="Cliente"
+                context="{'group_by': 'lira_cliente_id'}"/>
+        <filter name="g_lira_tipo" string="Tipo de stock"
+                context="{'group_by': 'lira_tipo_stock'}"/>
+      </filter>
+    </field>
+  </record>
+
+  <!-- ══ Menús: en Inventario y en el tablero de contabilidad ═════════════ -->
+  <menuitem id="menu_lira_stock_cliente_inv" name="Stock por cliente"
+            parent="stock.menu_warehouse_report" sequence="25"
+            action="action_lira_stock_cliente"/>
+  <menuitem id="menu_lira_stock_materia_inv" name="Stock materia prima"
+            parent="stock.menu_warehouse_report" sequence="26"
+            action="action_lira_stock_materia"/>
+
+</odoo>

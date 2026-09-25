@@ -45,10 +45,12 @@
                             <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
                                 <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
                                 <t t-if="linea_albaran.product_id">
-                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
+                                    <t t-set="nom_art" t-value="(linea_albaran.product_id.name or '').strip()"/>
+                                    <!-- Sin referencia interna ni código de barras, vale el código que va al principio del nombre («05840055X-ACERO…» → 05840055X) -->
+                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode or (nom_art.split('-')[0].split(' ')[0] if nom_art[:1].isdigit() else False)"/>
                                     <t t-if="cod_art">
                                         <img style="width: 90%; height: 17mm;"
-                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
+                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 600, 100)"/>
                                         <div style="font-size: 9pt; font-weight: bold;"><t t-esc="cod_art"/></div>
                                     </t>
                                 </t>
@@ -56,14 +58,15 @@
                             <td style="width: 2%; padding: 0;" bgcolor="#cccccc">&#160;</td>
                             <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
                                 <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
-                                <t t-if="linea_albaran.fabricacion">
+                                <t t-set="of_etq" t-value="linea_albaran.apunts_of_etiqueta()"/>
+                                <t t-if="of_etq">
                                     <img style="width: 90%; height: 17mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
-                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.fabricacion.name"/></div>
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', of_etq.name, 600, 100)"/>
+                                    <div style="font-size: 9pt; font-weight: bold;"><t t-esc="of_etq.name"/></div>
                                 </t>
                                 <t t-elif="linea_albaran.sale_line_id">
                                     <img style="width: 90%; height: 17mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.sale_line_id.order_id.name, 200, 60)"/>
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.sale_line_id.order_id.name, 600, 100)"/>
                                     <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.sale_line_id.order_id.name"/></div>
                                 </t>
                             </td>
@@ -85,6 +88,15 @@
                             <!-- Referencia del cliente PARA EL PRODUCTO: campo
                                  "Descripción del presupuesto" de la ficha (description_sale) -->
                             <t t-esc="(linea_albaran.product_id.description_sale or '').strip()"/>
+                        </div>
+                    </div>
+
+                    <!-- FECHA DE EXPEDICIÓN: la de validación de la salida; si aún no está validada, la prevista -->
+                    <div style="padding: 3px 5px; min-height: 9mm;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #555;">FECHA EXPEDICIÓN</div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-set="fecha_exp" t-value="o.date_done if o.state == 'done' and o.date_done else o.scheduled_date"/>
+                            <t t-if="fecha_exp"><t t-esc="fecha_exp.strftime('%d/%m/%Y')"/></t>
                         </div>
                     </div>
 
@@ -164,12 +176,12 @@
                                 <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ORDEN</div>
                                 <t t-if="linea_albaran.fabricacion">
                                     <img style="width: 90%; height: 17mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 200, 60)"/>
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.fabricacion.name, 600, 100)"/>
                                     <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.fabricacion.name"/></div>
                                 </t>
                                 <t t-elif="linea_albaran.purchase_line_id">
                                     <img style="width: 90%; height: 17mm;"
-                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.purchase_line_id.order_id.name, 200, 60)"/>
+                                         t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', linea_albaran.purchase_line_id.order_id.name, 600, 100)"/>
                                     <div style="font-size: 9pt; font-weight: bold;"><t t-esc="linea_albaran.purchase_line_id.order_id.name"/></div>
                                 </t>
                             </td>
@@ -177,10 +189,12 @@
                             <td style="width: 49%; text-align: center; height: 30mm; vertical-align: top; padding: 3px 4px;">
                                 <div style="font-size: 8pt; font-weight: bold; color: #555; margin-bottom: 2px;">ARTICULO</div>
                                 <t t-if="linea_albaran.product_id">
-                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode"/>
+                                    <t t-set="nom_art" t-value="(linea_albaran.product_id.name or '').strip()"/>
+                                    <!-- Sin referencia interna ni código de barras, vale el código que va al principio del nombre («05840055X-ACERO…» → 05840055X) -->
+                                    <t t-set="cod_art" t-value="linea_albaran.product_id.default_code or linea_albaran.product_id.barcode or (nom_art.split('-')[0].split(' ')[0] if nom_art[:1].isdigit() else False)"/>
                                     <t t-if="cod_art">
                                         <img style="width: 90%; height: 17mm;"
-                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 200, 60)"/>
+                                             t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', cod_art, 600, 100)"/>
                                         <div style="font-size: 9pt; font-weight: bold;"><t t-esc="cod_art"/></div>
                                     </t>
                                 </t>

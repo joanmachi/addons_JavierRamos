@@ -70,7 +70,7 @@ class FormacionPublico(http.Controller):
         # TODOS los avisos del cliente, aunque la guía esté oculta con "solo validadas":
         # si no, su aviso recién enviado desaparecería del seguimiento delante de sus ojos
         gaps = request.env['formacion.gap'].sudo().search(
-            [('ficha_id.es_plantilla', '=', False)])
+            [('ficha_id.es_plantilla', '=', False), ('ficha_id.active', '=', True)])
         columnas = [
             ('abierto', '📬 Recibidos', 'Los tenemos y estamos en ello.'),
             ('corregido', '✅ Corregidos', 'La guía ya está arreglada.'),

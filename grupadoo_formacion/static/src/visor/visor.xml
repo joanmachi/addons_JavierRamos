@@ -17,9 +17,9 @@
                     <button t-att-class="state.publico === 'ambas' ? 'on' : ''"
                             t-on-click="() => this.setPublico('ambas')">Todas</button>
                     <button t-att-class="state.publico === 'dependiente' ? 'on' : ''"
-                            t-on-click="() => this.setPublico('dependiente')">🏭 Planta</button>
+                            t-on-click="() => this.setPublico('dependiente')"><t t-esc="state.publicos.dependiente"/></button>
                     <button t-att-class="state.publico === 'oficina' ? 'on' : ''"
-                            t-on-click="() => this.setPublico('oficina')">🗂️ Oficina</button>
+                            t-on-click="() => this.setPublico('oficina')"><t t-esc="state.publicos.oficina"/></button>
                 </div>
             </div>
 

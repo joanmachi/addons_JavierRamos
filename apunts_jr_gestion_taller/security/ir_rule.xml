@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="0">
+
+    <!-- Los modelos propios del taller no llevaban regla multiempresa: la lista
+         «Histórico presencia» (vista SQL) y el histórico de desbloqueos enseñaban
+         a los empleados de todas las compañías, aunque el selector de compañía
+         tuviera solo una. Mismas reglas que usa Odoo en hr.employee/hr.attendance. -->
+
+    <record id="apunts_historico_presencia_company_rule" model="ir.rule">
+      <field name="name">Histórico presencia: multiempresa</field>
+      <field name="model_id" ref="model_apunts_historico_presencia"/>
+      <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+      <field name="global" eval="True"/>
+    </record>
+
+    <record id="apunts_taller_desbloqueo_company_rule" model="ir.rule">
+      <field name="name">Histórico desbloqueos: multiempresa</field>
+      <field name="model_id" ref="model_apunts_taller_desbloqueo"/>
+      <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+      <field name="global" eval="True"/>
+    </record>
+
+  </data>
+</odoo>

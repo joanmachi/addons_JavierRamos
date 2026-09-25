@@ -42,19 +42,17 @@
 
   <!-- ── Contabilidad / Tesorería ─────────────────────────────────────── -->
   <menuitem id="menu_lira_contabilidad_cat" name="Contabilidad / Tesorería"  parent="menu_lira_root" sequence="5"/>
-  <menuitem id="menu_lira_pnl_period"       name="P&amp;G por Periodos (Fijos/Variables)" parent="menu_lira_contabilidad_cat" sequence="0"
+  <menuitem id="menu_lira_pnl_period"       name="P&amp;G por periodos (por bloques)" parent="menu_lira_contabilidad_cat" sequence="0"
             action="lira_dashboard_contabilidad.action_lira_pnl_period"/>
-  <menuitem id="menu_lira_variable_account" name="⚙ Cuentas marcadas como Variables" parent="menu_lira_contabilidad_cat" sequence="99"
-            action="lira_dashboard_contabilidad.action_lira_variable_account"/>
-  <menuitem id="menu_lira_aging"            name="Antigüedad de saldos (Clientes)" parent="menu_lira_contabilidad_cat" sequence="1"
+  <menuitem id="menu_lira_aging"            name="Antigüedad de saldos (Clientes)" parent="menu_lira_contabilidad_cat" sequence="3"
             action="lira_dashboard_contabilidad.action_lira_aging"/>
-  <menuitem id="menu_lira_aging_supplier"   name="Antigüedad de saldos (Proveedores)" parent="menu_lira_contabilidad_cat" sequence="1"
+  <menuitem id="menu_lira_aging_supplier"   name="Antigüedad de saldos (Proveedores)" parent="menu_lira_contabilidad_cat" sequence="4"
             action="lira_dashboard_contabilidad.action_lira_aging_supplier"/>
   <menuitem id="menu_lira_collections"      name="Cobros y pagos pendientes" parent="menu_lira_contabilidad_cat" sequence="2"
             action="lira_dashboard_contabilidad.action_lira_collections"/>
-  <menuitem id="menu_lira_prevision"        name="Previsión de liquidez"     parent="menu_lira_contabilidad_cat" sequence="3"
+  <menuitem id="menu_lira_prevision"        name="Previsión de liquidez"     parent="menu_lira_contabilidad_cat" sequence="5"
             action="lira_dashboard_contabilidad.action_lira_forecast_open"/>
-  <menuitem id="menu_lira_salarios"         name="Previsión de salarios"     parent="menu_lira_contabilidad_cat" sequence="4"
+  <menuitem id="menu_lira_salarios"         name="Previsión de salarios"     parent="menu_lira_contabilidad_cat" sequence="6"
             action="lira_dashboard_contabilidad.action_lira_salary_forecast"/>
 
   <!-- ── Existencias ───────────────────────────────────────────────────── -->
@@ -65,6 +63,10 @@
             action="lira_dashboard_contabilidad.action_lira_inventory_valuation_fv"/>
   <menuitem id="menu_lira_mercaderia"      name="Mercadería (Compra-Reventa)" parent="menu_lira_existencias_cat" sequence="3"
             action="lira_dashboard_contabilidad.action_lira_mercaderia"/>
+  <menuitem id="menu_lira_stock_cliente"   name="Stock por cliente"          parent="menu_lira_existencias_cat" sequence="4"
+            action="lira_dashboard_contabilidad.action_lira_stock_cliente"/>
+  <menuitem id="menu_lira_stock_materia"   name="Stock materia prima"        parent="menu_lira_existencias_cat" sequence="5"
+            action="lira_dashboard_contabilidad.action_lira_stock_materia"/>
 
   <!-- Bloque Fabricación eliminado en v18.0.3.0.0: WIP/MRP movidos a apunts_jr_wip_costes_of -->
 

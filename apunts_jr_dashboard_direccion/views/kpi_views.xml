@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         REUNIÓN SEMANAL DE DIRECCIÓN
+         Nivel 1: los 6 indicadores (kanban)  →  Nivel 2: los KPIs del bloque
+         →  Nivel 3: evolución semanal (gráfica)  →  Nivel 4: detalle de siempre
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Nivel 1 · los 6 Indicadores de Dirección ─────────────────────── -->
+    <record id="apunts_kpi_bloque_kanban" model="ir.ui.view">
+        <field name="name">apunts.kpi.bloque.kanban</field>
+        <field name="model">apunts.kpi.bloque</field>
+        <field name="arch" type="xml">
+            <kanban create="false" quick_create="false" records_draggable="false"
+                    default_order="orden" class="o_kanban_ungrouped">
+                <field name="orden"/>
+                <field name="name"/>
+                <field name="pregunta"/>
+                <field name="que_hacer"/>
+                <field name="principal_nombre"/>
+                <field name="principal_valor_txt"/>
+                <field name="principal_objetivo_txt"/>
+                <field name="principal_variacion_txt"/>
+                <field name="principal_anterior_txt"/>
+                <field name="principal_etiqueta_anterior"/>
+                <field name="principal_ano_anterior_txt"/>
+                <field name="principal_estado"/>
+                <field name="principal_estado_txt"/>
+                <field name="semana_txt"/>
+                <field name="n_kpis"/>
+                <field name="n_rojos"/>
+                <field name="n_amarillos"/>
+                <field name="css_borde"/>
+                <field name="css_texto"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="p-3 border-start border-4 {{record.css_borde.raw_value}}">
+                            <div class="text-muted small text-uppercase">
+                                <field name="orden"/> · <field name="name"/>
+                            </div>
+                            <div class="fw-semibold mb-2"><field name="pregunta"/></div>
+                            <div class="small text-muted"><field name="principal_nombre"/></div>
+                            <!-- Valor grande a la izquierda; a la derecha el semáforo y las
+                                 referencias (semana anterior y año anterior), para no dejar
+                                 media tarjeta vacía en el móvil -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+                                <div t-attf-class="display-6 fw-bold text-nowrap {{record.css_texto.raw_value}}">
+                                    <field name="principal_valor_txt"/>
+                                </div>
+                                <div class="text-end small flex-shrink-0">
+                                    <span t-attf-class="badge {{record.principal_estado.raw_value == 'red' ? 'text-bg-danger' : record.principal_estado.raw_value == 'yellow' ? 'text-bg-warning' : record.principal_estado.raw_value == 'green' ? 'text-bg-success' : 'text-bg-light'}}">
+                                        <t t-out="record.principal_estado_txt.raw_value"/></span>
+                                    <div class="text-muted mt-1"><t t-out="record.principal_etiqueta_anterior.raw_value"/><t t-out="' '"/>
+                                        <span class="fw-semibold text-body"><t t-out="record.principal_anterior_txt.raw_value"/></span></div>
+                                    <div class="text-muted">Año anterior
+                                        <span class="fw-semibold text-body"><t t-out="record.principal_ano_anterior_txt.raw_value"/></span></div>
+                                </div>
+                            </div>
+                            <div class="small">
+                                Objetivo <field name="principal_objetivo_txt"/>
+                                <span class="text-muted"> · variación </span><field name="principal_variacion_txt"/>
+                            </div>
+                            <div class="small text-muted"><field name="semana_txt"/></div>
+                            <div class="mt-2 small">
+                                <span class="badge text-bg-light"><t t-out="record.n_kpis.raw_value"/> KPI</span>
+                                <span class="badge text-bg-danger ms-1" t-if="record.n_rojos.raw_value">
+                                    <t t-out="record.n_rojos.raw_value"/> en rojo</span>
+                                <span class="badge text-bg-warning ms-1" t-if="record.n_amarillos.raw_value">
+                                    <t t-out="record.n_amarillos.raw_value"/> a vigilar</span>
+                            </div>
+                            <div class="small text-muted fst-italic mt-2">Si está mal: <field name="que_hacer"/></div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="object" name="action_ver_kpis" class="btn btn-primary btn-sm">
+                                    Ver sus KPIs</button>
+                                <button type="object" name="action_evolucion_principal" class="btn btn-outline-secondary btn-sm">
+                                    Evolución</button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_bloque_list" model="ir.ui.view">
+        <field name="name">apunts.kpi.bloque.list</field>
+        <field name="model">apunts.kpi.bloque</field>
+        <field name="arch" type="xml">
+            <list string="Indicadores de Dirección" editable="bottom">
+                <field name="orden"/>
+                <field name="name"/>
+                <field name="pregunta"/>
+                <field name="kpi_principal_id"/>
+                <field name="que_hacer"/>
+                <field name="nivel_detalle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_kpi_bloques" model="ir.actions.act_window">
+        <field name="name">Reunión semanal · Panel de Dirección</field>
+        <field name="res_model">apunts.kpi.bloque</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="view_id" ref="apunts_kpi_bloque_kanban"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay indicadores</p>
+            <p>Se crean solos al actualizar el módulo. Si no aparecen, ve a
+            Dirección → KPIs · configuración → Actualizar semana en curso.</p>
+        </field>
+    </record>
+
+    <!-- ── Nivel 2 · los KPIs de un bloque, con la cabecera estándar ─────── -->
+    <record id="apunts_kpi_kanban" model="ir.ui.view">
+        <field name="name">apunts.kpi.kanban</field>
+        <field name="model">apunts.kpi</field>
+        <field name="arch" type="xml">
+            <kanban create="false" quick_create="false" records_draggable="false"
+                    default_order="principal desc, orden" class="o_kanban_ungrouped">
+                <field name="name"/>
+                <field name="principal"/>
+                <field name="valor_actual_txt"/>
+                <field name="semana_txt"/>
+                <field name="objetivo_txt"/>
+                <field name="anterior_txt"/>
+                <field name="etiqueta_anterior"/>
+                <field name="variacion_txt"/>
+                <field name="ano_anterior_txt"/>
+                <field name="estado"/>
+                <field name="estado_txt"/>
+                <field name="formula"/>
+                <field name="regla"/>
+                <field name="css_borde"/>
+                <field name="css_badge"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="p-3 border-start border-4 {{record.css_borde.raw_value}}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="fw-bold">
+                                    <field name="name"/>
+                                    <span class="badge text-bg-dark ms-1" t-if="record.principal.raw_value">principal</span>
+                                </span>
+                                <span t-attf-class="badge {{record.css_badge.raw_value}}"><field name="estado_txt"/></span>
+                            </div>
+                            <div class="display-6 fw-bold my-1"><field name="valor_actual_txt"/></div>
+                            <div class="small text-muted mb-2"><field name="semana_txt"/></div>
+                            <table class="table table-sm table-borderless small mb-2">
+                                <tr><td class="text-muted ps-0">Objetivo</td>
+                                    <td class="text-end fw-semibold pe-0"><field name="objetivo_txt"/></td></tr>
+                                <tr><td class="text-muted ps-0"><t t-out="record.etiqueta_anterior.raw_value"/></td>
+                                    <td class="text-end pe-0"><field name="anterior_txt"/></td></tr>
+                                <tr><td class="text-muted ps-0">Variación</td>
+                                    <td class="text-end pe-0"><field name="variacion_txt"/></td></tr>
+                                <tr><td class="text-muted ps-0">Misma semana año anterior</td>
+                                    <td class="text-end pe-0"><field name="ano_anterior_txt"/></td></tr>
+                            </table>
+                            <div class="small text-muted fst-italic"><field name="formula"/></div>
+                            <div class="small text-muted"><field name="regla"/></div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="object" name="action_evolucion" class="btn btn-primary btn-sm">Evolución</button>
+                                <button type="object" name="action_detalle" class="btn btn-secondary btn-sm">Detalle</button>
+                                <button type="object" name="action_historico" class="btn btn-light btn-sm">Histórico</button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_list" model="ir.ui.view">
+        <field name="name">apunts.kpi.list</field>
+        <field name="model">apunts.kpi</field>
+        <field name="arch" type="xml">
+            <list string="KPIs de Dirección" decoration-success="estado == 'green'"
+                  decoration-warning="estado == 'yellow'" decoration-danger="estado == 'red'">
+                <field name="bloque_id"/>
+                <field name="orden"/>
+                <field name="name"/>
+                <field name="principal"/>
+                <field name="valor_actual_txt" string="Valor actual"/>
+                <field name="objetivo_txt" string="Objetivo"/>
+                <field name="anterior_txt" string="Semana anterior"/>
+                <field name="variacion_txt" string="Variación"/>
+                <field name="estado"/>
+                <field name="tipo" optional="hide"/>
+                <field name="media_movil" optional="hide"/>
+                <field name="fiable_desde" optional="hide"/>
+                <field name="accion" optional="hide"/>
+                <field name="activo" optional="hide"/>
+                <button name="action_evolucion" type="object" string="Evolución" icon="fa-line-chart" class="btn-link"/>
+                <button name="action_detalle" type="object" string="Detalle" icon="fa-search" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_form" model="ir.ui.view">
+        <field name="name">apunts.kpi.form</field>
+        <field name="model">apunts.kpi</field>
+        <field name="arch" type="xml">
+            <form string="KPI de Dirección">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="clave"/>
+                            <field name="bloque_id"/>
+                            <field name="orden"/>
+                            <field name="principal"/>
+                            <field name="activo"/>
+                        </group>
+                        <group>
+                            <field name="tipo"/>
+                            <field name="flujo"/>
+                            <field name="media_movil"/>
+                            <field name="fiable_desde"/>
+                            <field name="accion"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="formula"/>
+                        <field name="regla"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_kpi_catalogo" model="ir.actions.act_window">
+        <field name="name">Catálogo de KPIs</field>
+        <field name="res_model">apunts.kpi</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="view_id" ref="apunts_kpi_list"/>
+    </record>
+
+    <!-- ── Nivel 3 · evolución semanal: valor, media móvil, bandas, año anterior -->
+    <record id="apunts_kpi_serie_graph" model="ir.ui.view">
+        <field name="name">apunts.kpi.serie.graph</field>
+        <field name="model">apunts.kpi.serie</field>
+        <field name="arch" type="xml">
+            <graph string="Evolución semanal" type="line" stacked="0" disable_linking="1">
+                <field name="fecha" interval="week"/>
+                <field name="serie"/>
+                <field name="valor" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_serie_list" model="ir.ui.view">
+        <field name="name">apunts.kpi.serie.list</field>
+        <field name="model">apunts.kpi.serie</field>
+        <field name="arch" type="xml">
+            <list string="Series" create="0" delete="0" edit="0">
+                <field name="anio"/>
+                <field name="semana"/>
+                <field name="fecha"/>
+                <field name="serie"/>
+                <field name="valor"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_serie_search" model="ir.ui.view">
+        <field name="name">apunts.kpi.serie.search</field>
+        <field name="model">apunts.kpi.serie</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="kpi_id"/>
+                <filter name="ult12" string="Últimas 12 semanas"
+                        domain="[('fecha', '&gt;=', (context_today() - relativedelta(weeks=12)).strftime('%Y-%m-%d'))]"/>
+                <filter name="ult52" string="52 semanas"
+                        domain="[('fecha', '&gt;=', (context_today() - relativedelta(weeks=52)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="solo_valor" string="Solo el valor" domain="[('serie', '=', 'valor')]"/>
+                <filter name="sin_limites" string="Sin líneas de límite"
+                        domain="[('serie', 'not in', ('verde', 'amarillo', 'objetivo_acumulado'))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="g_serie" string="Serie" context="{'group_by': 'serie'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_kpi_serie" model="ir.actions.act_window">
+        <field name="name">Evolución semanal de KPIs</field>
+        <field name="res_model">apunts.kpi.serie</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="apunts_kpi_serie_search"/>
+        <field name="context">{'search_default_ult12': 1, 'fill_temporal': False}</field>
+    </record>
+
+    <!-- ── Histórico semanal (la tabla: KPIs en filas, semanas en columnas) ── -->
+    <record id="apunts_kpi_semana_pivot" model="ir.ui.view">
+        <field name="name">apunts.kpi.semana.pivot</field>
+        <field name="model">apunts.kpi.semana</field>
+        <field name="arch" type="xml">
+            <pivot string="Histórico semanal de KPIs" sample="1">
+                <field name="kpi_id" type="row"/>
+                <field name="fecha" interval="week" type="col"/>
+                <field name="valor" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_semana_list" model="ir.ui.view">
+        <field name="name">apunts.kpi.semana.list</field>
+        <field name="model">apunts.kpi.semana</field>
+        <field name="arch" type="xml">
+            <list string="Histórico semanal" create="0" delete="0" edit="0"
+                  decoration-success="estado == 'green'" decoration-warning="estado == 'yellow'"
+                  decoration-danger="estado == 'red'" decoration-muted="reconstruido">
+                <field name="bloque_id"/>
+                <field name="kpi_id"/>
+                <field name="anio"/>
+                <field name="semana" string="Sem"/>
+                <field name="fecha" string="Lunes"/>
+                <field name="valor"/>
+                <field name="objetivo"/>
+                <field name="estado"/>
+                <field name="cerrada"/>
+                <field name="reconstruido" optional="hide"/>
+                <field name="fecha_cierre" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tarjetas por semanas: una columna por semana, dentro los indicadores -->
+    <record id="apunts_kpi_semana_kanban" model="ir.ui.view">
+        <field name="name">apunts.kpi.semana.kanban</field>
+        <field name="model">apunts.kpi.semana</field>
+        <field name="arch" type="xml">
+            <kanban create="false" quick_create="false" records_draggable="false"
+                    default_order="bloque_orden, principal desc, kpi_orden">
+                <field name="bloque_id"/>
+                <field name="kpi_id"/>
+                <field name="principal"/>
+                <field name="valor_txt"/>
+                <field name="objetivo_txt"/>
+                <field name="estado"/>
+                <field name="estado_txt"/>
+                <field name="css_borde"/>
+                <field name="css_badge"/>
+                <field name="semana_txt"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="p-2 border-start border-4 {{record.css_borde.raw_value}}">
+                            <div class="text-muted small text-uppercase"><field name="bloque_id"/></div>
+                            <div class="d-flex justify-content-between align-items-start gap-1">
+                                <span class="fw-bold small"><field name="kpi_id"/></span>
+                                <span t-attf-class="badge {{record.css_badge.raw_value}}"><field name="estado_txt"/></span>
+                            </div>
+                            <div class="fs-3 fw-bold my-1"><field name="valor_txt"/></div>
+                            <div class="small text-muted">Objetivo <field name="objetivo_txt"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="apunts_kpi_semana_search" model="ir.ui.view">
+        <field name="name">apunts.kpi.semana.search</field>
+        <field name="model">apunts.kpi.semana</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="kpi_id"/>
+                <field name="bloque_id"/>
+                <filter name="f_ano" string="Este año"
+                        domain="[('anio', '=', context_today().year)]"/>
+                <filter name="f_cerradas" string="Semanas cerradas" domain="[('cerrada', '=', True)]"/>
+                <filter name="f_rojo" string="En rojo" domain="[('estado', '=', 'red')]"/>
+                <separator/>
+                <filter name="f_principales" string="Solo el KPI principal de cada indicador"
+                        domain="[('principal', '=', True)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="g_semana" string="Semana" context="{'group_by': 'fecha:week'}"/>
+                    <filter name="g_bloque" string="Indicador" context="{'group_by': 'bloque_id'}"/>
+                    <filter name="g_kpi" string="KPI" context="{'group_by': 'kpi_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_kpi_historico" model="ir.actions.act_window">
+        <field name="name">Histórico semanal de KPIs</field>
+        <field name="res_model">apunts.kpi.semana</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="search_view_id" ref="apunts_kpi_semana_search"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+    </record>
+
+    <!-- ── DAT: pagos recurrentes y curva de tesorería ───────────────────── -->
+    <record id="apunts_dat_pago_list" model="ir.ui.view">
+        <field name="name">apunts.dat.pago.list</field>
+        <field name="model">apunts.dat.pago</field>
+        <field name="arch" type="xml">
+            <list string="Pagos recurrentes previstos (DAT)" editable="bottom">
+                <field name="name"/>
+                <field name="importe"/>
+                <field name="periodicidad"/>
+                <field name="dia"/>
+                <field name="mes_ref"/>
+                <field name="activo" widget="boolean_toggle"/>
+                <field name="notas"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_dat_pago" model="ir.actions.act_window">
+        <field name="name">DAT · Pagos recurrentes previstos</field>
+        <field name="res_model">apunts.dat.pago</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Pagos que no están como vencimientos en Odoo</p>
+            <p>Nóminas, Seguridad Social, impuestos, préstamos... Se restan de la tesorería
+            proyectada para calcular los días de autonomía.</p>
+        </field>
+    </record>
+
+    <record id="apunts_dat_proyeccion_graph" model="ir.ui.view">
+        <field name="name">apunts.dat.proyeccion.graph</field>
+        <field name="model">apunts.dat.proyeccion.line</field>
+        <field name="arch" type="xml">
+            <!-- Una sola línea: tesorería real (semanas pasadas) que continúa en la
+                 proyección día a día. Con dos series Odoo pintaría ceros cruzados. -->
+            <graph string="Tesorería real y proyectada" type="line" stacked="0" disable_linking="1">
+                <field name="fecha" interval="day"/>
+                <field name="saldo" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_dat_proyeccion_list" model="ir.ui.view">
+        <field name="name">apunts.dat.proyeccion.list</field>
+        <field name="model">apunts.dat.proyeccion.line</field>
+        <field name="arch" type="xml">
+            <list string="Proyección de tesorería" create="0" delete="0" edit="0"
+                  decoration-danger="saldo &lt;= 0">
+                <field name="fecha"/>
+                <field name="tipo"/>
+                <field name="cobros"/>
+                <field name="pagos"/>
+                <field name="recurrentes"/>
+                <field name="saldo"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_action_dat_proyeccion" model="ir.actions.server">
+        <field name="name">DAT · Curva de tesorería</field>
+        <field name="model_id" ref="model_apunts_dat_pago"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_proyeccion()</field>
+    </record>
+
+    <!-- ── Utilidades ─────────────────────────────────────────────────────── -->
+    <record id="apunts_action_kpi_actualizar" model="ir.actions.server">
+        <field name="name">Actualizar semana en curso</field>
+        <field name="model_id" ref="model_apunts_kpi_motor"/>
+        <field name="state">code</field>
+        <field name="code">
+env['apunts.kpi.bloque']._sembrar()
+env['apunts.dat.pago']._sembrar()
+model.actualizar_actual()
+action = env.ref('apunts_jr_dashboard_direccion.apunts_action_kpi_bloques').sudo().read()[0]
+        </field>
+    </record>
+
+    <!-- ── Menús ──────────────────────────────────────────────────────────── -->
+    <menuitem id="menu_apunts_reunion_semanal" name="Reunión semanal"
+              parent="menu_apunts_direccion_root" action="apunts_action_kpi_bloques" sequence="0"/>
+    <menuitem id="menu_apunts_kpi_historico" name="Histórico de KPIs"
+              parent="menu_apunts_direccion_root" action="apunts_action_kpi_historico" sequence="2"/>
+
+    <menuitem id="menu_apunts_kpi_criterios" name="Objetivos y criterios de los KPIs"
+              parent="menu_apunts_kpi_config"
+              action="lira_dashboard_contabilidad.action_lira_ratio_criterio" sequence="1"/>
+    <menuitem id="menu_apunts_kpi_catalogo" name="Catálogo de KPIs"
+              parent="menu_apunts_kpi_config" action="apunts_action_kpi_catalogo" sequence="3"/>
+    <menuitem id="menu_apunts_kpi_bloques_cfg" name="Indicadores (bloques)"
+              parent="menu_apunts_kpi_config" action="apunts_action_kpi_bloques" sequence="4"/>
+    <menuitem id="menu_apunts_dat_pago" name="DAT · Pagos recurrentes"
+              parent="menu_apunts_kpi_config" action="apunts_action_dat_pago" sequence="5"/>
+    <menuitem id="menu_apunts_dat_proyeccion" name="DAT · Curva de tesorería"
+              parent="menu_apunts_kpi_config" action="apunts_action_dat_proyeccion" sequence="6"/>
+    <menuitem id="menu_apunts_kpi_actualizar" name="Actualizar semana en curso"
+              parent="menu_apunts_kpi_config" action="apunts_action_kpi_actualizar" sequence="9"/>
+
+</odoo>

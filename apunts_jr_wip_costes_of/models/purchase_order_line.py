@@ -2,6 +2,7 @@ from odoo import fields, models
 
 _WIP_FIELDS = [
     "apunts_is_wip",
+    "apunts_wip_propio",
     "apunts_mat_real_total",
     "apunts_cost_total_real",
     "apunts_cost_total_planned",
@@ -87,6 +88,7 @@ class PurchaseOrderLine(models.Model):
                 if productions:
                     productions.invalidate_recordset(_WIP_FIELDS)
                     productions._compute_apunts_wip_costs()
+                    productions._compute_apunts_wip_propio()
 
         if product_cost_triggered:
             product_ids_after = _product_ids_from_pols(self)
@@ -107,6 +109,7 @@ class PurchaseOrderLine(models.Model):
             if productions:
                 productions.invalidate_recordset(_WIP_FIELDS)
                 productions._compute_apunts_wip_costs()
+                productions._compute_apunts_wip_propio()
         product_ids = _product_ids_from_pols(records)
         if product_ids:
             products = self.env["product.product"].browse(list(product_ids)).exists()

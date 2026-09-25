@@ -74,11 +74,112 @@ class WorkOrder(models.Model):
                 wo.prev_validated_qty = prev_wos[-1].qty_validated - wo.qty_validated
 
   
+    def _apunts_piezas_por_hacer(self):
+        """Piezas que REALMENTE quedan por hacer en esta fase.
+
+        Es el mismo número que la tablet enseña al operario como "Por hacer":
+        de lo que le toca hacer se descuenta lo que ya entregó y está esperando
+        el visto bueno del responsable, y lo que está pendiente de recibir
+        material. Si sale 0, en esta fase no hay nada que fichar."""
+        self.ensure_one()
+        return max(
+            (self.prev_validated_qty or 0.0)
+            - (self.qty_ready_to_validate or 0.0)
+            - (self.apunts_qty_pdte_recepcion or 0.0),
+            0.0,
+        )
+
+    def _apunts_comprobar_puede_fichar(self):
+        """No dejar fichar en una fase que ya no tiene trabajo.
+
+        Antes se podía: el operario fichaba en una fase cuyas piezas estaban
+        pendientes de validar, llegaba el responsable, validaba, y el fichaje
+        se quedaba en el aire (o peor: al fichar, la orden volvía de "Por
+        cerrar" a "En progreso" y deshacía la validación)."""
+        self.ensure_one()
+        if self.production_id.state in ("done", "cancel"):
+            raise UserError(
+                "La orden %s ya está %s: no se puede fichar en ella."
+                % (self.production_id.name,
+                   "terminada" if self.production_id.state == "done" else "cancelada")
+            )
+        if self.state in ("done", "cancel"):
+            raise UserError(
+                "La fase «%s» ya está terminada: no se puede fichar en ella.\n\n"
+                "Si queda trabajo, avisa al responsable para que la reabra."
+                % (self.name or "")
+            )
+        if self._apunts_piezas_por_hacer() <= 0:
+            pendientes = self.qty_ready_to_validate or 0.0
+            if pendientes > 0:
+                raise UserError(
+                    "En «%s» no queda ninguna pieza por hacer.\n\n"
+                    "Las %s que hiciste están PENDIENTES DE VALIDAR por el "
+                    "responsable. Ficha en otra fase o en otra orden."
+                    % (self.name or "", int(pendientes) if float(pendientes).is_integer() else pendientes)
+                )
+            raise UserError(
+                "En «%s» no queda ninguna pieza por hacer, así que no se puede "
+                "fichar. Ficha en otra fase o en otra orden." % (self.name or "")
+            )
+
+    def _apunts_cerrar_si_validada(self):
+        """Marca la fase como HECHA cuando David valida la última pieza.
+
+        Antes, al validar todas las piezas de una fase intermedia, la fase se
+        quedaba "en progreso" para siempre en fabricación y en los informes
+        (solo la última fase de la orden tenía automatismo). Ahora, si ya no
+        queda nada por hacer ni por validar, la fase se cierra sola: se
+        desficha a quien siguiera dentro y pasa a verde.
+        """
+        for wo in self:
+            if wo.state in ("done", "cancel"):
+                continue
+            # El listón es el TOTAL de piezas de la orden, no la capacidad del
+            # momento: en una fase intermedia la capacidad crece cuando la fase
+            # anterior valida más, y cerrarla antes de tiempo la dejaría
+            # bloqueada para el trabajo que aún va a llegarle.
+            total_of = wo.production_id.product_qty or 0.0
+            if total_of <= 0:
+                continue
+            if float_compare(wo.qty_validated or 0.0, total_of, precision_digits=2) < 0:
+                continue
+            if float_compare(wo.qty_ready_to_validate or 0.0, 0.0, precision_digits=2) > 0:
+                continue
+            if float_compare(wo.apunts_qty_pdte_recepcion or 0.0, 0.0, precision_digits=2) > 0:
+                continue  # hay refabricación en camino: la fase sigue viva
+            # Cerrar los fichajes que siguieran abiertos en esta fase para no
+            # dejarlos huérfanos (button_finish los remata con end_all).
+            try:
+                wo.end_all()
+            except Exception:
+                pass
+            try:
+                wo.button_finish()
+                # La fase terminó de verdad cuando acabó el último fichaje, no
+                # cuando el responsable validó: así los informes semanales la
+                # cuentan en su semana y no en la del cierre.
+                ultimo = max(wo.time_ids.filtered("date_end").mapped("date_end"), default=None)
+                if ultimo and wo.date_finished and ultimo < wo.date_finished:
+                    wo.write({"date_finished": ultimo})
+                _logger.info(
+                    "[apunts_validacion] Fase %s (%s) cerrada automáticamente: "
+                    "todas las piezas validadas.", wo.id, wo.name)
+            except Exception as e:
+                _logger.warning(
+                    "[apunts_validacion] No se pudo cerrar la fase %s (%s): %s",
+                    wo.id, wo.name, e)
+
     def start_employee(self, employee_id):
         """Override para retrotraer el inicio del fichaje al último desfichaje del
         empleado cuando el tiempo transcurrido es menor que el umbral de inactividad.
         Así se elimina el tiempo muerto entre OF sin coste contable."""
         now = fields.Datetime.now()
+        # Puerta única para barcode, Fabricación y Shop Floor: por aquí pasan
+        # todas las formas de empezar a fichar. El re-fichaje automático del
+        # back-order va exento (lo lanza el propio sistema al partir la orden).
+        if not self.env.context.get(APUNTS_AUTO_BACKORDER_CTX):
+            self._apunts_comprobar_puede_fichar()
         super().start_employee(employee_id)
 
         # No backdatear en el flujo de auto-back-order: el fichaje ya viene
@@ -234,6 +335,9 @@ class WorkOrder(models.Model):
                 if not production or production.state not in ('confirmed', 'progress', 'to_close'):
                     continue
                 if not production._apunts_es_ultima_fase(wo):
+                    # Fase intermedia: si con esta validación queda al 100 %,
+                    # se marca como hecha para que no siga saliendo pendiente.
+                    wo._apunts_cerrar_si_validada()
                     continue
                 if float_is_zero(wo.qty_validated or 0.0, precision_digits=6):
                     continue

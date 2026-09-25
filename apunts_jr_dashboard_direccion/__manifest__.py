@@ -1,6 +1,6 @@
 {
     "name": "Apunts JR — Dashboard Dirección",
-    "summary": "Panel único de dirección: 10 KPIs con botón directo a la vista de detalle de cada uno",
+    "summary": "Panel de Dirección: reunión semanal en 6 indicadores, histórico semanal de KPIs, cuadros CMI/CMP",
     "description": """
 Panel de Dirección
 ==================
@@ -17,7 +17,7 @@ carga centros, KPIs de fichaje...).
   de la fecha comprometida del pedido de venta (o su fecha de pedido si
   no hay comprometida).
     """,
-    "version": "18.0.1.0.2",
+    "version": "18.0.3.17.0",
     "category": "Reporting",
     "author": "Apunts Informàtica",
     "website": "http://www.grupapunts.es",
@@ -34,10 +34,21 @@ carga centros, KPIs de fichaje...).
     "data": [
         "security/ir.model.access.csv",
         "data/cron_data.xml",
+        "data/objetivos_data.xml",
+        "views/direccion_objetivo_view.xml",
+        "views/cmi_semana_view.xml",
+        "views/cmp_mes_view.xml",
+        "views/cmp_indicador_view.xml",
+        "views/cmp_coste_view.xml",
+        "views/cmi_hojas_view.xml",
+        "views/facturacion_mensual_view.xml",
         "views/direccion_resumen_view.xml",
         "views/direccion_snapshot_view.xml",
         "views/stock_picking_views.xml",
+        "views/cartera_views.xml",
         "views/menu.xml",
+        "views/kpi_views.xml",
+        "views/kpi_consulta_views.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

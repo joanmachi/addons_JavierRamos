@@ -71,6 +71,22 @@ class MrpWorkcenter(models.Model):
         compute="_compute_apunts_carga",
         help="Días laborales (8 h/día) equivalentes a las horas reales fichadas en los últimos 30 días.",
     )
+    apunts_n_operarios_semana = fields.Integer(
+        string="Operarios (7 días)",
+        compute="_compute_apunts_carga",
+        help="Nº de operarios distintos que han fichado en este centro en los últimos 7 días "
+             "(entre cuántos se reparten las horas reales de 7 días).",
+    )
+    apunts_n_operarios_15d = fields.Integer(
+        string="Operarios (15 días)",
+        compute="_compute_apunts_carga",
+        help="Nº de operarios distintos que han fichado en este centro en los últimos 15 días.",
+    )
+    apunts_n_operarios_30d = fields.Integer(
+        string="Operarios (30 días)",
+        compute="_compute_apunts_carga",
+        help="Nº de operarios distintos que han fichado en este centro en los últimos 30 días.",
+    )
     apunts_horas_reales_total = fields.Float(
         string="Horas fichadas (total histórico)",
         compute="_compute_apunts_totales",
@@ -123,44 +139,48 @@ class MrpWorkcenter(models.Model):
             GROUP BY wo.workcenter_id
         """, (ids,))
         pendientes = {row[0]: (row[1], row[2]) for row in cr.fetchall()}
-        # Horas reales últimos 7 días
+        # Horas reales + nº operarios distintos, por ventana (7 / 15 / 30 días)
         cr.execute("""
             SELECT p.workcenter_id,
-                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real
+                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real,
+                   COUNT(DISTINCT p.employee_id) AS n_op
             FROM mrp_workcenter_productivity p
             WHERE p.workcenter_id IN %s
               AND p.date_end IS NOT NULL
               AND p.date_end >= (NOW() - INTERVAL '7 days')
             GROUP BY p.workcenter_id
         """, (ids,))
-        reales_7d = {row[0]: row[1] for row in cr.fetchall()}
-        # Horas reales últimos 15 días
+        reales_7d = {row[0]: (row[1], row[2]) for row in cr.fetchall()}
         cr.execute("""
             SELECT p.workcenter_id,
-                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real
+                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real,
+                   COUNT(DISTINCT p.employee_id) AS n_op
             FROM mrp_workcenter_productivity p
             WHERE p.workcenter_id IN %s
               AND p.date_end IS NOT NULL
               AND p.date_end >= (NOW() - INTERVAL '15 days')
             GROUP BY p.workcenter_id
         """, (ids,))
-        reales_15d = {row[0]: row[1] for row in cr.fetchall()}
-        # Horas reales últimos 30 días
+        reales_15d = {row[0]: (row[1], row[2]) for row in cr.fetchall()}
         cr.execute("""
             SELECT p.workcenter_id,
-                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real
+                   COALESCE(SUM(p.duration), 0) / 60.0 AS horas_real,
+                   COUNT(DISTINCT p.employee_id) AS n_op
             FROM mrp_workcenter_productivity p
             WHERE p.workcenter_id IN %s
               AND p.date_end IS NOT NULL
               AND p.date_end >= (NOW() - INTERVAL '30 days')
             GROUP BY p.workcenter_id
         """, (ids,))
-        reales_30d = {row[0]: row[1] for row in cr.fetchall()}
+        reales_30d = {row[0]: (row[1], row[2]) for row in cr.fetchall()}
         for w in self:
             horas_pte, n_wo = pendientes.get(w.id, (0.0, 0))
-            horas_real_7d = float(reales_7d.get(w.id, 0.0) or 0.0)
-            horas_real_15d = float(reales_15d.get(w.id, 0.0) or 0.0)
-            horas_real_30d = float(reales_30d.get(w.id, 0.0) or 0.0)
+            horas_real_7d, n_op_7d = reales_7d.get(w.id, (0.0, 0))
+            horas_real_15d, n_op_15d = reales_15d.get(w.id, (0.0, 0))
+            horas_real_30d, n_op_30d = reales_30d.get(w.id, (0.0, 0))
+            horas_real_7d = float(horas_real_7d or 0.0)
+            horas_real_15d = float(horas_real_15d or 0.0)
+            horas_real_30d = float(horas_real_30d or 0.0)
             w.apunts_horas_pendientes = float(horas_pte or 0.0)
             w.apunts_dias_pendientes = float(horas_pte or 0.0) / 8.0
             w.apunts_n_workorders_pendientes = int(n_wo or 0)
@@ -170,6 +190,9 @@ class MrpWorkcenter(models.Model):
             w.apunts_dias_reales_15d = horas_real_15d / 8.0
             w.apunts_horas_reales_30d = horas_real_30d
             w.apunts_dias_reales_30d = horas_real_30d / 8.0
+            w.apunts_n_operarios_semana = int(n_op_7d or 0)
+            w.apunts_n_operarios_15d = int(n_op_15d or 0)
+            w.apunts_n_operarios_30d = int(n_op_30d or 0)
 
     def _compute_apunts_totales(self):
         if not self:

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- La matriz del cuadro de producción: centros (u operarios) en filas y
+         meses en columnas, igual que en la hoja de cálculo. -->
+    <record id="apunts_cmp_mes_pivot" model="ir.ui.view">
+        <field name="name">apunts.cmp.mes.pivot</field>
+        <field name="model">apunts.cmp.mes</field>
+        <field name="arch" type="xml">
+            <pivot string="Registro mensual de producción" sample="1">
+                <field name="nombre" type="row"/>
+                <field name="fecha" interval="month" type="col"/>
+                <field name="horas_fichadas" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="apunts_cmp_mes_list" model="ir.ui.view">
+        <field name="name">apunts.cmp.mes.list</field>
+        <field name="model">apunts.cmp.mes</field>
+        <field name="arch" type="xml">
+            <list string="Registro mensual de producción" create="0" delete="0" edit="0"
+                  decoration-success="cumple" decoration-warning="not cumple and productividad &gt;= 0.75"
+                  decoration-danger="not cumple and productividad &lt; 0.75">
+                <field name="mes_nombre" string="Mes"/>
+                <field name="anio" string="Año"/>
+                <field name="tipo"/>
+                <field name="nombre" string="Centro / Operario"/>
+                <field name="horas_fichadas" sum="Total" string="H. Máquina"/>
+                <field name="horas_operario" sum="Total" string="H. Operario"/>
+                <field name="macop" string="MACOP" optional="show"/>
+                <field name="horas_previstas" sum="Total" string="H. Previstas"/>
+                <field name="productividad" string="Productividad"/>
+                <field name="objetivo_productividad" string="Objetivo" optional="show"/>
+                <field name="n_ot_terminadas" sum="Total" string="OT terminadas" optional="show"/>
+                <field name="dias_laborables" optional="hide"/>
+                <field name="horas_dia" string="Horas/día" optional="show"/>
+                <field name="cumple" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_cmp_mes_graph" model="ir.ui.view">
+        <field name="name">apunts.cmp.mes.graph</field>
+        <field name="model">apunts.cmp.mes</field>
+        <field name="arch" type="xml">
+            <graph string="Horas por mes" type="bar" sample="1">
+                <field name="fecha" interval="month"/>
+                <field name="horas_fichadas" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_cmp_mes_search" model="ir.ui.view">
+        <field name="name">apunts.cmp.mes.search</field>
+        <field name="model">apunts.cmp.mes</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="nombre"/>
+                <field name="anio"/>
+                <filter name="f_centros" string="Centros" domain="[('tipo', '=', 'centro')]"/>
+                <filter name="f_operarios" string="Operarios" domain="[('tipo', '=', 'operario')]"/>
+                <separator/>
+                <filter name="f_no_cumple" string="No llegan al objetivo" domain="[('cumple', '=', False)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="g_tipo" string="Tipo" context="{'group_by': 'tipo'}"/>
+                    <filter name="g_nombre" string="Centro / Operario" context="{'group_by': 'nombre'}"/>
+                    <filter name="g_mes" string="Mes" context="{'group_by': 'fecha:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmp_centros" model="ir.actions.act_window">
+        <field name="name">Producción por centro (CMP)</field>
+        <field name="res_model">apunts.cmp.mes</field>
+        <field name="view_mode">pivot,list,graph</field>
+        <field name="search_view_id" ref="apunts_cmp_mes_search"/>
+        <field name="domain">[('tipo', '=', 'centro')]</field>
+        <field name="context">{'search_default_g_nombre': 1}</field>
+    </record>
+
+    <record id="apunts_action_cmp_operarios" model="ir.actions.act_window">
+        <field name="name">Producción por operario (CMP)</field>
+        <field name="res_model">apunts.cmp.mes</field>
+        <field name="view_mode">pivot,list,graph</field>
+        <field name="search_view_id" ref="apunts_cmp_mes_search"/>
+        <field name="domain">[('tipo', '=', 'operario')]</field>
+        <field name="context">{'search_default_g_nombre': 1}</field>
+    </record>
+
+</odoo>

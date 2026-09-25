@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- La hoja de siempre: una fila por semana con todas las columnas. -->
+    <record id="apunts_cmi_semana_list" model="ir.ui.view">
+        <field name="name">apunts.cmi.semana.list</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <list string="Registro semanal" create="0" delete="0" edit="0"
+                  decoration-muted="reconstruido">
+                <field name="semana" string="Sem"/>
+                <field name="fecha_ini" string="Lunes"/>
+                <field name="saldo_bancos" sum="Media" decoration-danger="not ok_saldo"/>
+                <field name="cobros_pendientes" sum="Total"/>
+                <field name="facturacion" sum="Total" decoration-danger="not ok_facturacion"/>
+                <field name="albaranes_cliente" sum="Total"/>
+                <field name="produccion_economica" sum="Total"/>
+                <field name="produccion_material" sum="Total" decoration-danger="not ok_produccion"/>
+                <field name="ventas_semanal" sum="Total" optional="show"/>
+                <field name="pedidos_totales" decoration-danger="not ok_cartera" optional="show"/>
+                <field name="pedidos_3m" optional="show"/>
+                <field name="pedidos_6m" optional="hide"/>
+                <field name="encurso" optional="show"/>
+                <field name="stock_ventas" optional="hide"/>
+                <field name="stock_sin_pedido" optional="hide"/>
+                <field name="compras_semanal" sum="Total" optional="show"/>
+                <field name="facturas_proveedor" optional="hide"/>
+                <field name="pedidos_proveedor" optional="hide"/>
+                <field name="albaranes_proveedor" optional="hide"/>
+                <field name="liquidez_actividad" optional="hide"/>
+                <field name="cobros_menos_pagos" optional="hide"/>
+                <field name="pagos_pendientes" optional="hide"/>
+                <field name="prevision_pagos" optional="hide"/>
+                <field name="iva" optional="hide"/>
+                <field name="irpf" optional="hide"/>
+                <field name="seguridad_social" optional="hide"/>
+                <field name="pct_ejecutado_total" optional="hide"/>
+                <field name="pct_ejecutado_3m" optional="hide"/>
+                <field name="reconstruido" optional="hide"/>
+                <field name="ok_saldo" column_invisible="1"/>
+                <field name="ok_cartera" column_invisible="1"/>
+                <field name="ok_facturacion" column_invisible="1"/>
+                <field name="ok_produccion" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_cmi_semana_pivot" model="ir.ui.view">
+        <field name="name">apunts.cmi.semana.pivot</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <pivot string="Registro semanal" sample="1">
+                <field name="fecha_ini" interval="week" type="row"/>
+                <field name="facturacion" type="measure"/>
+                <field name="albaranes_cliente" type="measure"/>
+                <field name="produccion_economica" type="measure"/>
+                <field name="produccion_material" type="measure"/>
+                <field name="compras_semanal" type="measure"/>
+                <field name="saldo_bancos" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- CME: producción económica semana a semana -->
+    <record id="apunts_cmi_semana_graph_cme" model="ir.ui.view">
+        <field name="name">apunts.cmi.semana.graph.cme</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <graph string="CME · Económico" type="line" sample="1">
+                <field name="fecha_ini" interval="week"/>
+                <field name="facturacion" type="measure"/>
+                <field name="produccion_economica" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_cmi_semana_search" model="ir.ui.view">
+        <field name="name">apunts.cmi.semana.search</field>
+        <field name="model">apunts.cmi.semana</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="semana"/>
+                <field name="anio"/>
+                <filter name="f_ano" string="Este año"
+                        domain="[('fecha_ini', '&gt;=', (context_today()).strftime('%Y-01-01'))]"/>
+                <filter name="f_reales" string="Solo semanas reales (no reconstruidas)"
+                        domain="[('reconstruido', '=', False)]"/>
+                <separator/>
+                <filter name="f_saldo_bajo" string="Saldo por debajo del mínimo"
+                        domain="[('ok_saldo', '=', False)]"/>
+                <filter name="f_fact_baja" string="Facturación por debajo del objetivo"
+                        domain="[('ok_facturacion', '=', False)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="g_anio" string="Año" context="{'group_by': 'anio'}"/>
+                    <filter name="g_mes" string="Mes" context="{'group_by': 'fecha_ini:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="apunts_action_cmi_semana" model="ir.actions.act_window">
+        <field name="name">Registro semanal (CMI)</field>
+        <field name="res_model">apunts.cmi.semana</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="apunts_cmi_semana_search"/>
+        <field name="context">{'search_default_f_ano': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay semanas cargadas</p>
+            <p>Este es el cuadro de mando de siempre: una fila por semana con la
+            facturación, los albaranes, la cartera de pedidos, las compras, la
+            liquidez y la producción, comparadas con los mínimos de la empresa.</p>
+        </field>
+    </record>
+
+</odoo>

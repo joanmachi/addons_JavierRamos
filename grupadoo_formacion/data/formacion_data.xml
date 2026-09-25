@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <!-- Clave de la PUERTA de la zona de construcción (menú Apunts), por sesión.
-         Vacía = puerta abierta. Se gestiona como parámetro del sistema a propósito
-         (decisión de producto): no aparece en Ajustes. El grupo "Formación:
-         constructor" sigue siendo la seguridad real; esto es el candado del día a día. -->
+         Por defecto "apunts" (al instalar; y al actualizar si estaba vacía — ver
+         migrations/10.0.0). Vacía = puerta abierta. Se gestiona como parámetro del
+         sistema a propósito (decisión de producto): no aparece en Ajustes. El grupo
+         "Formación: constructor" sigue siendo la seguridad real; esto es el candado
+         del día a día. -->
     <record id="icp_clave_acceso" model="ir.config_parameter">
         <field name="key">grupadoo_formacion.clave_acceso</field>
-        <field name="value"></field>
+        <field name="value">apunts</field>
     </record>
 
     <!-- Soporte post-proyecto: destino de los tickets de asistencia. El interruptor

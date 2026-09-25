@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="apunts_rendimiento_operario_list" model="ir.ui.view">
+        <field name="name">apunts.rendimiento.operario.list</field>
+        <field name="model">apunts.rendimiento.operario.line</field>
+        <field name="arch" type="xml">
+            <list string="Rendimiento por operario" create="0" delete="0" edit="0"
+                  decoration-success="rendimiento &gt;= 1"
+                  decoration-warning="rendimiento &lt; 1 and rendimiento &gt;= 0.75"
+                  decoration-danger="rendimiento &lt; 0.75">
+                <field name="employee_id" string="Operario"/>
+                <field name="horas_fichadas" string="Horas fichadas" sum="Total fichadas"/>
+                <field name="horas_ganadas" string="Horas de trabajo hechas" sum="Total hechas"/>
+                <field name="rendimiento" string="Rendimiento"
+                       help="Horas de trabajo hechas ÷ horas fichadas. 1,00 = cumple el tiempo previsto."/>
+                <field name="n_ot" string="OT terminadas"/>
+                <field name="llega" string="Llega a 1" optional="hide"/>
+                <field name="user_id" column_invisible="1"/>
+                <button name="action_open_fichajes" type="object" icon="fa-external-link"
+                        string="Ver fichajes" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apunts_rendimiento_operario_graph" model="ir.ui.view">
+        <field name="name">apunts.rendimiento.operario.graph</field>
+        <field name="model">apunts.rendimiento.operario.line</field>
+        <field name="arch" type="xml">
+            <graph string="Rendimiento por operario" type="bar" sample="1">
+                <field name="employee_id"/>
+                <field name="rendimiento" type="measure" string="Rendimiento"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="apunts_rendimiento_operario_form" model="ir.ui.view">
+        <field name="name">apunts.rendimiento.operario.form</field>
+        <field name="model">apunts.rendimiento.operario</field>
+        <field name="arch" type="xml">
+            <form string="Rendimiento por operario">
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>Rendimiento por operario</h1>
+                        <p class="text-muted">
+                            Cuántas horas de trabajo previsto se completan por cada hora fichada.
+                            <strong>1,00 = se cumple el tiempo previsto</strong>; más de 1 se va más
+                            rápido, menos de 1 se tarda más. Solo cuentan las órdenes de trabajo
+                            terminadas, y las horas previstas de cada orden se reparten entre quienes
+                            ficharon en ella. No entran las fichas marcadas como
+                            "No contar en rendimiento".
+                        </p>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fecha_desde"/>
+                            <field name="fecha_hasta"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_ver" type="object" string="Ver rendimiento"
+                                class="btn-primary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apunts_action_rendimiento_operario_srv" model="ir.actions.server">
+        <field name="name">Rendimiento por operario</field>
+        <field name="model_id" ref="model_apunts_rendimiento_operario"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+</odoo>

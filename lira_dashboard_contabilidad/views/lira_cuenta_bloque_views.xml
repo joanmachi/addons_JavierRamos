@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <record id="view_lira_cuenta_bloque_list" model="ir.ui.view">
+    <field name="name">lira.cuenta.bloque.list</field>
+    <field name="model">lira.cuenta.bloque</field>
+    <field name="arch" type="xml">
+      <list string="Clasificación de costes" editable="bottom"
+            decoration-danger="not codigo_existe">
+        <field name="codigo_existe" column_invisible="1"/>
+        <field name="code" string="Código cuenta"/>
+        <field name="name" string="Nombre cuenta"/>
+        <field name="bloque"/>
+        <field name="motivo" string="Criterio / motivo"/>
+        <field name="active" widget="boolean_toggle"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_lira_cuenta_bloque_search" model="ir.ui.view">
+    <field name="name">lira.cuenta.bloque.search</field>
+    <field name="model">lira.cuenta.bloque</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="code"/>
+        <field name="name"/>
+        <group expand="0" string="Agrupar por">
+          <filter name="group_bloque" string="Bloque" context="{'group_by': 'bloque'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_lira_cuenta_bloque" model="ir.actions.server">
+    <field name="name">⚙ Clasificación de costes</field>
+    <field name="model_id" ref="model_lira_cuenta_bloque"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open()</field>
+  </record>
+
+</odoo>

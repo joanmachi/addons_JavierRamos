@@ -28,8 +28,6 @@
                     <!-- Operario (siempre) -->
                     <group>
                         <field name="employee_id" options="{'no_create': True}"/>
-                        <field name="mostrar_todas_ofs"
-                               help="Por defecto solo aparecen las OFs del operario. Marca para ver todas."/>
                     </group>
 
                     <!-- ═══════════════════════════════════════════════════════
@@ -47,7 +45,9 @@
                         </div>
                         <group string="Fichaje a cerrar">
                             <field name="production_id" string="Orden de Fabricación (OF)"
-                                   options="{'no_create': True}"/>
+                                   options="{'no_create': True}"
+                                   placeholder="Escribe el número de OF (p. ej. 01291) y elige, o pulsa Buscar más..."/>
+                            <field name="solo_ofs_del_operario"/>
                             <field name="workorder_id_abierto" string="Fase (OT)"
                                    options="{'no_create': True}"
                                    invisible="not production_id"/>
@@ -78,7 +78,9 @@
                         </div>
                         <group string="Periodo a registrar">
                             <field name="production_id" string="Orden de Fabricación (OF)"
-                                   options="{'no_create': True}"/>
+                                   options="{'no_create': True}"
+                                   placeholder="Escribe el número de OF (p. ej. 01291) y elige, o pulsa Buscar más..."/>
+                            <field name="solo_ofs_del_operario"/>
                             <field name="workorder_id_nuevo" string="Fase (OT)"
                                    options="{'no_create': True}"
                                    invisible="not production_id"/>

@@ -54,7 +54,7 @@
             <div class="ld_cta_icon"><i class="fa fa-truck"/></div>
             <div class="ld_cta_text">
               <strong>Ver detalle de líneas pendientes de entrega</strong>
-              <span>Abre la tabla con buscador nativo: filtra por cliente, NIF, ciudad, producto, código de barras o referencia interna del producto.</span>
+              <span>Abre la tabla con buscador nativo (cliente, NIF, ciudad, producto, código de barras, referencia) y, con los iconos de arriba a la derecha, la <b>gráfica por semanas de entrega</b> y la tabla dinámica.</span>
             </div>
             <button name="action_ver_tabla" string="Ver tabla" type="object"
                     class="ld_btn_primary" icon="fa-search"/>
@@ -107,9 +107,15 @@
                decoration-warning="pct_entregado &gt; 0 and pct_entregado &lt; 50"
                decoration-muted="pct_entregado == 0"
                help="Porcentaje ya entregado sobre el pedido."/>
-        <field name="stock_disponible" string="Stock disp." sum="Total stock"
+        <field name="stock_disponible" string="Stock previsto"
                decoration-danger="stock_disponible &lt; qty_pendiente"
-               help="Stock virtual disponible (incluye entradas/salidas futuras previstas)."/>
+               help="El «Previsto» de la ficha del producto: a mano + entradas − salidas pendientes. Es el mismo dato en todas las líneas de esa referencia, por eso no se suma."/>
+        <field name="stock_a_mano" string="Stock disponible" sum="Total disponible"
+               optional="show"
+               help="Lo que hay a mano de esa referencia (el «Disponible» de la ficha del producto). Se muestra una sola vez, en el pedido más antiguo de la referencia; en los demás sale a cero para no contarlo dos veces al agrupar."/>
+        <field name="valor_stock" string="Valor stock (€)" sum="Total stock (€)"
+               optional="show"
+               help="Stock disponible × precio del pedido. Como el disponible, una sola vez por referencia."/>
         <field name="precio_unit" string="Precio unit. (€)" avg="Precio medio"
                help="Precio unitario acordado en la línea."/>
         <field name="valor_pendiente" string="Valor pdte. (€)" sum="Total valor pdte"
@@ -121,6 +127,30 @@
                 string="Ver pedido en Odoo"
                 title="Abrir el pedido de venta original"/>
       </list>
+    </field>
+  </record>
+
+  <!-- Semanas de entrega comprometida en horizontal, euros pendientes en vertical -->
+  <record id="view_lira_pending_delivery_line_graph" model="ir.ui.view">
+    <field name="name">lira.pending.delivery.line.graph</field>
+    <field name="model">lira.pending.delivery.line</field>
+    <field name="arch" type="xml">
+      <graph string="Valor pendiente por semana de entrega" type="bar" stacked="1" disable_linking="1">
+        <field name="fecha_entrega" interval="week"/>
+        <field name="valor_pendiente" type="measure"/>
+      </graph>
+    </field>
+  </record>
+
+  <record id="view_lira_pending_delivery_line_pivot" model="ir.ui.view">
+    <field name="name">lira.pending.delivery.line.pivot</field>
+    <field name="model">lira.pending.delivery.line</field>
+    <field name="arch" type="xml">
+      <pivot string="Pendiente por cliente y semana" sample="1">
+        <field name="partner_id" type="row"/>
+        <field name="fecha_entrega" interval="week" type="col"/>
+        <field name="valor_pendiente" type="measure"/>
+      </pivot>
     </field>
   </record>
 
@@ -155,7 +185,7 @@
         <filter name="mas_14" string="Espera &gt; 14 días" domain="[('dias_espera','>',14)]"/>
         <filter name="sin_entregar" string="Sin entregar (0%)" domain="[('pct_entregado','=',0)]"/>
         <filter name="parcial"      string="Entrega parcial (1-99%)" domain="[('pct_entregado','>',0),('pct_entregado','&lt;',100)]"/>
-        <filter name="sin_stock_dsp" string="Stock disp. &lt; 0" domain="[('stock_disponible','&lt;',0)]"/>
+        <filter name="sin_stock_dsp" string="Stock previsto &lt; 0" domain="[('stock_disponible','&lt;',0)]"/>
         <separator/>
         <filter name="val_1k"  string="Valor pdte. &gt; 1.000 €"  domain="[('valor_pendiente','>',1000)]"/>
         <filter name="val_5k"  string="Valor pdte. &gt; 5.000 €"  domain="[('valor_pendiente','>',5000)]"/>
@@ -163,7 +193,13 @@
         <separator/>
         <filter name="ped_mes" string="Pedido este mes"
                 date="fecha_pedido"/>
+        <filter name="con_fecha_entrega" string="Con fecha de entrega comprometida" domain="[('fecha_entrega', '!=', False)]"/>
+        <filter name="entrega_vencida" string="Fecha de entrega ya pasada"
+                domain="[('fecha_entrega', '!=', False), ('fecha_entrega', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
         <group expand="1" string="Agrupar por">
+          <filter name="group_sem_entrega" string="Semana de entrega" context="{'group_by': 'fecha_entrega:week'}"/>
+          <filter name="group_mes_entrega" string="Mes de entrega" context="{'group_by': 'fecha_entrega:month'}"/>
+          <filter name="group_sem_pedido"  string="Semana del pedido" context="{'group_by': 'fecha_pedido:week'}"/>
           <filter name="group_partner"  string="Cliente"        context="{'group_by': 'partner_id'}"/>
           <filter name="group_product"  string="Producto"       context="{'group_by': 'product_id'}"/>
           <filter name="group_categ"    string="Categoría"      context="{'group_by': 'categ_id'}"/>
@@ -173,7 +209,7 @@
           <filter name="group_entr"     string="Uds. entregadas" context="{'group_by': 'qty_entregada'}"/>
           <filter name="group_pdte"     string="Uds. pendientes" context="{'group_by': 'qty_pendiente'}"/>
           <filter name="group_pct"      string="% entregado"    context="{'group_by': 'pct_entregado'}"/>
-          <filter name="group_stock"    string="Stock disp."    context="{'group_by': 'stock_disponible'}"/>
+          <filter name="group_stock"    string="Stock previsto" context="{'group_by': 'stock_disponible'}"/>
           <filter name="group_precio"   string="Precio unit."   context="{'group_by': 'precio_unit'}"/>
           <filter name="group_valor"    string="Valor pendiente" context="{'group_by': 'valor_pendiente'}"/>
           <filter name="group_dias"     string="Días espera"    context="{'group_by': 'dias_espera'}"/>

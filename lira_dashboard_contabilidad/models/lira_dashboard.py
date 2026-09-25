@@ -44,7 +44,10 @@ class LiraDashboard(models.TransientModel):
     # ── Ratios de rentabilidad ─────────────────────────────────────────────────
     ratio_roe          = fields.Float(digits=(16, 1), readonly=True)
     ratio_roa          = fields.Float(digits=(16, 1), readonly=True)
-    ratio_margen_bruto = fields.Float(digits=(16, 1), readonly=True)
+    ratio_edv          = fields.Float(digits=(16, 1), readonly=True,
+        help='Estructura y Dirección sobre facturación: (Estructura / Facturación) × 100')
+    ratio_cov          = fields.Float(digits=(16, 1), readonly=True,
+        help='Coste operativo sobre facturación: (Variables directos + Semivariables + Fijos operativos) / Facturación × 100')
     ratio_ebitda_pct   = fields.Float(digits=(16, 1), readonly=True)
     ratio_margen_neto  = fields.Float(digits=(16, 1), readonly=True)
 
@@ -58,7 +61,11 @@ class LiraDashboard(models.TransientModel):
     patrimonio_neto     = fields.Float(readonly=True)
 
     # ── Cuenta de resultados ───────────────────────────────────────────────────
-    ventas_periodo   = fields.Float(readonly=True)
+    ventas_periodo   = fields.Float(readonly=True,
+        help='Ventas del periodo: cuentas 70x. La misma cifra que el P&G y el Análisis de ventas.')
+    ingresos_explotacion = fields.Float(readonly=True,
+        help='Ventas + otros ingresos de explotación (subvenciones, variación de existencias...). '
+             'Es la primera línea de la cuenta de resultados.')
     coste_ventas     = fields.Float(readonly=True)
     beneficio_bruto  = fields.Float(readonly=True)
     gastos_personal  = fields.Float(readonly=True)
@@ -70,17 +77,42 @@ class LiraDashboard(models.TransientModel):
     beneficio_neto       = fields.Float(readonly=True)
     total_pasivo_pn      = fields.Float(readonly=True)
 
+    # ── Financiación, activos y existencias (petición de Vicky, 21/09/2026) ──
+    # Lo que Vicky quería ver en las tarjetas de los diarios PRESTAMOS, AMORT y
+    # EXIST del tablero de Odoo. Se lee de los préstamos (account.loan), los
+    # activos (account.asset) y el stock, y se enseña aquí, donde ya están los
+    # demás indicadores; añadir un dato más es añadir un campo.
+    prest_n              = fields.Integer(readonly=True)
+    prest_capital        = fields.Float(readonly=True, help='Suma de lo prestado (préstamos en curso).')
+    prest_pendiente      = fields.Float(readonly=True, help='Deuda viva: lo que queda por devolver.')
+    prest_cuota_mes      = fields.Float(readonly=True, help='Suma de la próxima cuota de cada préstamo.')
+    prest_meses_restantes = fields.Integer(readonly=True, help='Cuotas que quedan del préstamo que más tarde termina.')
+    prest_fin            = fields.Date(readonly=True)
+    prest_pct_patrimonio = fields.Float(digits=(16, 1), readonly=True,
+        help='Deuda viva de préstamos ÷ patrimonio neto × 100. Nivel de endeudamiento bancario.')
+    prest_detalle        = fields.Html(readonly=True, sanitize=False)
+    act_n                = fields.Integer(readonly=True)
+    act_original         = fields.Float(readonly=True)
+    act_neto             = fields.Float(readonly=True, help='Valor contable neto: lo que aún no se ha amortizado.')
+    act_amortizado       = fields.Float(readonly=True)
+    act_pct_amortizado   = fields.Float(digits=(16, 1), readonly=True)
+    act_cuota_mes        = fields.Float(readonly=True, help='Amortización del próximo mes (asientos previstos).')
+    act_anual            = fields.Float(readonly=True, help='Amortización prevista en los próximos 12 meses.')
+    act_fin              = fields.Date(readonly=True, help='Fecha de la última amortización prevista.')
+    exist_contable       = fields.Float(readonly=True, help='Saldo de las cuentas del grupo 3 a la fecha.')
+    exist_fecha          = fields.Date(readonly=True, help='Último asiento del diario de actualización de existencias.')
+    exist_materia_coste  = fields.Float(readonly=True, help='Materia prima, compras y consumibles en la nave, a coste de ficha.')
+    exist_piezas_venta   = fields.Float(readonly=True, help='Piezas de cliente en la nave, a precio de venta.')
+
     # ── Variación vs periodo anterior (%) ─────────────────────────────────────
     var_ventas_pct = fields.Float(digits=(16, 1), readonly=True)
     var_ebitda_pct = fields.Float(digits=(16, 1), readonly=True)
-    var_margen_pct = fields.Float(digits=(16, 1), readonly=True)
 
     # ── Tendencia legible (↑ +5.2 %, ↓ -3.1 %, → +0.5 %) ────────────────────
     trend_ventas = fields.Char(readonly=True)
     trend_ebitda = fields.Char(readonly=True)
-    trend_margen = fields.Char(readonly=True)
 
-    # ── Distribución de costes (% sobre ventas) ───────────────────────────────
+    # ── Distribución de costes (% sobre facturación) ───────────────────────────────
     pct_coste_ventas = fields.Float(digits=(16, 1), readonly=True)
     pct_personal     = fields.Float(digits=(16, 1), readonly=True)
     pct_generales    = fields.Float(digits=(16, 1), readonly=True)
@@ -99,7 +131,8 @@ class LiraDashboard(models.TransientModel):
     sem_endeudamiento = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
     sem_roe           = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
     sem_roa           = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
-    sem_margen_bruto  = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
+    sem_edv           = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
+    sem_cov           = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
     sem_ebitda        = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
     sem_margen_neto   = fields.Selection([('green', ''), ('yellow', ''), ('red', '')], readonly=True)
 
@@ -234,9 +267,11 @@ class LiraDashboard(models.TransientModel):
             # Existencias: grupo 3 del PGC (300xxx–399xxx), primer dígito '3'
             existencias = bs1.get('3', 0.0)
 
-            # Cuentas excluidas de ingresos de explotación:
-            # 710000001 (variación existencias) y 740000001 (subvenciones)
-            _EXCL = ['710000001', '740000001']
+            # Antes se excluían de los ingresos de explotación la variación de
+            # existencias (710000001) y las subvenciones (740000001). Se incluyen
+            # desde ahora para que el EBITDA y el beneficio del Tablero sean los
+            # mismos que los del P&G por periodos (y que el cuadro del asesor).
+            _EXCL = []
 
             # ── Query 2/3 · Cuenta de resultados — periodo actual ───────────────
             pl, pl2, _ = rec._q(df=df, dt=dt, exclude_codes=_EXCL)
@@ -260,7 +295,13 @@ class LiraDashboard(models.TransientModel):
             res_financiero = -(pl2.get('76', 0.0)) - pl2.get('66', 0.0)
 
             margen_b   = ingresos_op - coste_v
-            ebitda_val = margen_b - g_personal - g_general
+            # EBITDA = resultado de explotación + amortizaciones: TODOS los gastos
+            # de explotación (grupo 6 salvo 66 financieros y 68 amortizaciones),
+            # igual que la cascada del P&G por bloques. Antes solo restaba 60-65 y
+            # los dos EBITDA del sistema no coincidían.
+            g_explotacion = sum(pl2.get(c, 0.0) for c in
+                                ('60', '61', '62', '63', '64', '65', '67', '69'))
+            ebitda_val = ingresos_op - g_explotacion
             ebit_val   = ebitda_val - amort
             beneficio  = ebit_val + res_financiero
 
@@ -273,7 +314,8 @@ class LiraDashboard(models.TransientModel):
             ingresos_p = ventas_p + otros_p
             coste_p    = pp2.get('60', 0.0) + pp2.get('61', 0.0)
             margen_p   = ingresos_p - coste_p
-            ebitda_p   = margen_p - pp2.get('64', 0.0) - pp2.get('62', 0.0) - pp2.get('63', 0.0) - pp2.get('65', 0.0)
+            ebitda_p   = ingresos_p - sum(pp2.get(c, 0.0) for c in
+                                          ('60', '61', '62', '63', '64', '65', '67', '69'))
 
             # ── Persistir balance y P&L ─────────────────────────────────────────
             rec.activo_corriente    = activo_c
@@ -283,7 +325,8 @@ class LiraDashboard(models.TransientModel):
             rec.pasivo_no_corriente = pasivo_nc
             rec.pasivo_total        = pasivo_t
             rec.patrimonio_neto     = patrimonio
-            rec.ventas_periodo      = ingresos_op
+            rec.ventas_periodo      = ventas
+            rec.ingresos_explotacion = ingresos_op
             rec.coste_ventas        = coste_v
             rec.beneficio_bruto     = margen_b
             rec.gastos_personal     = g_personal
@@ -298,13 +341,8 @@ class LiraDashboard(models.TransientModel):
             # ── Tendencias ──────────────────────────────────────────────────────
             vv = rec._var(ingresos_op, ingresos_p)
             ve = rec._var(ebitda_val, ebitda_p)
-            vm = rec._var(
-                margen_b / ingresos_op * 100 if ingresos_op else 0,
-                margen_p / ingresos_p * 100  if ingresos_p  else 0,
-            )
             rec.var_ventas_pct = vv;  rec.trend_ventas = rec._trend(vv)
             rec.var_ebitda_pct = ve;  rec.trend_ebitda = rec._trend(ve)
-            rec.var_margen_pct = vm;  rec.trend_margen = rec._trend(vm)
 
             # ── Ratios ──────────────────────────────────────────────────────────
             rlg  = round(activo_c / pasivo_c, 2)                 if pasivo_c   else 0.0
@@ -315,7 +353,28 @@ class LiraDashboard(models.TransientModel):
             raut = round(patrimonio / activo_t * 100, 1)         if activo_t   else 0.0
             roe  = round(beneficio / patrimonio * 100, 1)        if patrimonio > 0 else 0.0
             roa  = round(beneficio / activo_t * 100, 1)         if activo_t   else 0.0
-            rmb  = round(margen_b   / ingresos_op * 100, 1) if ingresos_op else 0.0
+            # Bloques de la clasificación del asesor en el periodo, para los
+            # ratios EDV y COV
+            mapa_blq = self.env['lira.cuenta.bloque'].mapa()
+            rec.env.cr.execute("""
+                SELECT aa.code_store->>%s AS code, SUM(aml.debit - aml.credit)
+                FROM account_move_line aml
+                JOIN account_account aa ON aa.id = aml.account_id
+                WHERE aml.parent_state = 'posted' AND aml.company_id = %s
+                  AND aml.date >= %s AND aml.date <= %s
+                  AND aa.code_store->>%s LIKE '6%%'
+                GROUP BY 1""",
+                (str(rec.env.company.id), rec.env.company.id, df, dt,
+                 str(rec.env.company.id)))
+            blq = {'variables_directos': 0.0, 'semivariables': 0.0,
+                   'fijos_operativos': 0.0, 'estructura': 0.0}
+            for _code, _neto in rec.env.cr.fetchall():
+                b = mapa_blq.get(_code or '')
+                if b in blq:
+                    blq[b] += float(_neto or 0.0)
+            redv = round(blq['estructura'] / ventas * 100, 1) if ventas else 0.0
+            rcov = round((blq['variables_directos'] + blq['semivariables']
+                          + blq['fijos_operativos']) / ventas * 100, 1) if ventas else 0.0
             rebi = round(ebitda_val / ingresos_op * 100, 1) if ingresos_op else 0.0
             rmn  = round(beneficio  / ingresos_op * 100, 1) if ingresos_op else 0.0
 
@@ -327,24 +386,32 @@ class LiraDashboard(models.TransientModel):
             rec.ratio_autonomia          = raut
             rec.ratio_roe                = roe
             rec.ratio_roa                = roa
-            rec.ratio_margen_bruto       = rmb
+            rec.ratio_edv                = redv
+            rec.ratio_cov                = rcov
             rec.ratio_ebitda_pct         = rebi
             rec.ratio_margen_neto        = rmn
 
             # ── Semáforos ───────────────────────────────────────────────────────
-            S = rec._sem
-            rec.sem_liquidez      = S(rlg,  green_min=1.5,  yellow_min=1.0)
-            rec.sem_liq_inmediata = S(rli,  green_min=1.0,  yellow_min=0.75)
-            rec.sem_tesoreria     = S(rt,   green_min=0.3,  yellow_min=0.1)
-            rec.sem_solvencia     = S(rs,   green_min=2.0,  yellow_min=1.0)
-            rec.sem_endeudamiento = S(rend, green_max=50.0, yellow_max=70.0)
-            rec.sem_roe           = S(roe,  green_min=10.0, yellow_min=0.0)
-            rec.sem_roa           = S(roa,  green_min=5.0,  yellow_min=0.0)
-            rec.sem_margen_bruto  = S(rmb,  green_min=40.0, yellow_min=20.0)
-            rec.sem_ebitda        = S(rebi, green_min=15.0, yellow_min=5.0)
-            rec.sem_margen_neto   = S(rmn,  green_min=10.0, yellow_min=0.0)
+            # Los umbrales salen de "Criterios de ratios" (editables por la
+            # empresa); si no se han tocado, valen los genéricos de siempre.
+            def S(clave, val):
+                verde, amarillo, sentido = self.env['lira.ratio.criterio'].criterio(clave)
+                if sentido == 'menor':
+                    return rec._sem(val, green_max=verde, yellow_max=amarillo)
+                return rec._sem(val, green_min=verde, yellow_min=amarillo)
+            rec.sem_liquidez      = S('liquidez', rlg)
+            rec.sem_liq_inmediata = S('liq_inmediata', rli)
+            rec.sem_tesoreria     = S('tesoreria', rt)
+            rec.sem_solvencia     = S('solvencia', rs)
+            rec.sem_endeudamiento = S('endeudamiento', rend)
+            rec.sem_roe           = S('roe', roe)
+            rec.sem_roa           = S('roa', roa)
+            rec.sem_edv           = S('edv', redv)
+            rec.sem_cov           = S('cov', rcov)
+            rec.sem_ebitda        = S('ebitda', rebi)
+            rec.sem_margen_neto   = S('margen_neto', rmn)
 
-            # ── Distribución de costes (% sobre ventas) ─────────────────────────
+            # ── Distribución de costes (% sobre facturación) ─────────────────────────
             def pct(v): return round(v / ingresos_op * 100, 1) if ingresos_op else 0.0
             rec.pct_coste_ventas = pct(coste_v)
             rec.pct_personal     = pct(g_personal)
@@ -381,10 +448,6 @@ class LiraDashboard(models.TransientModel):
                      f'Endeudamiento muy elevado — {rend:.1f}% (máx. recomendado 70%)',
                      f'Endeudamiento elevado — {rend:.1f}% (recomendado < 60%)',
                      f'Endeudamiento controlado — {rend:.1f}%'),
-                _niv(rmb,  lambda v: v < 0,    lambda v: v < 20,
-                     'Margen bruto negativo — el coste supera los ingresos',
-                     f'Margen bruto bajo — {rmb:.1f}% (recomendado > 40%)',
-                     f'Margen bruto correcto — {rmb:.1f}%'),
                 _niv(roe,  lambda v: v < 0,    lambda v: v < 5,
                      f'ROE negativo — la empresa destruye valor ({roe:.1f}%)',
                      f'ROE bajo — {roe:.1f}% (recomendado > 10%)',
@@ -422,6 +485,7 @@ class LiraDashboard(models.TransientModel):
                 'green'  if rec.ciclo_caja < 30  else
                 'yellow' if rec.ciclo_caja <= 60 else 'red'
             )
+            rec._lira_financiacion(existencias, patrimonio)
 
             cr = self.env.cr
             cid_real = self.env.company.id
@@ -567,6 +631,84 @@ class LiraDashboard(models.TransientModel):
                 'search_default_group_by_account': 1,
                 'expand': 1,
             },
+        }
+
+    # ══ FINANCIACIÓN, ACTIVOS Y EXISTENCIAS ═══════════════════════════════
+
+    def _lira_financiacion(self, existencias, patrimonio):
+        """Rellena las tarjetas de préstamos, activos y existencias."""
+        self.ensure_one()
+        hoy = date.today()
+        eur = lambda v: ('{:,.2f}'.format(v).replace(',', 'X').replace('.', ',').replace('X', '.')) + ' €'
+        # ── Préstamos (account.loan, Odoo 18 Enterprise) ──
+        self.prest_n = self.prest_capital = self.prest_pendiente = self.prest_cuota_mes = 0
+        self.prest_meses_restantes = 0; self.prest_fin = False; self.prest_pct_patrimonio = 0.0
+        self.prest_detalle = '<p class="text-muted small mb-0">No hay préstamos en curso en Odoo.</p>'
+        if 'account.loan' in self.env:
+            prestamos = self.env['account.loan'].sudo().search([('state', '=', 'running')])
+            filas = []
+            for pr in prestamos:
+                pendientes = pr.line_ids.filtered(lambda l: not l.is_payment_move_posted).sorted('date')
+                cuota = pendientes[:1].payment if pendientes else 0.0
+                self.prest_capital += pr.amount_borrowed
+                self.prest_pendiente += pr.outstanding_balance
+                self.prest_cuota_mes += cuota
+                self.prest_meses_restantes = max(self.prest_meses_restantes, len(pendientes))
+                if pr.end_date and (not self.prest_fin or pr.end_date > self.prest_fin):
+                    self.prest_fin = pr.end_date
+                filas.append(
+                    '<tr><td>%s</td><td class="text-end">%s</td><td class="text-end">%s</td>'
+                    '<td class="text-end">%s</td><td class="text-end">%d</td><td class="text-end">%s</td></tr>' % (
+                        pr.name, eur(pr.amount_borrowed), eur(pr.outstanding_balance), eur(cuota),
+                        len(pendientes), pr.end_date.strftime('%m/%Y') if pr.end_date else '—'))
+            self.prest_n = len(prestamos)
+            if filas:
+                self.prest_detalle = (
+                    '<table class="table table-sm table-borderless mb-0 ld_fin_table"><thead><tr>'
+                    '<th>Préstamo</th><th class="text-end">Prestado</th><th class="text-end">Pendiente</th>'
+                    '<th class="text-end">Cuota</th><th class="text-end">Cuotas pdtes.</th><th class="text-end">Fin</th>'
+                    '</tr></thead><tbody>%s</tbody></table>' % ''.join(filas))
+        self.prest_pct_patrimonio = round(self.prest_pendiente / patrimonio * 100, 1) if patrimonio > 0 else 0.0
+        # ── Activos y amortizaciones (account.asset) ──
+        self.act_n = 0; self.act_original = self.act_neto = self.act_amortizado = 0.0
+        self.act_pct_amortizado = 0.0; self.act_cuota_mes = self.act_anual = 0.0; self.act_fin = False
+        if 'account.asset' in self.env:
+            activos = self.env['account.asset'].sudo().search([('state', 'in', ('open', 'paused'))])
+            self.act_n = len(activos)
+            self.act_original = sum(activos.mapped('original_value'))
+            self.act_neto = sum(activos.mapped('book_value'))
+            self.act_amortizado = self.act_original - self.act_neto
+            self.act_pct_amortizado = round(self.act_amortizado / self.act_original * 100, 1) if self.act_original else 0.0
+            previstos = activos.mapped('depreciation_move_ids').filtered(lambda m: m.state == 'draft' and m.date and m.date >= hoy)
+            self.act_cuota_mes = sum(m.amount_total for m in previstos if m.date <= hoy + relativedelta(days=31))
+            self.act_anual = sum(m.amount_total for m in previstos if m.date <= hoy + relativedelta(years=1))
+            self.act_fin = max(previstos.mapped('date')) if previstos else False
+        # ── Existencias: contabilidad frente a lo que hay en la nave ──
+        self.exist_contable = existencias
+        diario = self.env['account.journal'].sudo().search([('code', '=', 'EXIST')], limit=1)
+        ultimo = self.env['account.move'].sudo().search(
+            [('journal_id', '=', diario.id), ('state', '=', 'posted')], order='date desc', limit=1) if diario else None
+        self.exist_fecha = ultimo.date if ultimo else False
+        Q = self.env['stock.quant'].sudo()
+        base = [('location_id.usage', '=', 'internal'), ('quantity', '!=', 0)]
+        self.exist_materia_coste = sum(Q.search(base + [('lira_tipo_stock', 'in', ('materia', 'materia_cliente', 'consumible'))]).mapped('lira_valor_coste'))
+        self.exist_piezas_venta = sum(Q.search(base + [('lira_tipo_stock', '=', 'pieza')]).mapped('lira_valor_venta'))
+
+    def action_open_prestamos(self):
+        return self.env.ref('account_loans.action_view_account_loans').sudo().read()[0]
+
+    def action_open_activos(self):
+        return self.env.ref('account_asset.action_account_asset_form').sudo().read()[0]
+
+    def action_open_existencias_stock(self):
+        return self.env.ref('lira_dashboard_contabilidad.action_lira_stock_materia').sudo().read()[0]
+
+    def action_open_existencias_asientos(self):
+        diario = self.env['account.journal'].sudo().search([('code', '=', 'EXIST')], limit=1)
+        return {
+            'type': 'ir.actions.act_window', 'name': 'Asientos de actualización de existencias',
+            'res_model': 'account.move', 'view_mode': 'list,form',
+            'domain': [('journal_id', '=', diario.id)] if diario else [],
         }
 
     def action_drill_ventas(self):

@@ -139,11 +139,26 @@ class MrpWorkcenterProductivity(models.Model):
                 # Ignorar fichajes retroactivos (wizard de corrección, etc.)
                 if (ahora - rec.date_start).total_seconds() > 3600:
                     continue
-                # Solo crear si no hay asistencia abierta
+                # ¿Tiene ya una entrada de presencia abierta?
                 open_att = Att.search([
                     ('employee_id', '=', rec.employee_id.id),
                     ('check_out', '=', False),
                 ], limit=1)
+                # Si la que tiene abierta es de un día ANTERIOR, está colgada:
+                # se quedó sin fichar la salida. Antes eso bloqueaba la creación
+                # de la presencia de hoy para siempre (fichaba en sus OFs pero su
+                # presencia salía a 0). Se cierra con la hora en que se desfichó
+                # de la última orden aquel día, y se abre la de hoy.
+                if open_att:
+                    dia_fichaje = fields.Date.to_date(rec.date_start)
+                    ini_dia, _fin_dia = rec.employee_id._apunts_rango_utc(dia_fichaje)
+                    if open_att.check_in < ini_dia:
+                        self.env['apunts.taller.control'].sudo() \
+                            ._apunts_cerrar_asistencia_colgada(open_att)
+                        open_att = Att.search([
+                            ('employee_id', '=', rec.employee_id.id),
+                            ('check_out', '=', False),
+                        ], limit=1)
                 if not open_att:
                     Att.create({
                         'employee_id': rec.employee_id.id,

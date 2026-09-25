@@ -39,11 +39,18 @@ class FormacionFicha(models.Model):
                              help='Identificador estable de la guía (p. ej. tpv-hacer-venta). '
                                   'Si lo dejas vacío se genera solo a partir del título.')
     name = fields.Char('Título', required=True)
+    active = fields.Boolean(default=True,
+                            help='Desactívala para OCULTAR la guía en todas partes '
+                                 '(visor, enlace público y listados) sin borrar nada: '
+                                 'pasos, actas y gaps se conservan.')
     alias_text = fields.Text('Alias de búsqueda',
                              help='Uno por línea: cómo lo diría el usuario ("hacer un ticket", "cobrar")')
     area_id = fields.Many2one('formacion.area', string='Área', required=True)
-    publico = fields.Selection([('dependiente', 'Planta'),
-                                ('oficina', 'Oficina')],
+    # Las ETIQUETAS de los dos públicos son configurables (Ajustes → Formación):
+    # "Tienda"/"Oficina" en un comercio, "Planta"/"Oficina" en una fábrica...
+    # Las claves técnicas (dependiente/oficina) NO cambian: son las del MD de
+    # importación/exportación y las que filtra el visor.
+    publico = fields.Selection(selection='_selection_publico',
                                default='dependiente', required=True)
     modulo_odoo = fields.Char('Módulo de Odoo', help='Módulo del que depende la pantalla (p. ej. point_of_sale)')
     es_custom = fields.Boolean('Depende de desarrollo a medida',
@@ -81,6 +88,19 @@ class FormacionFicha(models.Model):
 
     # Campos cuyo cambio invalida una guía ya aceptada (el acta antigua se conserva)
     CAMPOS_CONTENIDO = ('name', 'cuando', 'antes', 'si_mal', 'escalar', 'paso_ids')
+
+    PUBLICO_DEFECTO = {'dependiente': '🛒 Tienda', 'oficina': '🗂️ Oficina'}
+
+    @api.model
+    def _etiquetas_publico(self):
+        icp = self.env['ir.config_parameter'].sudo()
+        return {k: (icp.get_param(f'grupadoo_formacion.publico_{k}') or '').strip() or v
+                for k, v in self.PUBLICO_DEFECTO.items()}
+
+    @api.model
+    def _selection_publico(self):
+        et = self._etiquetas_publico()
+        return [('dependiente', et['dependiente']), ('oficina', et['oficina'])]
 
     @api.model
     def _expand_estados(self, states, domain, order=None):
@@ -144,6 +164,8 @@ class FormacionFicha(models.Model):
         self.ensure_one()
         nueva = self.copy({'es_plantilla': False, 'name': self.name,
                            'id_tecnico': self._id_tecnico_libre(self._slugify(self.name))})
+        # `views` explícito: sin él, el _preprocessAction del cliente web hace
+        # .map sobre undefined ("Cannot read properties of undefined (reading 'map')")
         return {'type': 'ir.actions.act_window', 'res_model': 'formacion.ficha',
                 'res_id': nueva.id, 'view_mode': 'form',
                 'views': [[False, 'form']], 'target': 'current'}
@@ -221,6 +243,42 @@ class FormacionFicha(models.Model):
         return {'ok': True}
 
     @api.model
+    def _origen_odoo(self, tipo, rec_id=0, ficha=None):
+        """De QUÉ Odoo sale el correo. Va en los dos avisos (gap y ticket) para
+        que quien lo reciba (persona o cron) sepa sin adivinar a qué cliente,
+        URL y base de datos corresponde. Devuelve filas legibles + una línea
+        `ORIGEN|...` de campos separados por | pensada para parsearla."""
+        import odoo.release as release
+        icp = self.env['ir.config_parameter'].sudo()
+        base = (icp.get_param('web.base.url') or '').rstrip('/')
+        modulo = self.env['ir.module.module'].sudo().search(
+            [('name', '=', 'grupadoo_formacion')], limit=1)
+        datos = {
+            'tipo': tipo, 'id': rec_id or 0,
+            'empresa': self.env.company.name or '',
+            'url': base, 'bd': self.env.cr.dbname,
+            'odoo': release.version, 'modulo': modulo.latest_version or modulo.installed_version or '',
+            'guia': ficha.id_tecnico if ficha else '',
+            'pantalla': (ficha.modulo_odoo or '') if ficha else '',
+        }
+        filas = [('Odoo del cliente', f"{base} · BD {datos['bd']} · Odoo {datos['odoo']}"),
+                 ('Módulo de formación', f"v{datos['modulo']}" if datos['modulo'] else '')]
+        if ficha and ficha.modulo_odoo:
+            filas.append(('Pantalla / módulo Odoo',
+                          ficha.modulo_odoo + (' — desarrollo a medida' if ficha.es_custom else ' — estándar')))
+        linea = 'ORIGEN|' + '|'.join(str(datos[k]).replace('|', '/') for k in
+                                     ('tipo', 'id', 'empresa', 'url', 'bd', 'odoo', 'modulo', 'guia', 'pantalla'))
+        return datos, [(k, v) for k, v in filas if v], linea
+
+    @api.model
+    def _tabla_html(self, filas):
+        from markupsafe import escape
+        return ('<table border="0" cellpadding="4">'
+                + ''.join(f'<tr><td style="color:#888">{escape(k)}</td><td><b>{escape(v)}</b></td></tr>'
+                          for k, v in filas)
+                + '</table>')
+
+    @api.model
     def _avisar_consultor_gap(self, gap):
         """Correo automático al consultor del proyecto cada vez que el cliente
         reporta un gap. Nunca rompe el alta del gap: si el correo falla, se loguea."""
@@ -230,20 +288,28 @@ class FormacionFicha(models.Model):
             if not correo or not gap:
                 return
             from markupsafe import escape
-            base = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
+            datos, filas_origen, linea = self._origen_odoo('gap', gap.id, gap.ficha_id)
+            base = datos['url']
             donde = f'{gap.ficha_id.area_id.name} / {gap.ficha_id.name}'
             if gap.paso_n:
                 donde += f' — paso {gap.paso_n}'
+            filas = [('Empresa', datos['empresa']),
+                     ('Quién', gap.reportado_por or 'Sin nombre'),
+                     ('Dónde', donde),
+                     ('Guía (id técnico)', datos['guia'])] + filas_origen
             cuerpo = (
                 f'<h3>⚠️ Nuevo gap del cliente</h3>'
-                f'<p><b>{escape(gap.reportado_por or "Sin nombre")}</b> reporta en <b>{escape(donde)}</b>:</p>'
+                + self._tabla_html(filas)
+                + f'<p><b>Qué no cuadra (palabras del cliente):</b></p>'
                 f'<blockquote>{str(escape(gap.descripcion or "")).replace(chr(10), "<br/>")}</blockquote>'
                 f'<p>Gestión: <a href="{escape(base)}/odoo/action-grupadoo_formacion.action_formacion_gaps">'
-                f'Formación → Apunts → Gaps</a> · {escape(self.env.company.name or "")} · BD {escape(self.env.cr.dbname)}</p>')
+                f'Formación → Apunts → Gaps</a> (gap nº {gap.id})</p>'
+                f'<p style="color:#999;font-size:11px;font-family:monospace">{escape(linea)}</p>')
             self.env['mail.mail'].sudo().create({
-                'subject': f'[Formación] Gap: {donde}',
+                'subject': f"[Formación] Gap: {datos['empresa']} — {donde}",
                 'body_html': cuerpo,
                 'email_to': correo,
+                'headers': repr({'X-Grupadoo-Formacion': linea}),
             }).send(raise_exception=False)
         except Exception:
             _logger.warning('Formación: no se pudo avisar al consultor del gap %s',
@@ -356,9 +422,8 @@ class FormacionFicha(models.Model):
             return {'ok': False, 'motivo': 'El soporte no está activado en Ajustes → Formación.'}
         if not (texto or '').strip():
             return {'ok': False, 'motivo': 'Cuéntanos qué pasa (el texto está vacío).'}
-        import odoo.release as release
-        base = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
-        empresa = self.env.company.name or ''
+        datos, filas_origen, linea = self._origen_odoo('ticket', 0, ficha)
+        empresa = datos['empresa']
         urg = {'baja': '🟢 Baja', 'media': '🟡 Media', 'alta': '🔴 Alta'}.get(urgencia, '🟡 Media')
         donde = 'General (sin guía concreta)'
         if ficha:
@@ -371,22 +436,20 @@ class FormacionFicha(models.Model):
             ('Urgencia', urg),
             ('Dónde', donde),
         ]
-        if ficha and ficha.modulo_odoo:
-            filas.append(('Pantalla / módulo Odoo',
-                          ficha.modulo_odoo + (' — desarrollo a medida' if ficha.es_custom else ' — estándar')))
-        filas.append(('Odoo del cliente', f'{base} · BD {self.env.cr.dbname} · Odoo {release.version}'))
-        cuerpo = ['<h3>🛟 Ticket de asistencia desde Formación</h3>',
-                  '<table border="0" cellpadding="4">']
-        cuerpo += [f'<tr><td style="color:#888">{escape(k)}</td><td><b>{escape(v)}</b></td></tr>'
-                   for k, v in filas]
-        cuerpo.append('</table><p><b>Descripción del cliente:</b></p>')
+        if ficha:
+            filas.append(('Guía (id técnico)', ficha.id_tecnico or ''))
+        filas += filas_origen
+        cuerpo = ['<h3>🛟 Ticket de asistencia desde Formación</h3>', self._tabla_html(filas)]
+        cuerpo.append('<p><b>Descripción del cliente:</b></p>')
         cuerpo.append('<p>%s</p>' % str(escape(texto.strip())).replace('\n', '<br/>'))
+        cuerpo.append(f'<p style="color:#999;font-size:11px;font-family:monospace">{escape(linea)}</p>')
         mail = self.env['mail.mail'].sudo().create({
             'subject': f'[Asistencia Odoo] {empresa} — {donde}',
             'body_html': ''.join(cuerpo),
             'email_to': conf['email'],
             'email_from': email_autor or self.env.company.email or False,
             'reply_to': email_autor or False,
+            'headers': repr({'X-Grupadoo-Formacion': linea}),
         })
         mail.send(raise_exception=False)
         if mail.state != 'sent':
@@ -429,6 +492,7 @@ class FormacionFicha(models.Model):
         return {
             'soporte': soporte['activo'],
             'url_soporte': soporte['url'],
+            'publicos': self._etiquetas_publico(),
             'areas': [{'id': a.id, 'nombre': a.name,
                        'n': len(fichas.filtered(lambda f: f.area_id == a))} for a in areas],
             'fichas': [{
@@ -516,7 +580,10 @@ class FormacionFicha(models.Model):
                     texto = re.sub(r'`?\s*!\[[^\]]*\]\(([^)]+)\)\s*`?', _cambia, texto)
                 secciones[campo] = texto
             estado_md = 'validado' if meta.get('estado') == 'validado' else 'borrador'
-            ficha = self.search([('id_tecnico', '=', id_tecnico)], limit=1)
+            # active_test=False: si la guía está ARCHIVADA, reimportar debe
+            # actualizarla (no crear una duplicada que reviente el unique)
+            ficha = self.with_context(active_test=False).search(
+                [('id_tecnico', '=', id_tecnico)], limit=1)
             if estado_md == 'validado' and ficha and ficha.gap_ids.filtered(lambda g: g.estado == 'abierto'):
                 avisos.append(f'{id_tecnico}: el MD dice "validado" pero tiene gaps abiertos — se deja en validación')
                 estado_md = 'en_validacion'

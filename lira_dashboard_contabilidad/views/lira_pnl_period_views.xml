@@ -13,9 +13,10 @@
             <div class="ld_header_left">
               <div class="ld_main_title ld_title_row">P&amp;G por Periodos <widget name="lira_print_button" title="P&amp;G por Periodos" line_model="lira.pnl.line"/></div>
               <div class="ld_main_subtitle">
-                Cuenta de resultados filtrada por periodo con saldo desglosado por cuenta.
-                Separa Ingresos, Costes Variables (7 cuentas marcadas por el contable) y Costes Fijos (resto).
-                Permite ver el margen bruto real (sin costes fijos) y el resultado neto.
+                Cuenta de resultados por bloques, con la clasificación de costes de la empresa:
+                variables directos, semivariables, fijos operativos y estructura, más las
+                amortizaciones y los financieros después del EBITDA. Cada bloque lleva su peso
+                en % sobre la facturación.
               </div>
               <div class="ld_period_bar">
                 <span class="fa fa-calendar-o ld_icon_muted"/>
@@ -24,80 +25,94 @@
                 <field name="date_to" class="ld_date_input" nolabel="1"/>
                 <button name="action_refresh" string="Actualizar" type="object"
                         class="ld_btn_primary" icon="fa-refresh"/>
-                <button name="%(lira_dashboard_contabilidad.action_lira_variable_account)d"
-                        string="⚙ Gestionar cuentas variables" type="action"
+                <button name="%(lira_dashboard_contabilidad.action_lira_cuenta_bloque)d"
+                        string="⚙ Clasificación de costes" type="action"
                         class="btn btn-secondary ms-2" icon="fa-cogs"
-                        title="Añadir, quitar o editar las cuentas marcadas como variables"/>
+                        title="Ver o cambiar a qué bloque pertenece cada cuenta de gasto"/>
               </div>
             </div>
-            <div class="ld_header_kpis">
+            <div class="ld_header_kpis ld_pnl_kpis">
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">
-                  Ingresos
-                  <i class="fa fa-info-circle text-muted ms-1" title="Total de ingresos del periodo. Fuente: Σ (credit − debit) de account.move.line donde account_id.code empieza por 7 y parent_state=posted."/>
-                </div>
-                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_ingresos" readonly="1"/></div>
+                <div class="ld_hkpi_label">Facturación
+                  <i class="fa fa-info-circle text-muted ms-1" title="Ventas del periodo (cuentas 70x, sin IVA)."/></div>
+                <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_facturacion" readonly="1"/></div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">
-                  Costes variables
-                  <i class="fa fa-info-circle text-muted ms-1" title="Total de gastos de las 7 cuentas marcadas como variables: 60010005, 601007, 6070002, 6070003, 600017, 6000018, 62800001. Fuente: Σ (debit − credit) de account.move.line en esas cuentas."/>
-                </div>
+                <div class="ld_hkpi_label">Variables directos
+                  <i class="fa fa-info-circle text-muted ms-1" title="Materia prima, subcontratas, tratamientos y transportes ligados directamente a los trabajos (clasificación de la empresa). Entre paréntesis, su peso sobre la facturación."/></div>
                 <div class="ld_hkpi_value" style="color:#ca8a04"><field name="total_variables" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="variables_pct" readonly="1"/>% s/facturación</div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">
-                  Costes fijos
-                  <i class="fa fa-info-circle text-muted ms-1" title="Total del resto de gastos (grupo 6 excluyendo las 7 variables). Fuente: Σ (debit − credit) de account.move.line donde account_id.code empieza por 6 y NO está en la lista de variables."/>
-                </div>
-                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_fijos" readonly="1"/></div>
+                <div class="ld_hkpi_label">Semivariables
+                  <i class="fa fa-info-circle text-muted ms-1" title="Herramienta, reparaciones, electricidad y carburantes: crecen con la actividad pero no de forma proporcional."/></div>
+                <div class="ld_hkpi_value" style="color:#d97706"><field name="total_semivariables" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="semivariables_pct" readonly="1"/>% s/facturación</div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">
-                  Margen bruto
-                  <i class="fa fa-info-circle text-muted ms-1" title="Ingresos − Costes variables. Indica la capacidad de la empresa de generar margen antes de los costes estructurales fijos."/>
-                </div>
-                <div class="ld_hkpi_value">
-                  <field name="margen_bruto" readonly="1"/>
-                  <span class="ld_hkpi_unit"> (</span>
-                  <field name="margen_bruto_pct" readonly="1"/>
-                  <span class="ld_hkpi_unit">%)</span>
-                </div>
+                <div class="ld_hkpi_label">Fijos operativos
+                  <i class="fa fa-info-circle text-muted ms-1" title="Personal, nave, rentings, seguros y servicios recurrentes: el coste de mantener la fábrica lista."/></div>
+                <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_fijos_op" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="fijos_op_pct" readonly="1"/>% s/facturación</div>
               </div>
               <div class="ld_hkpi_sep"/>
               <div class="ld_hkpi">
-                <div class="ld_hkpi_label">
-                  Resultado
-                  <i class="fa fa-info-circle text-muted ms-1" title="Ingresos − Costes variables − Costes fijos. Resultado operativo del periodo (equivalente al BAII si solo hay gastos 6xx)."/>
-                </div>
-                <div class="ld_hkpi_value">
-                  <field name="resultado" readonly="1"/>
-                  <span class="ld_hkpi_unit"> (</span>
-                  <field name="resultado_pct" readonly="1"/>
-                  <span class="ld_hkpi_unit">%)</span>
-                </div>
+                <div class="ld_hkpi_label">Estructura / Dirección
+                  <i class="fa fa-info-circle text-muted ms-1" title="Dirección, asesores y administración: cuánto pesa la estructura sobre lo facturado."/></div>
+                <div class="ld_hkpi_value" style="color:#7c3aed"><field name="total_estructura" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="estructura_pct" readonly="1"/>% s/facturación</div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">EBITDA
+                  <i class="fa fa-info-circle text-muted ms-1" title="Facturación + otros ingresos + variación de existencias − los cuatro bloques de coste. Antes de amortizaciones y financieros."/></div>
+                <div class="ld_hkpi_value"><field name="ebitda" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="ebitda_pct" readonly="1"/>% s/facturación</div>
+              </div>
+              <div class="ld_hkpi_sep"/>
+              <div class="ld_hkpi">
+                <div class="ld_hkpi_label">Resultado
+                  <i class="fa fa-info-circle text-muted ms-1" title="EBITDA − amortizaciones − gastos financieros. El resultado final del periodo."/></div>
+                <div class="ld_hkpi_value"><field name="resultado" readonly="1"/></div>
+                <div class="ld_hkpi_trend"><field name="resultado_pct" readonly="1"/>% s/facturación</div>
               </div>
             </div>
           </div>
 
-          <!-- Contador de cuentas por bloque -->
+          <!-- Partidas después del EBITDA y avisos -->
           <div class="ld_header_kpis" style="margin-top:12px">
             <div class="ld_hkpi">
-              <div class="ld_hkpi_label">Cuentas Ingresos</div>
-              <div class="ld_hkpi_value" style="color:#16a34a"><field name="num_ctas_ingresos" readonly="1"/></div>
+              <div class="ld_hkpi_label">Otros ingresos</div>
+              <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_otros_ing" readonly="1"/></div>
             </div>
             <div class="ld_hkpi_sep"/>
             <div class="ld_hkpi">
-              <div class="ld_hkpi_label">Cuentas Variables <i class="fa fa-info-circle text-muted ms-1" title="Cuentas marcadas: 60010005, 601007, 6070002, 6070003, 600017, 6000018, 62800001"/></div>
-              <div class="ld_hkpi_value" style="color:#ca8a04"><field name="num_ctas_variables" readonly="1"/></div>
+              <div class="ld_hkpi_label">Variación de existencias</div>
+              <div class="ld_hkpi_value"><field name="total_variacion" readonly="1"/></div>
             </div>
             <div class="ld_hkpi_sep"/>
             <div class="ld_hkpi">
-              <div class="ld_hkpi_label">Cuentas Fijas</div>
-              <div class="ld_hkpi_value" style="color:#dc2626"><field name="num_ctas_fijos" readonly="1"/></div>
+              <div class="ld_hkpi_label">Amortizaciones</div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_amortizaciones" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Gastos financieros</div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_financieros" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Ingresos financieros</div>
+              <div class="ld_hkpi_value" style="color:#16a34a"><field name="total_ing_financieros" readonly="1"/></div>
+            </div>
+            <div class="ld_hkpi_sep"/>
+            <div class="ld_hkpi">
+              <div class="ld_hkpi_label">Sin clasificar
+                <i class="fa fa-info-circle text-muted ms-1" title="Gasto que no está en la clasificación de la empresa. Si crece, hay cuentas nuevas que decidir a qué bloque van."/></div>
+              <div class="ld_hkpi_value" style="color:#dc2626"><field name="total_sin_clasificar" readonly="1"/></div>
             </div>
           </div>
 
@@ -109,6 +124,16 @@
             </div>
             <button name="action_ver_tabla" string="Ver detalle" type="object"
                     class="ld_btn_primary" icon="fa-search"/>
+          </div>
+
+          <div class="ld_cta_panel">
+            <div class="ld_cta_icon"><i class="fa fa-line-chart"/></div>
+            <div class="ld_cta_text">
+              <strong>Ver evolución mensual</strong>
+              <span>La misma cascada, mes a mes en el periodo elegido: tabla con los meses en columnas, gráficas por bloque y variación respecto al mes anterior.</span>
+            </div>
+            <button name="action_evolucion_mensual" string="Ver evolución" type="object"
+                    class="ld_btn_primary" icon="fa-line-chart"/>
           </div>
 
         </sheet>

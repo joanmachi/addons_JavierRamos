@@ -1,7 +1,7 @@
 {
     "name": "Apunts JR — Parciales de OF",
     "summary": "Barcode persistente cross-backorder + vista consolidada de OFs parciales (madre + back-orders)",
-    "version": "18.0.1.0.3",
+    "version": "18.0.1.1.0",
     "category": "Manufacturing",
     "author": "Apunts Informàtica",
     "license": "LGPL-3",

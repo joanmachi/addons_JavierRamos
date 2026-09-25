@@ -12,6 +12,15 @@
                                  help="Para producción: el cliente (Formaciones y enlace público) solo ve las guías que ya validó.">
                             <field name="formacion_solo_validadas"/>
                         </setting>
+                        <setting string='Menú "Desarrollos" visible'
+                                 help="Apágalo para ocultar a todos los usuarios el menú Desarrollos (los gaps en solo lectura). Las guías concretas se ocultan archivándolas desde su ficha.">
+                            <field name="formacion_menu_desarrollos"/>
+                        </setting>
+                        <setting string="Nombre de los dos públicos"
+                                 help="Cómo llamáis a cada grupo de usuarios en este cliente. Las guías se marcan como público 1 o 2 y el visor permite filtrar por ellos. Por defecto 🛒 Tienda y 🗂️ Oficina; en una fábrica, por ejemplo, 🏭 Planta y 🗂️ Oficina.">
+                            <field name="formacion_publico_dependiente" placeholder="🛒 Tienda"/>
+                            <field name="formacion_publico_oficina" class="mt4" placeholder="🗂️ Oficina"/>
+                        </setting>
                         <setting string="Aviso al consultor por cada gap"
                                  help="Correo automático al consultor del proyecto cada vez que el cliente reporte que algo no funciona en una guía (desde el visor o el enlace público).">
                             <field name="formacion_email_consultor" placeholder="correo del consultor del proyecto"/>

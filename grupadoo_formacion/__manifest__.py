@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {'name': 'Asistente de Formación',
- 'version': '18.0.8.1.1',
+ 'version': '18.0.10.0.0',
  'category': 'Services',
  'summary': 'Guías paso a paso del Odoo del cliente, con capturas anotadas, validaciones '
             'con acta, gaps con tablero de seguimiento, enlace público sin usuario y '
@@ -69,7 +69,12 @@ Qué incluye
 * Flujo borrador → en validación → validado con actas inmutables.
 * Gaps del cliente con respuesta obligatoria y tablero público de seguimiento.
 * Plantillas, duplicado seguro, importación ZIP y exportación ZIP (ida y vuelta).
+* Ocultar sin borrar: guías archivables (desaparecen de visor, público y listados)
+  e interruptor en Ajustes para esconder el menú Desarrollos.
 * Enlace público con token regenerable y visor OWL con buscador con ranking.
+* Los avisos por correo (gap y ticket) dicen de qué Odoo salen (empresa, URL,
+  base de datos, versiones) con una línea ``ORIGEN|...`` parseable.
+* Etiquetas de los dos públicos configurables (Tienda/Planta/… y Oficina).
 
 Nota técnica
 ------------

@@ -1,13 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="apunts_cron_direccion_snapshot" model="ir.cron">
-        <field name="name">Apunts: foto semanal KPIs dirección</field>
+        <field name="name">Apunts: foto diaria KPIs dirección</field>
         <field name="model_id" ref="model_apunts_direccion_snapshot"/>
         <field name="state">code</field>
         <field name="code">model.cron_tomar_foto()</field>
         <field name="interval_number">1</field>
-        <field name="interval_type">weeks</field>
+        <field name="interval_type">days</field>
         <field name="nextcall" eval="(DateTime.now() + timedelta(days=((7 - DateTime.now().weekday()) or 7))).strftime('%Y-%m-%d 05:00:00')"/>
         <field name="active" eval="True"/>
     </record>
+
+    <!-- Cada lunes cierra la semana anterior y abre la nueva del registro CMI -->
+    <record id="apunts_cron_cmi_semana" model="ir.cron">
+        <field name="name">Apunts: registro semanal del cuadro de mando (CMI)</field>
+        <field name="model_id" ref="model_apunts_cmi_semana"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_semana()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=(7 - DateTime.now().weekday()) % 7 or 7)).strftime('%Y-%m-%d 05:30:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Cada día rehace el mes en curso y el anterior del registro de producción -->
+    <record id="apunts_cron_cmp_mes" model="ir.cron">
+        <field name="name">Apunts: registro de producción del cuadro de mando (CMP)</field>
+        <field name="model_id" ref="model_apunts_cmp_mes"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_mes()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 05:45:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+
+    <!-- Cada lunes recalcula los índices de producción (MACOP, MACPRE, previsión) -->
+    <record id="apunts_cron_cmp_indicador" model="ir.cron">
+        <field name="name">Apunts: índices de producción del cuadro de mando (CMP)</field>
+        <field name="model_id" ref="model_apunts_cmp_indicador"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_semana()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=(7 - DateTime.now().weekday()) % 7 or 7)).strftime('%Y-%m-%d 05:35:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Cada día recalcula el precio por hora del mes en curso y el anterior -->
+    <record id="apunts_cron_cmp_coste" model="ir.cron">
+        <field name="name">Apunts: precio por hora del cuadro de mando (CMP)</field>
+        <field name="model_id" ref="model_apunts_cmp_coste"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_mes()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 05:50:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+
+    <!-- KPIs de la reunión semanal: la semana en curso se refresca a diario -->
+    <record id="apunts_cron_kpi_actual" model="ir.cron">
+        <field name="name">Apunts: KPIs de Dirección — semana en curso</field>
+        <field name="model_id" ref="model_apunts_kpi_motor"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_actualizar_actual()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 06:10:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- ...y cada lunes de madrugada se CIERRA la semana anterior (dato inmutable) -->
+    <record id="apunts_cron_kpi_cierre" model="ir.cron">
+        <field name="name">Apunts: KPIs de Dirección — cierre semanal (lunes)</field>
+        <field name="model_id" ref="model_apunts_kpi_motor"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_cerrar_semana()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=(7 - DateTime.now().weekday()) % 7 or 7)).strftime('%Y-%m-%d 00:40:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
 </odoo>

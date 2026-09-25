@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Cartera pendiente repartida por semana de entrega comprometida.
+         Semanas en horizontal, euros pendientes en vertical, apilado por
+         situación (ya pasada / esta semana / próximas). -->
+    <record id="apunts_view_cartera_semana_graph" model="ir.ui.view">
+        <field name="name">lira.pending.delivery.line.apunts.cartera.graph</field>
+        <field name="model">lira.pending.delivery.line</field>
+        <field name="arch" type="xml">
+            <graph string="Cartera pendiente por semana de entrega comprometida"
+                   type="bar" stacked="1" disable_linking="1">
+                <field name="fecha_entrega" interval="week"/>
+                <field name="situacion"/>
+                <field name="valor_pendiente" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Columna "Situación" en la lista de lira -->
+    <record id="apunts_view_pending_delivery_line_list_situacion" model="ir.ui.view">
+        <field name="name">lira.pending.delivery.line.list.apunts.situacion</field>
+        <field name="model">lira.pending.delivery.line</field>
+        <field name="inherit_id" ref="lira_dashboard_contabilidad.view_lira_pending_delivery_line_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='fecha_entrega']" position="after">
+                <field name="situacion" optional="show"
+                       decoration-danger="situacion == 'vencida'"
+                       decoration-warning="situacion == 'semana'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Filtros y agrupación por situación en el buscador de lira -->
+    <record id="apunts_view_pending_delivery_line_search_situacion" model="ir.ui.view">
+        <field name="name">lira.pending.delivery.line.search.apunts.situacion</field>
+        <field name="model">lira.pending.delivery.line</field>
+        <field name="inherit_id" ref="lira_dashboard_contabilidad.view_lira_pending_delivery_line_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='entrega_vencida']" position="after">
+                <filter name="apunts_esta_semana" string="Entrega esta semana"
+                        domain="[('situacion', '=', 'semana')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_sem_entrega']" position="before">
+                <filter name="apunts_group_situacion" string="Situación (pasada / esta semana / próximas)"
+                        context="{'group_by': 'situacion'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

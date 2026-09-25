@@ -6,11 +6,15 @@
     <field name="model">lira.variable.account</field>
     <field name="arch" type="xml">
       <list string="Cuentas Variables — configuración"
-            decoration-muted="not active">
+            decoration-muted="not active"
+            decoration-danger="not codigo_existe">
+        <field name="codigo_existe" column_invisible="1"/>
         <field name="code" string="Código"
-               help="Código contable (ej. 60010005)."/>
+               help="Código contable REAL del plan (ej. 601000005). Si escribes el código
+                     abreviado, la fila sale en rojo y NO cuenta como coste variable."/>
         <field name="name" string="Nombre cuenta"
-               help="Nombre resuelto automáticamente si existe en el plan contable."/>
+               help="Nombre resuelto automáticamente si existe en el plan contable.
+                     Si ves aquí el propio número, es que ese código NO existe."/>
         <field name="account_type" string="Tipo" optional="show"
                help="Tipo de cuenta según el plan contable (gasto, ingreso, etc.)."/>
         <field name="descripcion" string="Por qué es variable" optional="show"
@@ -38,6 +42,7 @@
             </group>
             <group>
               <field name="account_id" readonly="1"/>
+              <field name="codigo_existe" readonly="1"/>
               <field name="account_type" readonly="1"/>
               <field name="company_id" readonly="1" groups="base.group_multi_company"/>
             </group>
@@ -57,6 +62,9 @@
     <field name="help" type="html">
       <p class="o_view_nocontent_smiling_face">Configura qué cuentas contables se consideran COSTES VARIABLES</p>
       <p>Estas cuentas se tratan como costes que escalan con la producción. El resto de cuentas del grupo 6 se consideran FIJAS.</p>
+      <p><b>Ojo con el código:</b> tiene que ser el código EXACTO del plan contable
+      (normalmente 9 dígitos, p. ej. <code>601000005</code>). Si se escribe abreviado,
+      la fila aparece en <b>rojo</b>, no cuenta como variable y el margen sale inflado.</p>
       <p>Se usan en:</p>
       <ul>
         <li>P&amp;G por Periodos (Fijos/Variables)</li>
